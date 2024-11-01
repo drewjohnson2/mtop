@@ -2,20 +2,23 @@
 #define CPU_MONITOR_H
 
 #include <stdint.h>
+#include <arena.h>
 
 typedef struct _cpu_stats 
 {
 	int cpuNumber;
-	uint32_t user;
-	uint32_t nice;
-	uint32_t system;
-	uint32_t idle;
-	uint32_t ioWait;
-	uint32_t irq;
-	uint32_t softIrq;
-	uint32_t steal;
-	uint32_t guest;
-	uint32_t guestNice;
+	long long int user;
+	long long int nice;
+	long long int system;
+	long long int idle;
+	long long int ioWait;
+	long long int irq;
+	long long int softIrq;
+	long long int steal;
+	long long int guest;
+	long long int guestNice;
 } CPU_STATS;
+
+CPU_STATS ** fetch_cpu_stats(Arena *arena);
 
 #endif
