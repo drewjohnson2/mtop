@@ -1,8 +1,8 @@
 #include <ncurses.h>
 #include <arena.h>
 
-#include "../../include/window/window_setup.h"
-#include "../../include/window/window.h"
+#include "../include/window/window_setup.h"
+#include "../include/window/window.h"
 
 DISPLAY_ITEMS * init_display_items(Arena *arena) 
 {
@@ -15,25 +15,21 @@ DISPLAY_ITEMS * init_display_items(Arena *arena)
 		sizeof(DISPLAY_ITEMS *) * di->windowCount,
 		_Alignof(DISPLAY_ITEMS *)
 	);
-
 	di->windows[CONTAINER_WIN] = a_alloc(
 		arena, 
 		sizeof(DISPLAY_ITEMS),
 		_Alignof(DISPLAY_ITEMS)
 	);
-
 	di->windows[CPU_WIN] = a_alloc(
 		arena,
 		sizeof(DISPLAY_ITEMS),
 		_Alignof(DISPLAY_ITEMS)
 	);
-
 	di->windows[MEMORY_WIN] = a_alloc(
 		arena,
 		sizeof(DISPLAY_ITEMS),
 		_Alignof(DISPLAY_ITEMS)
 	);
-
 	di->windows[PRC_WIN] = a_alloc(
 		arena,
 		sizeof(DISPLAY_ITEMS),
