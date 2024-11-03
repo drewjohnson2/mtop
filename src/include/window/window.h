@@ -14,12 +14,12 @@ typedef enum _mt_window
 typedef struct _window_data
 {
 	WINDOW *window;
-	unsigned int wHeight, wWidth;
-	unsigned int windowX, windowY;
-	unsigned int paddingTop;
-	unsigned int paddingBottom;
-	unsigned int paddingRight;
-	unsigned int paddingLeft;
+	unsigned short wHeight, wWidth;
+	unsigned short windowX, windowY;
+	unsigned short paddingTop;
+	unsigned short paddingBottom;
+	unsigned short paddingRight;
+	unsigned short paddingLeft;
 	char *windowTitle;
 } WINDOW_DATA;
 

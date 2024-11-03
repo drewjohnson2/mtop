@@ -1,3 +1,4 @@
+#include <locale.h>
 #include <ncurses.h>
 #include <arena.h>
 
@@ -41,6 +42,7 @@ DISPLAY_ITEMS * init_display_items(Arena *arena)
 
 void init_ncurses(WINDOW_DATA *wd, SCREEN *screen)
 {
+	setlocale(LC_ALL, "");
 	set_term(screen);
 	start_color();
 	raw();
@@ -143,15 +145,6 @@ void init_windows(DISPLAY_ITEMS *di)
 
 	wmove(container->window, 1, 1);
 	wprintw(container->window, "A test of the windows");
-
-	wmove(cpuWin->window, 6, 6);
-	wprintw(cpuWin->window, "BROOOOOOOOOOOOOOOOOOOOO");
-
-	wmove(memoryWin->window, 2, 2);
-	wprintw(memoryWin->window, "GAHHHHHHHHHHHHHHHHHHHHHHHHHHH");
-
-	wmove(prcWin->window, 6, 6);
-	wprintw(prcWin->window, "AZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
 
 	touchwin(container->window);
 	wrefresh(container->window);

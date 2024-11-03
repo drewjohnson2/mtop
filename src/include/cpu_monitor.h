@@ -7,18 +7,18 @@
 typedef struct _cpu_stats 
 {
 	int cpuNumber;
-	long long int user;
-	long long int nice;
-	long long int system;
-	long long int idle;
-	long long int ioWait;
-	long long int irq;
-	long long int softIrq;
-	long long int steal;
-	long long int guest;
-	long long int guestNice;
+	unsigned long long int user;
+	unsigned long long int nice;
+	unsigned long long int system;
+	unsigned long long int idle;
+	unsigned long long int ioWait;
+	unsigned long long int irq;
+	unsigned long long int softIrq;
+	unsigned long long int steal;
+	unsigned long long int guest;
+	unsigned long long int guestNice;
 } CPU_STATS;
 
-CPU_STATS ** fetch_cpu_stats(Arena *arena);
-
+CPU_STATS * fetch_cpu_stats(Arena *arena);
+float calculate_cpu_usage(CPU_STATS *prev, CPU_STATS *cur);
 #endif
