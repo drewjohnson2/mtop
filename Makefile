@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -MMD -MP
-LIBS = -lncurses -L/usr/lib -larena
+LIBS = -lncurses -lpthread -L/usr/lib -larena
 
-SRC_DIRS = src src/window src/startup
+SRC_DIRS = src src/window src/monitor
 OBJ_DIR = obj
 
 SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
