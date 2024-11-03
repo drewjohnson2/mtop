@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -MMD -MP -D_XOPEN_SOURCE_EXTENDED
-LIBS = -lncursesw -lpthread -L/usr/lib -larena
+CFLAGS = -Wall -Wextra -g -MMD -MP
+LIBS = -lncurses -lpthread -L/usr/lib -larena
 
 SRC_DIRS = src src/window src/monitor
 OBJ_DIR = obj

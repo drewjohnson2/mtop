@@ -18,6 +18,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 
 	if (posX < 1) posX = 1;
 
+	wattron(wd->window, COLOR_PAIR(2));
+
 	werase(win);	
 	box(win, 0, 0);
 
@@ -25,8 +27,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	{
 		if (posX > wd->wWidth - 2) break;
 
-		mvwprintw(win, 0, 3, "Percentage  = %.4f", current->percent * 100);
-		mvwprintw(win, 0, 35, "Arena Regions Alloc'd  = %zu", arena->regionsAllocated);
+		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
+		mvwprintw(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated);
 
 		int lineHeight = wd->wHeight * current->percent;
 		
@@ -72,6 +74,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 
 		r_free_head(arena);
 	}
+
+	wattroff(wd->window, COLOR_PAIR(2));
 
 	touchwin(win);
 	wrefresh(win);

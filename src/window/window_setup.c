@@ -138,10 +138,14 @@ void init_windows(DISPLAY_ITEMS *di)
 	/*
 		* just some test stuff, remove later
 	*/
-	box(container->window, 0, 0);
+	init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(2, COLOR_CYAN, COLOR_BLACK);
+
+	wattron(container->window, COLOR_PAIR(1));
 	box(cpuWin->window, 0, 0);
 	box(memoryWin->window, 0, 0);
 	box(prcWin->window, 0, 0);
+	wattroff(container->window, COLOR_PAIR(1));
 
 	wmove(container->window, 1, 1);
 	wprintw(container->window, "A test of the windows");

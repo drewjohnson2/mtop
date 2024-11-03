@@ -1,5 +1,4 @@
 #include <arena.h>
-#include <errno.h>
 #include <pthread.h>
 
 #include "../include/cpu_monitor.h"
@@ -21,7 +20,7 @@ void run_screen(
 
 	while (cont)
 	{
-		napms(150);
+		napms(250);
 
 		CPU_STATS *curStats = fetch_cpu_stats(cpuArena);
 
