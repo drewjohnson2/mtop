@@ -20,7 +20,7 @@ typedef struct _graph_data
 	GRAPH_POINT *head;
 } GRAPH_DATA;
 
-void graph_render(GRAPH_DATA *gd, WINDOW_DATA *wd);
+void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd);
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage);
 
 #endif

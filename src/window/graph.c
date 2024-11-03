@@ -2,11 +2,12 @@
 #include <ncurses.h>
 #include <string.h>
 #include <wchar.h>
+#include <arena.h>
 
 #include "../include/graph.h"
 
 
-void graph_render(GRAPH_DATA *gd, WINDOW_DATA *wd)
+void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
 
@@ -25,6 +26,7 @@ void graph_render(GRAPH_DATA *gd, WINDOW_DATA *wd)
 		if (posX > wd->wWidth - 2) break;
 
 		mvwprintw(win, 0, 3, "Percentage  = %.4f", current->percent * 100);
+		mvwprintw(win, 0, 35, "Arena Regions Alloc'd  = %zu", arena->regionsAllocated);
 
 		int lineHeight = wd->wHeight * current->percent;
 		
@@ -50,19 +52,25 @@ void graph_render(GRAPH_DATA *gd, WINDOW_DATA *wd)
 		current = current->next;
 	}
 
+	// I've created an arena specifically for 
+	// graph points. If I let the graph points
+	// linked list grow without bounds we'll
+	// eventually run out of memory. So I make 
+	// each region on the arena the size of 
+	// GRAPH_POINT, and when a graph point
+	// is outside of render bounds I free it.
+	// This is essentially just freeing the head
+	// of the region linked list. Then we set the
+	// head of the point linked list to NULL.
 	if (gd->graphPointCount >= wd->wWidth)
 	{
-		// these are managed by the arena,
-		// so I don't need to free. I'd like
-		// to add a region_free() to the arena
-		// library and maybe alloc each graph point
-		// in a new region so I can free that way.
-		// We'll see.
 		GRAPH_POINT *tmp = gd->head;
 		gd->head = gd->head->next;
 
 		tmp = NULL;
 		gd->graphPointCount--;
+
+		r_free_head(arena);
 	}
 
 	touchwin(win);

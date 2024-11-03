@@ -1,24 +1,10 @@
+#include <arena.h>
 #include <errno.h>
 #include <pthread.h>
 
 #include "../include/cpu_monitor.h"
 #include "../include/graph.h"
 #include "../include/screen_manager.h"
-
-static int _merge_thread(pthread_mutex_t *mutex)
-{
-	switch (pthread_mutex_trylock(mutex))
-	{
-		case 0:
-			pthread_mutex_unlock(mutex);
-			return 1;
-
-		case EBUSY:
-			return 0;
-	}
-
-	return 1;
-}
 
 void run_screen(
 	Arena *cpuArena,
@@ -29,9 +15,11 @@ void run_screen(
 {
 	CPU_STATS *prevStats = fetch_cpu_stats(cpuArena);
 	GRAPH_DATA *data = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
+	Arena pointArena = a_new(sizeof(GRAPH_POINT));
 	float percentage;
+	int cont = 1;
 
-	while (!_merge_thread(mutex))
+	while (cont)
 	{
 		napms(150);
 
@@ -39,10 +27,14 @@ void run_screen(
 
 		percentage = calculate_cpu_usage(prevStats, curStats);
 
-		add_graph_point(graphArena, data, percentage);
+		add_graph_point(&pointArena, data, percentage);
 
-		graph_render(data, di->windows[CPU_WIN]);
+		graph_render(&pointArena, data, di->windows[CPU_WIN]);
 
 		prevStats = curStats;
+
+		SHOULD_MERGE(mutex, cont);
 	}
+
+	a_free(&pointArena);
 }
