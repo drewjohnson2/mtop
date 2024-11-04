@@ -77,9 +77,6 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	}
 
 	wattroff(wd->window, COLOR_PAIR(2));
-
-	touchwin(win);
-	wrefresh(win);
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)

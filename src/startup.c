@@ -10,28 +10,18 @@
 #include "include/window/window_setup.h"
 #include "include/screen_manager.h"
 
-typedef struct _cpu_thread_args
+typedef struct _ui_thread_args
 {
 	Arena *cpuArena;
+	Arena *memArena;
 	Arena *graphArena;
-	WINDOW_DATA *win;
-	//DISPLAY_ITEMS *di;
+	WINDOW_DATA *cpuWin;
+	WINDOW_DATA *memWin;
 	pthread_mutex_t *mutex;
 	pthread_mutex_t *ncursesLock;
-} CPU_THREAD_ARGS;
+} UI_THREAD_ARGS;
 
-typedef struct _ram_thread_args
-{
-	Arena *ramArena;
-	Arena *graphArena;
-	WINDOW_DATA *win;
-	//DISPLAY_ITEMS *di;
-	pthread_mutex_t *mutex;
-	pthread_mutex_t *ncursesLock;
-} RAM_THREAD_ARGS;
-
-static void * _cpu_thread_run(void *arg);
-static void * _ram_thread_run(void *arg);
+static void * _ui_thread_run(void *arg);
 
 void run() 
 {
@@ -48,17 +38,13 @@ void run()
 	init_window_dimens(di);
 	init_windows(di);
 
-	CPU_THREAD_ARGS cpuArgs = 
+	UI_THREAD_ARGS cpuArgs = 
 	{
 		.cpuArena = &cpuArena,
+		.memArena = &ramArena,
 		.graphArena = &graphArena,
-		.win = di->windows[CPU_WIN] 
-	};
-
-	RAM_THREAD_ARGS ramArgs = {
-		.ramArena = &ramArena,
-		.graphArena = &graphArena,
-		.win = di->windows[MEMORY_WIN]
+		.cpuWin = di->windows[CPU_WIN],
+		.memWin = di->windows[MEMORY_WIN] 
 	};
 
 	// Using a mutex as a way to break
@@ -66,20 +52,16 @@ void run()
 	// CPU/Memory threads, instead of
 	// actually locking a shared resource.
 	pthread_t cpuThread;
-	pthread_t ramThread;
 	pthread_mutex_t mutex;
 	pthread_mutex_t ncursesLock;
 
 	cpuArgs.mutex = &mutex;
-	ramArgs.mutex = &mutex;
 	cpuArgs.ncursesLock = &ncursesLock;
-	ramArgs.ncursesLock = &ncursesLock;
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_lock(&mutex);
 	pthread_mutex_init(&ncursesLock, NULL);
-	pthread_create(&cpuThread, NULL, _cpu_thread_run, (void *)&cpuArgs);
-	pthread_create(&ramThread, NULL, _ram_thread_run, (void *)&ramArgs);
+	pthread_create(&cpuThread, NULL, _ui_thread_run, (void *)&cpuArgs);
 	
 	// wait for input to quit. Replace
 	// with controls for process list later.
@@ -88,7 +70,6 @@ void run()
 	pthread_mutex_unlock(&mutex);
 	pthread_mutex_unlock(&ncursesLock);
 	pthread_join(cpuThread, NULL);
-	pthread_join(ramThread, NULL);
 
 	endwin();
 	free(screen);
@@ -99,20 +80,19 @@ void run()
 	fclose(tty);
 }
 
-static void * _cpu_thread_run(void *arg)
+static void * _ui_thread_run(void *arg)
 {
-	CPU_THREAD_ARGS *args = (CPU_THREAD_ARGS *)arg;
+	UI_THREAD_ARGS *args = (UI_THREAD_ARGS *)arg;
 
-	run_screen(args->cpuArena, args->graphArena, args->win, args->mutex, args->ncursesLock);
-
-	return NULL;
-}
-
-static void * _ram_thread_run(void *arg)
-{
-	RAM_THREAD_ARGS *args = (RAM_THREAD_ARGS *)arg;
-
-	run_ram_screen(args->ramArena, args->graphArena, args->win, args->mutex, args->ncursesLock);
+	run_screen(
+		args->cpuArena,
+		args->memArena,
+		args->graphArena,
+		args->cpuWin,
+		args->memWin,
+		args->mutex,
+		args->ncursesLock
+	);
 
 	return NULL;
 }

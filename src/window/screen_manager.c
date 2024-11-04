@@ -7,85 +7,51 @@
 #include "../include/graph.h"
 #include "../include/screen_manager.h"
 
-static int _merge_thread(pthread_mutex_t *mutex)
-{
-	switch (pthread_mutex_trylock(mutex))
-	{
-		case 0:
-			pthread_mutex_unlock(mutex);
-			return 1;
-		case EBUSY:
-			return 0;
-	}
-
-	return 1;
-}
-
 void run_screen(
 	Arena *cpuArena,
+	Arena *memArena,
 	Arena *graphArena,
-	WINDOW_DATA *win,
+	WINDOW_DATA *cpuWin,
+	WINDOW_DATA *memWin,
 	pthread_mutex_t *mutex,
 	pthread_mutex_t *ncursesLock
 )
 {
 	CPU_STATS *prevStats = fetch_cpu_stats(cpuArena);
-	GRAPH_DATA *data = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
-	Arena pointArena = a_new(sizeof(GRAPH_POINT));
-	float percentage;
+	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
+	GRAPH_DATA *memGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
+	Arena cpuPointArena = a_new(sizeof(GRAPH_POINT));
+	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
+
+	float cpuPercentage, memoryPercentage;
 	int cont = 1;
 
-	while (!_merge_thread(mutex))
+	while (cont)
 	{
 		napms(350);
 
 		CPU_STATS *curStats = fetch_cpu_stats(cpuArena);
+		RAM_STATS *memStats = fetch_ram_stats(memArena);
 
-		percentage = calculate_cpu_usage(prevStats, curStats);
+		cpuPercentage = calculate_cpu_usage(prevStats, curStats);
+		memoryPercentage = calculate_ram_usage(memStats);
 
-		add_graph_point(&pointArena, data, percentage);
+		add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
+		add_graph_point(&memPointArena, memGraphData, memoryPercentage);
 
-		pthread_mutex_lock(ncursesLock);
-		graph_render(&pointArena, data, win);
-		pthread_mutex_unlock(ncursesLock);
+		graph_render(&cpuPointArena, cpuGraphData, cpuWin);
+		graph_render(&memPointArena, memGraphData, memWin);
+
+		touchwin(cpuWin->window);
+		touchwin(memWin->window);
+		wrefresh(cpuWin->window);
+		wrefresh(memWin->window);
 
 		prevStats = curStats;
 
-		//SHOULD_MERGE(mutex, cont);
+		SHOULD_MERGE(mutex, cont);
 	}
 
-	a_free(&pointArena);
-}
-
-void run_ram_screen(
-	Arena *ramArena,
-	Arena *graphArena,
-	WINDOW_DATA *win,
-	pthread_mutex_t *mutex,
-	pthread_mutex_t *ncursesLock
-)
-{
-	GRAPH_DATA *data = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
-	Arena pointArena = a_new(sizeof(GRAPH_POINT));
-	float percentage;
-	int cont = 1;
-
-	while (!_merge_thread(mutex))
-	{
-		napms(350);
-
-		RAM_STATS *stats = fetch_ram_stats(ramArena);
-
-		percentage = calculate_ram_usage(stats);
-
-		add_graph_point(&pointArena, data, percentage);
-
-		pthread_mutex_lock(ncursesLock);
-		graph_render(&pointArena, data, win);
-		pthread_mutex_unlock(ncursesLock);
-
-		//SHOULD_MERGE(mutex, cont);
-	}
-
-	a_free(&pointArena);
+	a_free(&cpuPointArena);
+	a_free(&memPointArena);
 }
