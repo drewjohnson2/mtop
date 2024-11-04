@@ -19,6 +19,9 @@
 		} \
 	} while(0) \
 
-void run_screen(Arena *cpuArena, Arena *graphArena, DISPLAY_ITEMS *di, pthread_mutex_t *mutex);
+void run_screen(Arena *cpuArena, Arena *graphArena, WINDOW_DATA *win, pthread_mutex_t *mutex,
+				pthread_mutex_t *ncursesLock);
+void run_ram_screen(Arena *ramArena, Arena *graphArena, WINDOW_DATA *win, pthread_mutex_t *mutex,
+					pthread_mutex_t *ncursesLock);
 
 #endif

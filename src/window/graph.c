@@ -34,10 +34,11 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 
+		char dataChar = current->percent * 100 == 0 ? '.' : '|';
+
 		while (lineHeight--)
 		{
 			if (posY <= 0) break;
-
 			
 			// Extended ascii not playing nice
 			// const wchar_t bullet = L'•';
@@ -45,7 +46,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 			// waddnwstr(win, &bullet, -1);
 			
 			wmove(win, posY--, posX);
-			wprintw(win, "%s", ":");
+			wprintw(win, "%c", dataChar);
 		}
 
 		posY = wd->wHeight - 2;
