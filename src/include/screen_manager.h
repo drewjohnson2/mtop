@@ -26,7 +26,16 @@ void run_screen(
 	WINDOW_DATA *cpuWin,
 	WINDOW_DATA *memWin,
 	pthread_mutex_t *mutex,
-	pthread_mutex_t *ncursesLock
+	pthread_mutex_t *statsLock,
+	pthread_cond_t *renderCondition
+);
+
+void run_io(
+	Arena *cpuArena,
+	Arena *memArena,
+	pthread_mutex_t *breakMutex,
+	pthread_mutex_t *statsLock,
+	pthread_cond_t *renderCondition
 );
 
 #endif
