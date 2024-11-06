@@ -1,10 +1,10 @@
-#ifndef SCREEN_MANAGER_H
-#define SCREEN_MANAGER_H
+#ifndef UI_THREAD_H
+#define UI_THREAD_H
 
 #include <arena.h>
 #include <pthread.h>
 
-#include "window/window.h"
+#include "../window/window.h"
 
 #define SHOULD_MERGE(mutex, cont) \
 	do { \
@@ -19,14 +19,13 @@
 		} \
 	} while(0) \
 
-void run_screen(
+void run_ui(
 	Arena *cpuArena,
 	Arena *memArena,
 	Arena *graphArena,
 	WINDOW_DATA *cpuWin,
 	WINDOW_DATA *memWin,
-	pthread_mutex_t *mutex,
-	pthread_mutex_t *ncursesLock
+	pthread_mutex_t *mutex
 );
 
 #endif

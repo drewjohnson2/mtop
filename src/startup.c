@@ -5,10 +5,9 @@
 #include <unistd.h>
 
 #include "include/startup/startup.h"
-#include "include/ram_monitor.h"
 #include "include/window/window.h"
 #include "include/window/window_setup.h"
-#include "include/screen_manager.h"
+#include "include/thread/ui_thread.h"
 
 typedef struct _ui_thread_args
 {
@@ -17,11 +16,11 @@ typedef struct _ui_thread_args
 	Arena *graphArena;
 	WINDOW_DATA *cpuWin;
 	WINDOW_DATA *memWin;
-	pthread_mutex_t *mutex;
-	pthread_mutex_t *ncursesLock;
+	pthread_mutex_t *runLock;
 } UI_THREAD_ARGS;
 
 static void * _ui_thread_run(void *arg);
+static void _get_input(DISPLAY_ITEMS *di);
 
 void run() 
 {
@@ -38,7 +37,7 @@ void run()
 	init_window_dimens(di);
 	init_windows(di);
 
-	UI_THREAD_ARGS cpuArgs = 
+	UI_THREAD_ARGS uiArgs = 
 	{
 		.cpuArena = &cpuArena,
 		.memArena = &ramArena,
@@ -52,24 +51,22 @@ void run()
 	// CPU/Memory threads, instead of
 	// actually locking a shared resource.
 	pthread_t cpuThread;
-	pthread_mutex_t mutex;
-	pthread_mutex_t ncursesLock;
+	pthread_mutex_t runLock;
 
-	cpuArgs.mutex = &mutex;
-	cpuArgs.ncursesLock = &ncursesLock;
+	uiArgs.runLock = &runLock;
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_lock(&mutex);
-	pthread_mutex_init(&ncursesLock, NULL);
-	pthread_create(&cpuThread, NULL, _ui_thread_run, (void *)&cpuArgs);
+	pthread_mutex_init(&runLock, NULL);
+	pthread_mutex_lock(&runLock);
+	pthread_create(&cpuThread, NULL, _ui_thread_run, (void *)&uiArgs);
 	
 	// wait for input to quit. Replace
 	// with controls for process list later.
-	wgetch(di->windows[CONTAINER_WIN]->window);
+	//wgetch(di->windows[CONTAINER_WIN]->window);
+	_get_input(di);
 
-	pthread_mutex_unlock(&mutex);
-	pthread_mutex_unlock(&ncursesLock);
+	pthread_mutex_unlock(&runLock);
 	pthread_join(cpuThread, NULL);
+	pthread_mutex_destroy(&runLock);
 
 	endwin();
 	free(screen);
@@ -80,18 +77,34 @@ void run()
 	fclose(tty);
 }
 
+void _get_input(DISPLAY_ITEMS *di)
+{
+	WINDOW *win = di->windows[CONTAINER_WIN]->window;
+	char ch;
+
+	while ((ch = wgetch(win)))
+	{
+		switch (ch)
+		{
+			case 'q':
+				return;
+			default:
+				continue;
+		}
+	}
+}
+
 static void * _ui_thread_run(void *arg)
 {
 	UI_THREAD_ARGS *args = (UI_THREAD_ARGS *)arg;
 
-	run_screen(
+	run_ui(
 		args->cpuArena,
 		args->memArena,
 		args->graphArena,
 		args->cpuWin,
 		args->memWin,
-		args->mutex,
-		args->ncursesLock
+		args->runLock
 	);
 
 	return NULL;
