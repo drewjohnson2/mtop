@@ -7,13 +7,10 @@
 
 #include "include/startup/startup.h"
 #include "include/cpu_monitor.h"
+#include "include/ram_monitor.h"
 #include "include/window/window.h"
 #include "include/window/window_setup.h"
 #include "include/screen_manager.h"
-
-CPU_STATS *prevStats = NULL;
-CPU_STATS *curStats = NULL;
-RAM_STATS *memStats = NULL;
 
 typedef struct _ui_thread_args
 {
@@ -24,7 +21,8 @@ typedef struct _ui_thread_args
 	WINDOW_DATA *memWin;
 	pthread_mutex_t *mutex;
 	pthread_mutex_t *statsLock;
-	pthread_cond_t *renderCondition;
+	pthread_cond_t *fileCond;
+	shared_data **sd;
 } UI_THREAD_ARGS;
 
 typedef struct _io_thread_args
@@ -33,7 +31,8 @@ typedef struct _io_thread_args
 	Arena *memArena;
 	pthread_mutex_t *breakMutex;
 	pthread_mutex_t *statsLock;
-	pthread_cond_t *renderCondition;
+	pthread_cond_t *fileCond;
+	shared_data **sd;
 } IO_THREAD_ARGS;
 
 static void * _ui_thread_run(void *arg);
@@ -54,8 +53,12 @@ void run()
 	init_window_dimens(di);
 	init_windows(di);
 
-	prevStats = fetch_cpu_stats(&cpuArena);
-	curStats = fetch_cpu_stats(&cpuArena);
+	shared_data *sd = a_alloc(&windowArena, sizeof(shared_data), _Alignof(shared_data));
+
+	sd->prev = fetch_cpu_stats(&cpuArena);
+	sd->memStats = fetch_ram_stats(&ramArena);
+	sd->cur = fetch_cpu_stats(&cpuArena);
+	sd->readingFile = 1;
 
 	UI_THREAD_ARGS cpuArgs = 
 	{
@@ -63,12 +66,14 @@ void run()
 		.memArena = &ramArena,
 		.graphArena = &graphArena,
 		.cpuWin = di->windows[CPU_WIN],
-		.memWin = di->windows[MEMORY_WIN] 
+		.memWin = di->windows[MEMORY_WIN],
+		.sd = &sd
 	};
 
 	IO_THREAD_ARGS ioArgs = {
 		.cpuArena = &cpuArena,
-		.memArena = &ramArena
+		.memArena = &ramArena,
+		.sd = &sd
 	};
 
 	// Using a mutex as a way to break
@@ -78,24 +83,25 @@ void run()
 	pthread_t cpuThread;
 	pthread_t ioThread;
 
-	pthread_cond_t renderCondition;
+	pthread_cond_t fileCondition;
 
 	pthread_mutex_t mutex;
 	pthread_mutex_t statsLock;
 
-	pthread_cond_init(&renderCondition, NULL);
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_init(&statsLock, NULL);
+
+	pthread_cond_init(&fileCondition, NULL);
 
 	pthread_mutex_lock(&mutex);
 
 	cpuArgs.mutex = &mutex;
 	cpuArgs.statsLock = &statsLock;
-	cpuArgs.renderCondition = &renderCondition;
+	cpuArgs.fileCond = &fileCondition;
 
 	ioArgs.breakMutex = &mutex;
 	ioArgs.statsLock = &statsLock;
-	ioArgs.renderCondition = &renderCondition;
+	ioArgs.fileCond = &fileCondition;
 
 	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
 	pthread_create(&cpuThread, NULL, _ui_thread_run, (void *)&cpuArgs);
@@ -105,13 +111,13 @@ void run()
 	wgetch(di->windows[CONTAINER_WIN]->window);
 
 	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&statsLock);
 
-	pthread_join(cpuThread, NULL);
 	pthread_join(ioThread, NULL);
+	pthread_join(cpuThread, NULL);
 
 	pthread_mutex_destroy(&mutex);
 	pthread_mutex_destroy(&statsLock);
-	pthread_cond_destroy(&renderCondition);
 
 	endwin();
 	free(screen);
@@ -134,7 +140,8 @@ static void * _ui_thread_run(void *arg)
 		args->memWin,
 		args->mutex,
 		args->statsLock,
-		args->renderCondition
+		args->fileCond,
+		args->sd
 	);
 
 	return NULL;
@@ -149,7 +156,8 @@ static void * _io_thread_run(void *arg)
 		args->memArena,
 		args->breakMutex,
 		args->statsLock,
-		args->renderCondition
+		args->fileCond,
+		args->sd
 	);
 
 	return NULL;

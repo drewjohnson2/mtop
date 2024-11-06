@@ -1,13 +1,12 @@
+#include <pthread.h>
 #include <arena.h>
 #include <ncurses.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "../include/ram_monitor.h"
 #include "../include/cpu_monitor.h"
 #include "../include/graph.h"
 #include "../include/screen_manager.h"
-#include "../include/startup/startup.h"
 
 void run_screen(
 	Arena *cpuArena,
@@ -17,7 +16,8 @@ void run_screen(
 	WINDOW_DATA *memWin,
 	pthread_mutex_t *mutex,
 	pthread_mutex_t *statsLock,
-	pthread_cond_t *renderCondition
+	pthread_cond_t *fileCond,
+	shared_data **sd
 )
 {
 	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
@@ -30,14 +30,18 @@ void run_screen(
 
 	while (cont)
 	{
-
-		napms(450);
-
-		cpuPercentage = calculate_cpu_usage(prevStats, curStats);
-		memoryPercentage = calculate_ram_usage(memStats);
-
 		pthread_mutex_lock(statsLock);
-		pthread_cond_wait(renderCondition, statsLock);
+
+		while ((*sd)->readingFile) pthread_cond_wait(fileCond, statsLock);
+
+		cpuPercentage = calculate_cpu_usage((*sd)->prev, (*sd)->cur);
+		memoryPercentage = calculate_ram_usage((*sd)->memStats);
+
+		(*sd)->prev = (*sd)->cur;
+
+		napms(350);
+		(*sd)->readingFile = 1;
+		pthread_mutex_unlock(statsLock);
 
 		add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
 		add_graph_point(&memPointArena, memGraphData, memoryPercentage);
@@ -45,14 +49,10 @@ void run_screen(
 		graph_render(&cpuPointArena, cpuGraphData, cpuWin);
 		graph_render(&memPointArena, memGraphData, memWin);
 
-		pthread_mutex_unlock(statsLock);
-
 		touchwin(cpuWin->window);
 		touchwin(memWin->window);
 		wrefresh(cpuWin->window);
 		wrefresh(memWin->window);
-
-		prevStats = curStats;
 
 		SHOULD_MERGE(mutex, cont);
 	}
@@ -66,23 +66,26 @@ void run_io(
 	Arena *memArena,
 	pthread_mutex_t *breakMutex,
 	pthread_mutex_t *statsLock,
-	pthread_cond_t *renderCondition
+	pthread_cond_t *fileCond,
+	shared_data **sd
 )
 {
-	prevStats = fetch_cpu_stats(cpuArena);
-
 	int cont = 1;
 
 	while (cont)
 	{
 		pthread_mutex_lock(statsLock);
 
-		curStats = fetch_cpu_stats(cpuArena);
-		memStats = fetch_ram_stats(memArena);
+		(*sd)->cur = fetch_cpu_stats(cpuArena);
+		(*sd)->memStats = fetch_ram_stats(memArena);
+
+		(*sd)->readingFile = 0;
 
 		pthread_mutex_unlock(statsLock);
-		pthread_cond_signal(renderCondition);
+		pthread_cond_signal(fileCond);
 
 		SHOULD_MERGE(breakMutex, cont);
 	}
 }
+
+// 80895745

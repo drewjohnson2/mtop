@@ -4,7 +4,10 @@
 #include <arena.h>
 #include <pthread.h>
 
+#include "startup/startup.h"
 #include "window/window.h"
+#include "../include/cpu_monitor.h"
+#include "../include/ram_monitor.h"
 
 #define SHOULD_MERGE(mutex, cont) \
 	do { \
@@ -27,7 +30,8 @@ void run_screen(
 	WINDOW_DATA *memWin,
 	pthread_mutex_t *mutex,
 	pthread_mutex_t *statsLock,
-	pthread_cond_t *renderCondition
+	pthread_cond_t *fileCond,	
+	shared_data **sd
 );
 
 void run_io(
@@ -35,7 +39,8 @@ void run_io(
 	Arena *memArena,
 	pthread_mutex_t *breakMutex,
 	pthread_mutex_t *statsLock,
-	pthread_cond_t *renderCondition
+	pthread_cond_t *fileCond,
+	shared_data **sd
 );
 
 #endif
