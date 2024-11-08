@@ -8,6 +8,7 @@
 #include "window/window.h"
 #include "../include/cpu_monitor.h"
 #include "../include/ram_monitor.h"
+#include "../queue.h"
 
 #define SHOULD_MERGE(mutex, cont) \
 	do { \
@@ -31,7 +32,8 @@ void run_screen(
 	pthread_mutex_t *mutex,
 	pthread_mutex_t *statsLock,
 	pthread_cond_t *fileCond,	
-	shared_data **sd
+	shared_data **sd,
+	QUEUE *q
 );
 
 void run_io(
@@ -40,7 +42,8 @@ void run_io(
 	pthread_mutex_t *breakMutex,
 	pthread_mutex_t *statsLock,
 	pthread_cond_t *fileCond,
-	shared_data **sd
+	shared_data **sd,
+	QUEUE *q
 );
 
 #endif

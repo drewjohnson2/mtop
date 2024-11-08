@@ -11,6 +11,7 @@
 #include "include/window/window.h"
 #include "include/window/window_setup.h"
 #include "include/screen_manager.h"
+#include "queue.h"
 
 typedef struct _ui_thread_args
 {
@@ -23,6 +24,7 @@ typedef struct _ui_thread_args
 	pthread_mutex_t *statsLock;
 	pthread_cond_t *fileCond;
 	shared_data **sd;
+	QUEUE *q;
 } UI_THREAD_ARGS;
 
 typedef struct _io_thread_args
@@ -33,6 +35,7 @@ typedef struct _io_thread_args
 	pthread_mutex_t *statsLock;
 	pthread_cond_t *fileCond;
 	shared_data **sd;
+	QUEUE *q;
 } IO_THREAD_ARGS;
 
 static void * _ui_thread_run(void *arg);
@@ -54,6 +57,8 @@ void run()
 	init_windows(di);
 
 	shared_data *sd = a_alloc(&windowArena, sizeof(shared_data), _Alignof(shared_data));
+	QUEUE *q = malloc(sizeof(QUEUE));
+	q->size = 0;
 
 	sd->prev = fetch_cpu_stats(&cpuArena);
 	sd->memStats = fetch_ram_stats(&ramArena);
@@ -67,13 +72,15 @@ void run()
 		.graphArena = &graphArena,
 		.cpuWin = di->windows[CPU_WIN],
 		.memWin = di->windows[MEMORY_WIN],
-		.sd = &sd
+		.sd = &sd,
+		.q = q
 	};
 
 	IO_THREAD_ARGS ioArgs = {
 		.cpuArena = &cpuArena,
 		.memArena = &ramArena,
-		.sd = &sd
+		.sd = &sd,
+		.q = q
 	};
 
 	// Using a mutex as a way to break
@@ -141,7 +148,8 @@ static void * _ui_thread_run(void *arg)
 		args->mutex,
 		args->statsLock,
 		args->fileCond,
-		args->sd
+		args->sd,
+		args->q
 	);
 
 	return NULL;
@@ -157,7 +165,8 @@ static void * _io_thread_run(void *arg)
 		args->breakMutex,
 		args->statsLock,
 		args->fileCond,
-		args->sd
+		args->sd,
+		args->q
 	);
 
 	return NULL;
