@@ -1,14 +1,18 @@
 #include <locale.h>
 #include <ncurses.h>
+#include <pthread.h>
 #include <string.h>
 #include <wchar.h>
 #include <arena.h>
 
+#include "../include/startup/startup.h"
 #include "../include/graph.h"
 
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
+
+	pthread_mutex_lock(&ncursesLock);
 
 	napms(200);
 
@@ -78,6 +82,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	}
 
 	wattroff(win, COLOR_PAIR(2));
+
+	pthread_mutex_unlock(&ncursesLock);
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)

@@ -19,11 +19,16 @@
 		} \
 	} while(0) \
 
-void run_ui(
+void run_cpu_graph(
 	Arena *cpuArena,
-	Arena *memArena,
 	Arena *graphArena,
 	WINDOW_DATA *cpuWin,
+	pthread_mutex_t *mutex
+);
+
+void run_memory_graph(
+	Arena *memArena,
+	Arena *graphArena,
 	WINDOW_DATA *memWin,
 	pthread_mutex_t *mutex
 );
