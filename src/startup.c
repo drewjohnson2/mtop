@@ -29,7 +29,7 @@ void run()
 
 	Arena windowArena = a_new(2048);
 	Arena cpuArena = a_new(2048);
-	Arena ramArena = a_new(2048);
+	Arena memArena = a_new(2048);
 	Arena graphArena = a_new(2048);
 	DISPLAY_ITEMS *di = init_display_items(&windowArena);
 
@@ -40,7 +40,7 @@ void run()
 	UI_THREAD_ARGS uiArgs = 
 	{
 		.cpuArena = &cpuArena,
-		.memArena = &ramArena,
+		.memArena = &memArena,
 		.graphArena = &graphArena,
 		.cpuWin = di->windows[CPU_WIN],
 		.memWin = di->windows[MEMORY_WIN] 
@@ -72,7 +72,7 @@ void run()
 	free(screen);
 	a_free(&windowArena);
 	a_free(&cpuArena);
-	a_free(&ramArena);
+	a_free(&memArena);
 	a_free(&graphArena);
 	fclose(tty);
 }

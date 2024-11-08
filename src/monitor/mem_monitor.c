@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/ram_monitor.h"
+#include "../include/mem_monitor.h"
 
 static inline int _str_starts_with(char *str1, char *str2, size_t len);
-static void _parse_stat(RAM_STATS *stat, char *buffer);
+static void _parse_stat(MEMORY_STATS *stat, char *buffer);
 
-RAM_STATS * fetch_ram_stats(Arena *arena)
+MEMORY_STATS * fetch_memory_stats(Arena *arena)
 {
 	FILE *f = fopen("/proc/meminfo", "r");
 	char buffer[256];
 
-	RAM_STATS *stat = a_alloc(
+	MEMORY_STATS *stat = a_alloc(
 		arena,
-		sizeof(RAM_STATS),
-		_Alignof(RAM_STATS)
+		sizeof(MEMORY_STATS),
+		_Alignof(MEMORY_STATS)
 	);
 
 	while (fgets(buffer, sizeof(buffer), f))
@@ -31,15 +31,7 @@ RAM_STATS * fetch_ram_stats(Arena *arena)
 	return stat;
 }
 
-float calculate_ram_usage(RAM_STATS *stats)
-{
-	unsigned long long usedDiff = stats->memFree + stats->cachedMem 
-		+ stats->sReclaimable + stats->buffers;
-
-	return (stats->memTotal - usedDiff) / (float)stats->memTotal;
-}
-
-static void _parse_stat(RAM_STATS *stat, char *buffer)
+static void _parse_stat(MEMORY_STATS *stat, char *buffer)
 {
 	if (sscanf(buffer, "MemTotal: %llu kB\n", &stat->memTotal) == 1) return;
 	else if (sscanf(buffer, "MemFree: %llu kB\n", &stat->memFree) == 1) return;

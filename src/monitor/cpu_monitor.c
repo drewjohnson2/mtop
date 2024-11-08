@@ -5,8 +5,6 @@
 
 static void _parse_stat(CPU_STATS *stat, char *buffer);
 
-float calculate_cpu_usage(CPU_STATS *prev, CPU_STATS *cur);
-
 CPU_STATS * fetch_cpu_stats(Arena *arena) 
 {
 	FILE *f = fopen("/proc/stat", "r");

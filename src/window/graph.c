@@ -6,10 +6,11 @@
 
 #include "../include/graph.h"
 
-
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
+
+	napms(200);
 
 	WINDOW *win = wd->window;
 	GRAPH_POINT *current = gd->head;
@@ -76,7 +77,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 		r_free_head(arena);
 	}
 
-	wattroff(wd->window, COLOR_PAIR(2));
+	wattroff(win, COLOR_PAIR(2));
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)

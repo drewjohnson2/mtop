@@ -3,6 +3,12 @@
 
 #include <ncurses.h>
 
+#define REFRESH_WIN(win) \
+	do { \
+		touchwin(win); \
+		wrefresh(win); \
+	} while (0) \
+
 typedef enum _mt_window 
 {
 	CONTAINER_WIN = 0,
