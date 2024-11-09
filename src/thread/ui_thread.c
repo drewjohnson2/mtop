@@ -1,19 +1,27 @@
 #include <pthread.h>
+#include <bits/pthreadtypes.h>
+#include <unistd.h>
 #include <arena.h>
 
-#include "../include/mem_monitor.h"
-#include "../include/cpu_monitor.h"
+#include "../include/thread/thread.h"
 #include "../include/graph.h"
 #include "../include/thread/ui_thread.h"
+#include "../include/cpu_monitor.h"
+#include "../include/util/shared_queue.h"
+#include "../include/mem_monitor.h"
 
 void run_cpu_graph(
-	Arena *cpuArena,
 	Arena *graphArena,
 	WINDOW_DATA *cpuWin,
-	pthread_mutex_t *mutex
+	SHARED_QUEUE *q
 )
 {
-	CPU_STATS *prevStats = fetch_cpu_stats(cpuArena);
+	CPU_STATS *prevStats = NULL;
+	CPU_STATS *curStats = NULL;
+
+	prevStats = peek(q, &cpuQueueLock, &cpuQueueCondition);
+	dequeue(q, &cpuQueueLock, &cpuQueueCondition);
+
 	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
 	Arena cpuPointArena = a_new(sizeof(GRAPH_POINT));
 
@@ -26,7 +34,8 @@ void run_cpu_graph(
 		// Since we grab CPU/Mem info so often
 		// it slowed execution to an insane degree.
 		// Perhaps a queue would be nice?
-		CPU_STATS *curStats = fetch_cpu_stats(cpuArena);
+		curStats = peek(q, &cpuQueueLock, &cpuQueueCondition);
+		dequeue(q, &cpuQueueLock, &cpuQueueCondition);
  
 		CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
 
@@ -36,17 +45,16 @@ void run_cpu_graph(
 		prevStats = curStats;
 
 		REFRESH_WIN(cpuWin->window);
-		SHOULD_MERGE(mutex, cont);
+		SHOULD_MERGE(&runLock, cont);
 	}
 
 	a_free(&cpuPointArena);
 }
 
 void run_memory_graph(
-	Arena *memArena,
 	Arena *graphArena,
 	WINDOW_DATA *memWin,
-	pthread_mutex_t *mutex
+	SHARED_QUEUE *queue	
 )
 {
 	GRAPH_DATA *memGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
@@ -61,7 +69,8 @@ void run_memory_graph(
 		// Since we grab CPU/Mem info so often
 		// it slowed execution to an insane degree.
 		// Perhaps a queue would be nice?
-		MEMORY_STATS *memStats = fetch_memory_stats(memArena);
+		MEMORY_STATS *memStats = peek(queue, &memQueueLock, &memQueueCondition);
+		dequeue(queue, &memQueueLock, &memQueueCondition);
  
 		CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
 
@@ -69,7 +78,7 @@ void run_memory_graph(
 		graph_render(&memPointArena, memGraphData, memWin);
 
 		REFRESH_WIN(memWin->window);
-		SHOULD_MERGE(mutex, cont);
+		SHOULD_MERGE(&runLock, cont);
 	}
 
 	a_free(&memPointArena);

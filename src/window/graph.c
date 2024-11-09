@@ -4,9 +4,10 @@
 #include <string.h>
 #include <wchar.h>
 #include <arena.h>
+#include <unistd.h>
 
-#include "../include/startup/startup.h"
 #include "../include/graph.h"
+#include "../include/thread/thread.h"
 
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
@@ -14,7 +15,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 
 	pthread_mutex_lock(&ncursesLock);
 
-	napms(200);
+	//napms(200);
 
 	WINDOW *win = wd->window;
 	GRAPH_POINT *current = gd->head;
@@ -82,6 +83,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	}
 
 	wattroff(win, COLOR_PAIR(2));
+
+	usleep(1000 * 100);
 
 	pthread_mutex_unlock(&ncursesLock);
 }

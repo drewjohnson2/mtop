@@ -3,8 +3,6 @@
 
 #include <pthread.h>
 
-extern pthread_mutex_t ncursesLock;
-
 void run();
 
 #endif
