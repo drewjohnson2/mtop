@@ -7,10 +7,6 @@ pthread_mutex_t memQueueLock;
 pthread_cond_t cpuQueueCondition;
 pthread_cond_t memQueueCondition;
 
-// void init_threads(pthread_t ioThread, pthread_t cpuThread, pthread_t memoryThread)
-// {
-// }
-
 void mutex_init()
 {
 	pthread_mutex_init(&runLock, NULL);

@@ -5,8 +5,6 @@
 
 void enqueue(SHARED_QUEUE *q, void *stats, pthread_mutex_t *queueLock, pthread_cond_t *condition)
 {
-	//if ((*q)->size > 4) return;
-
 	pthread_mutex_lock(queueLock);
 
 	QUEUE_NODE *newNode = malloc(sizeof(QUEUE_NODE));

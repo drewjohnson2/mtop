@@ -21,6 +21,7 @@ void run_graphs(
 {
 	CPU_STATS *prevStats = NULL;
 	CPU_STATS *curStats = NULL;
+	MEMORY_STATS *memStats = NULL;
 
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
@@ -36,14 +37,10 @@ void run_graphs(
 
 	while (cont)
 	{
-		// I tried moving this to an IO thread.
-		// Since we grab CPU/Mem info so often
-		// it slowed execution to an insane degree.
-		// Perhaps a queue would be nice?
 		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 		dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
- 		MEMORY_STATS *memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
+ 		memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
 		dequeue(memoryQueue, &memQueueLock, &memQueueCondition);
  
 		CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
