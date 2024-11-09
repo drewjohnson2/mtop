@@ -22,7 +22,7 @@ typedef struct _cpu_thread_args
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
 
-} CPU_THREAD_ARGS;
+} GRAPH_THREAD_ARGS;
 
 typedef struct _io_thread_args
 {
@@ -32,7 +32,7 @@ typedef struct _io_thread_args
 	SHARED_QUEUE *memQueue;
 } IO_THREAD_ARGS;
 
-static void * _cpu_thread_run(void *arg);
+static void * _graph_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DISPLAY_ITEMS *di);
 
@@ -54,7 +54,7 @@ void run()
 	init_window_dimens(di);
 	init_windows(di);
 
-	CPU_THREAD_ARGS uiArgs = 
+	GRAPH_THREAD_ARGS uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
 		.cpuWin = di->windows[CPU_WIN],
@@ -84,7 +84,7 @@ void run()
 	
 	pthread_mutex_lock(&runLock);
 	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
-	pthread_create(&cpuThread, NULL, _cpu_thread_run, (void *)&uiArgs);
+	pthread_create(&cpuThread, NULL, _graph_thread_run, (void *)&uiArgs);
 	
 	// wait for input to quit. Replace
 	// with controls for process list later.
@@ -123,9 +123,9 @@ void _get_input(DISPLAY_ITEMS *di)
 	}
 }
 
-static void * _cpu_thread_run(void *arg)
+static void * _graph_thread_run(void *arg)
 {
-	CPU_THREAD_ARGS *args = (CPU_THREAD_ARGS *)arg;
+	GRAPH_THREAD_ARGS *args = (GRAPH_THREAD_ARGS *)arg;
 
 	run_graphs(
 		args->graphArena,
