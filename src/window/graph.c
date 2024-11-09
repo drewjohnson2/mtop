@@ -1,15 +1,21 @@
 #include <locale.h>
 #include <ncurses.h>
+#include <pthread.h>
 #include <string.h>
 #include <wchar.h>
 #include <arena.h>
+#include <unistd.h>
 
 #include "../include/graph.h"
-
+//#include "../include/thread/thread.h"
 
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
+
+	//pthread_mutex_lock(&ncursesLock);
+
+	//napms(200);
 
 	WINDOW *win = wd->window;
 	GRAPH_POINT *current = gd->head;
@@ -34,10 +40,11 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 
+		char dataChar = current->percent * 100 == 0 ? '.' : '|';
+
 		while (lineHeight--)
 		{
 			if (posY <= 0) break;
-
 			
 			// Extended ascii not playing nice
 			// const wchar_t bullet = L'•';
@@ -45,7 +52,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 			// waddnwstr(win, &bullet, -1);
 			
 			wmove(win, posY--, posX);
-			wprintw(win, "%s", ":");
+			wprintw(win, "%c", dataChar);
 		}
 
 		posY = wd->wHeight - 2;
@@ -75,10 +82,9 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 		r_free_head(arena);
 	}
 
-	wattroff(wd->window, COLOR_PAIR(2));
-
-	touchwin(win);
-	wrefresh(win);
+	wattroff(win, COLOR_PAIR(2));
+	
+	//pthread_mutex_unlock(&ncursesLock);
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)
