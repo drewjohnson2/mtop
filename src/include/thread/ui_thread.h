@@ -8,16 +8,13 @@
 #include "../window/window.h"
 
 
-void run_cpu_graph(
+void run_graphs(
 	Arena *graphArena,
+	Arena *memGraphArena,
 	WINDOW_DATA *cpuWin,
-	SHARED_QUEUE *queue
-);
-
-void run_memory_graph(
-	Arena *graphArena,
 	WINDOW_DATA *memWin,
-	SHARED_QUEUE *queue
+	SHARED_QUEUE *cpuQueue,
+	SHARED_QUEUE *memoryQueue	
 );
 
 #endif

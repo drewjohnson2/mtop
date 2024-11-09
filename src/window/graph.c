@@ -7,13 +7,13 @@
 #include <unistd.h>
 
 #include "../include/graph.h"
-#include "../include/thread/thread.h"
+//#include "../include/thread/thread.h"
 
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
 
-	pthread_mutex_lock(&ncursesLock);
+	//pthread_mutex_lock(&ncursesLock);
 
 	//napms(200);
 
@@ -83,10 +83,8 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	}
 
 	wattroff(win, COLOR_PAIR(2));
-
-	usleep(1000 * 100);
-
-	pthread_mutex_unlock(&ncursesLock);
+	
+	//pthread_mutex_unlock(&ncursesLock);
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)

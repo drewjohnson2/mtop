@@ -15,20 +15,14 @@
 
 typedef struct _cpu_thread_args
 {
-	Arena *cpuArena;
 	Arena *graphArena;
+	Arena *memGraphArena;
 	WINDOW_DATA *cpuWin;
-	SHARED_QUEUE *queue;
-} CPU_THREAD_ARGS;
-
-typedef struct _memory_thread_args
-{
-	Arena *memoryArena;
-	Arena *graphArena;
 	WINDOW_DATA *memWin;
-	SHARED_QUEUE *queue;
+	SHARED_QUEUE *cpuQueue;
+	SHARED_QUEUE *memQueue;
 
-} MEMORY_THREAD_ARGS;
+} CPU_THREAD_ARGS;
 
 typedef struct _io_thread_args
 {
@@ -39,7 +33,6 @@ typedef struct _io_thread_args
 } IO_THREAD_ARGS;
 
 static void * _cpu_thread_run(void *arg);
-static void * _memory_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DISPLAY_ITEMS *di);
 
@@ -54,8 +47,8 @@ void run()
 	Arena cpuGraphArena = a_new(2048);
 	Arena memoryGraphArena = a_new(2048);
 	DISPLAY_ITEMS *di = init_display_items(&windowArena);
-	SHARED_QUEUE *q = a_alloc(&cpuArena, sizeof(SHARED_QUEUE), _Alignof(SHARED_QUEUE));
-	SHARED_QUEUE *mq = a_alloc(&memArena, sizeof(SHARED_QUEUE), _Alignof(SHARED_QUEUE));
+	SHARED_QUEUE *cpuQueue = a_alloc(&cpuArena, sizeof(SHARED_QUEUE), _Alignof(SHARED_QUEUE));
+	SHARED_QUEUE *memoryQueue = a_alloc(&memArena, sizeof(SHARED_QUEUE), _Alignof(SHARED_QUEUE));
 
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
@@ -63,26 +56,20 @@ void run()
 
 	CPU_THREAD_ARGS uiArgs = 
 	{
-		.cpuArena = &cpuArena,
 		.graphArena = &cpuGraphArena,
 		.cpuWin = di->windows[CPU_WIN],
-		.queue = q
-	};
-
-	MEMORY_THREAD_ARGS memoryArgs = 
-	{
-		.memoryArena = &memArena,
-		.graphArena = &memoryGraphArena,
+		.cpuQueue = cpuQueue,
+		.memGraphArena = &memoryGraphArena,
 		.memWin = di->windows[MEMORY_WIN],
-		.queue = mq
+		.memQueue = memoryQueue
 	};
 
 	IO_THREAD_ARGS ioArgs = 
 	{
 		.cpuArena = &cpuArena,
 		.memArena = &memArena,
-		.cpuQueue = q,
-		.memQueue = mq
+		.cpuQueue = cpuQueue,
+		.memQueue = memoryQueue
 	};
 
 	// Using a mutex as a way to break
@@ -91,7 +78,6 @@ void run()
 	// actually locking a shared resource.
 	pthread_t ioThread;
 	pthread_t cpuThread;
-	pthread_t memoryThread;
 
 	mutex_init();
 	condition_init();
@@ -99,7 +85,6 @@ void run()
 	pthread_mutex_lock(&runLock);
 	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
 	pthread_create(&cpuThread, NULL, _cpu_thread_run, (void *)&uiArgs);
-	pthread_create(&memoryThread, NULL, _memory_thread_run, (void *)&memoryArgs);
 	
 	// wait for input to quit. Replace
 	// with controls for process list later.
@@ -108,7 +93,6 @@ void run()
 	pthread_mutex_unlock(&runLock);
 	pthread_join(ioThread, NULL);
 	pthread_join(cpuThread, NULL);
-	pthread_join(memoryThread, NULL);
 	mutex_destroy();
 	condition_destroy();
 	
@@ -143,23 +127,13 @@ static void * _cpu_thread_run(void *arg)
 {
 	CPU_THREAD_ARGS *args = (CPU_THREAD_ARGS *)arg;
 
-	run_cpu_graph(
+	run_graphs(
 		args->graphArena,
+		args->memGraphArena,
 		args->cpuWin,
-		args->queue
-	);
-
-	return NULL;
-}
-
-static void * _memory_thread_run(void *arg)
-{
-	MEMORY_THREAD_ARGS *args = (MEMORY_THREAD_ARGS *)arg;
-
-	run_memory_graph(
-		args->graphArena,
 		args->memWin,
-		args->queue
+		args->cpuQueue,
+		args->memQueue
 	);
 
 	return NULL;

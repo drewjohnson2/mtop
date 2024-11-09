@@ -21,7 +21,7 @@ void run_io(
 	{
 		// need to find a better way to synchronize the sleeps 
 		// here and in graph.c
-		usleep(1000 * 150);
+		usleep(1000 * 100);
 
 		if (cpuQueue->size < 4 || memQueue->size < 4) 
 		{
