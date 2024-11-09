@@ -17,7 +17,6 @@
 	} while(0) \
 
 extern pthread_mutex_t runLock;
-extern pthread_mutex_t ncursesLock;
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
 
