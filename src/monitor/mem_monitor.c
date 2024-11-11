@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <string.h>
 
-#include "../include/mem_monitor.h"
+#include "../include/monitor/mem_monitor.h"
 
 static void _parse_stat(MEMORY_STATS *stat, char *buffer);
 
@@ -13,7 +12,7 @@ MEMORY_STATS * fetch_memory_stats(Arena *arena)
 	MEMORY_STATS *stat = a_alloc(
 		arena,
 		sizeof(MEMORY_STATS),
-		_Alignof(MEMORY_STATS)
+		__alignof(MEMORY_STATS)
 	);
 
 	while (fgets(buffer, sizeof(buffer), f))

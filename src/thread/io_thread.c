@@ -4,8 +4,8 @@
 #include <arena.h>
 
 #include "../include/thread/thread.h"
-#include "../include/mem_monitor.h"
-#include "../include/cpu_monitor.h"
+#include "../include/monitor/mem_monitor.h"
+#include "../include/monitor/cpu_monitor.h"
 #include "../include/util/shared_queue.h"
 
 void run_io(

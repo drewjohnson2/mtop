@@ -6,9 +6,9 @@
 #include "../include/thread/thread.h"
 #include "../include/graph.h"
 #include "../include/thread/ui_thread.h"
-#include "../include/cpu_monitor.h"
+#include "../include/monitor/cpu_monitor.h"
 #include "../include/util/shared_queue.h"
-#include "../include/mem_monitor.h"
+#include "../include/monitor/mem_monitor.h"
 
 void run_graphs(
 	Arena *graphArena,
@@ -26,10 +26,10 @@ void run_graphs(
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
-	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
+	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), __alignof(GRAPH_DATA));
 	Arena cpuPointArena = a_new(sizeof(GRAPH_POINT));
 
-	GRAPH_DATA *memGraphData = a_alloc(memGraphArena, sizeof(GRAPH_DATA), _Alignof(GRAPH_DATA));
+	GRAPH_DATA *memGraphData = a_alloc(memGraphArena, sizeof(GRAPH_DATA), __alignof(GRAPH_DATA));
 	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
 
 	float cpuPercentage, memoryPercentage;

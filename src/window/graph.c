@@ -89,7 +89,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)
 {
-	GRAPH_POINT *gp = a_alloc(arena, sizeof(GRAPH_POINT), _Alignof(GRAPH_POINT));
+	GRAPH_POINT *gp = a_alloc(arena, sizeof(GRAPH_POINT), __alignof(GRAPH_POINT));
 	
 	gp->percent = percentage;
 	
