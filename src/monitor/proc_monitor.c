@@ -2,7 +2,6 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
-#include <arena.h>
 
 #include "../include/monitor/proc_monitor.h"
 

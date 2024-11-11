@@ -1,6 +1,8 @@
 #ifndef PROC_MONITOR_H
 #define PROC_MONITOR_H
 
+#include <arena.h>
+
 typedef struct _proc_stats
 {
 	int pid;
@@ -9,6 +11,8 @@ typedef struct _proc_stats
 	unsigned long stime;
 
 } PROC_STATS;
+
+PROC_STATS ** get_processes(Arena *procArena);
 
 #endif
 
