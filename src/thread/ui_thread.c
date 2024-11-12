@@ -13,8 +13,7 @@
 void run_graphs(
 	Arena *graphArena,
 	Arena *memGraphArena,
-	WINDOW_DATA *cpuWin,
-	WINDOW_DATA *memWin,
+	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
 	SHARED_QUEUE *memoryQueue	
 )
@@ -22,6 +21,9 @@ void run_graphs(
 	CPU_STATS *prevStats = NULL;
 	CPU_STATS *curStats = NULL;
 	MEMORY_STATS *memStats = NULL;
+	WINDOW_DATA *cpuWin = di->windows[CPU_WIN];
+	WINDOW_DATA *memWin = di->windows[MEMORY_WIN];
+	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
 
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
@@ -54,8 +56,7 @@ void run_graphs(
 
 		prevStats = curStats;
 
-		REFRESH_WIN(cpuWin->window);
-		REFRESH_WIN(memWin->window);
+		REFRESH_WIN(container->window);
 
 		usleep(1000 * 200);
 

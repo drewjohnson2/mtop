@@ -11,8 +11,7 @@
 void run_graphs(
 	Arena *graphArena,
 	Arena *memGraphArena,
-	WINDOW_DATA *cpuWin,
-	WINDOW_DATA *memWin,
+	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
 	SHARED_QUEUE *memoryQueue	
 );

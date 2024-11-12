@@ -22,7 +22,7 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	short posX = wd->wWidth - gd->graphPointCount - 2;
 	short posY = wd->wHeight - 2;
 
-	if (posX < 1) posX = 1;
+	if (posX < 2) posX = 2;
 
 	wattron(wd->window, COLOR_PAIR(2));
 

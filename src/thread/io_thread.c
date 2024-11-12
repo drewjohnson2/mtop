@@ -23,7 +23,7 @@ void run_io(
 		// here and in graph.c
 		usleep(1000 * 100);
 
-		if (cpuQueue->size < 4 || memQueue->size < 4) 
+		if (cpuQueue->size < 5 || memQueue->size < 5) 
 		{
 			CPU_STATS *cpuStats = fetch_cpu_stats(cpuArena);
 			MEMORY_STATS *memStats = fetch_memory_stats(memArena);

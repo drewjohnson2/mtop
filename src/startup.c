@@ -17,8 +17,7 @@ typedef struct _cpu_thread_args
 {
 	Arena *graphArena;
 	Arena *memGraphArena;
-	WINDOW_DATA *cpuWin;
-	WINDOW_DATA *memWin;
+	DISPLAY_ITEMS *di;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
 
@@ -57,10 +56,9 @@ void run()
 	GRAPH_THREAD_ARGS uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
-		.cpuWin = di->windows[CPU_WIN],
+		.di = di,
 		.cpuQueue = cpuQueue,
 		.memGraphArena = &memoryGraphArena,
-		.memWin = di->windows[MEMORY_WIN],
 		.memQueue = memoryQueue
 	};
 
@@ -130,8 +128,7 @@ static void * _graph_thread_run(void *arg)
 	run_graphs(
 		args->graphArena,
 		args->memGraphArena,
-		args->cpuWin,
-		args->memWin,
+		args->di,
 		args->cpuQueue,
 		args->memQueue
 	);
