@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -MMD -MP
+CFLAGS = -Wall -Wextra -MMD -MP
 LIBS = -lncurses -lpthread -L/usr/lib -larena
 
 SRC_DIRS = src src/window src/monitor src/thread src/util
@@ -11,6 +11,9 @@ DEPS = $(OBJECTS:.o=.d)
 BINARY = mtop
 
 all: $(BINARY)
+
+debug: CFLAGS += -g -DDEBUG
+debug: $(BINARY)
 
 $(BINARY): $(OBJECTS) 	
 	$(CC) -o $@ $^ $(LIBS)

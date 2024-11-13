@@ -13,28 +13,28 @@ DISPLAY_ITEMS * init_display_items(Arena *arena)
 
 	di->windows = a_alloc(
 		arena,
-		sizeof(DISPLAY_ITEMS *) * di->windowCount,
-		__alignof(DISPLAY_ITEMS *)
+		sizeof(WINDOW_DATA *) * di->windowCount,
+		__alignof(WINDOW_DATA *)
 	);
 	di->windows[CONTAINER_WIN] = a_alloc(
 		arena, 
-		sizeof(DISPLAY_ITEMS),
-		__alignof(DISPLAY_ITEMS)
+		sizeof(WINDOW_DATA),
+		__alignof(WINDOW_DATA)
 	);
 	di->windows[CPU_WIN] = a_alloc(
 		arena,
-		sizeof(DISPLAY_ITEMS),
-		__alignof(DISPLAY_ITEMS)
+		sizeof(WINDOW_DATA),
+		__alignof(WINDOW_DATA)
 	);
 	di->windows[MEMORY_WIN] = a_alloc(
 		arena,
-		sizeof(DISPLAY_ITEMS),
-		__alignof(DISPLAY_ITEMS)
+		sizeof(WINDOW_DATA),
+		__alignof(WINDOW_DATA)
 	);
 	di->windows[PRC_WIN] = a_alloc(
 		arena,
-		sizeof(DISPLAY_ITEMS),
-		__alignof(DISPLAY_ITEMS)
+		sizeof(WINDOW_DATA),
+		__alignof(WINDOW_DATA)
 	);
 
 	return di;
@@ -66,16 +66,19 @@ void init_window_dimens(DISPLAY_ITEMS *di)
 	cpuWin->paddingBottom = 0;
 	cpuWin->paddingLeft = 1;
 	cpuWin->paddingRight = 1;
-	
+	cpuWin->windowTitle = "CPU Usage";
+
 	memoryWin->paddingTop = 2;
 	memoryWin->paddingBottom = 0;
 	memoryWin->paddingLeft = 1;
 	memoryWin->paddingRight = 0;
+	memoryWin->windowTitle = "Memory Usage";
 	
 	prcWin->paddingTop = 2;
 	prcWin->paddingBottom = 0;
 	prcWin->paddingLeft = 1;
 	prcWin->paddingRight = 0;
+	prcWin->windowTitle = "Process List";
 
 	// CPU win
 	cpuWin->wWidth = container->wWidth - (cpuWin->paddingLeft + cpuWin->paddingRight);
@@ -140,6 +143,8 @@ void init_windows(DISPLAY_ITEMS *di)
 	*/
 	init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
 	init_pair(2, COLOR_CYAN, COLOR_BLACK);
+
+	wbkgd(container->window, COLOR_PAIR(1));
 	//
 	// wattron(container->window, COLOR_PAIR(1));
 	// box(cpuWin->window, 0, 0);

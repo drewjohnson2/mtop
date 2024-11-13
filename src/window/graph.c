@@ -7,15 +7,10 @@
 #include <unistd.h>
 
 #include "../include/graph.h"
-//#include "../include/thread/thread.h"
 
 void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 {
 	if (!gd->head) return;
-
-	//pthread_mutex_lock(&ncursesLock);
-
-	//napms(200);
 
 	WINDOW *win = wd->window;
 	GRAPH_POINT *current = gd->head;
@@ -31,10 +26,14 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 
 	while (current)
 	{
-		if (posX > wd->wWidth - 2) break;
+		if (posX > wd->wWidth - 3) break;
 
+#ifdef DEBUG
 		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
 		mvwprintw(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated);
+#else 
+		mvwprintw(win, 0, 3, " %s: %d%% ", wd->windowTitle, (int)(current->percent * 100));
+#endif
 
 		int lineHeight = wd->wHeight * current->percent;
 		
@@ -83,8 +82,6 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	}
 
 	wattroff(win, COLOR_PAIR(2));
-	
-	//pthread_mutex_unlock(&ncursesLock);
 }
 
 void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)

@@ -46,13 +46,23 @@ void run()
 	Arena cpuGraphArena = a_new(2048);
 	Arena memoryGraphArena = a_new(2048);
 	DISPLAY_ITEMS *di = init_display_items(&windowArena);
-	SHARED_QUEUE *cpuQueue = a_alloc(&cpuArena, sizeof(SHARED_QUEUE), __alignof(SHARED_QUEUE));
-	SHARED_QUEUE *memoryQueue = a_alloc(&memArena, sizeof(SHARED_QUEUE), __alignof(SHARED_QUEUE));
+	SHARED_QUEUE *cpuQueue = a_alloc(
+		&cpuArena,
+		sizeof(SHARED_QUEUE),
+		__alignof(SHARED_QUEUE)
+	);
+	SHARED_QUEUE *memoryQueue = a_alloc(
+		&memArena,
+		sizeof(SHARED_QUEUE),
+		__alignof(SHARED_QUEUE)
+	);
 
+	di->windows[CPU_WIN]->windowTitle = "hello";
+	di->windows[MEMORY_WIN]->windowTitle =  "ASASASSSAASASAS";
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
-
+	
 	GRAPH_THREAD_ARGS uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
