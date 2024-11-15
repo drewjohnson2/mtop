@@ -15,9 +15,34 @@ typedef struct _shared_queue
 	int size;
 } SHARED_QUEUE;
 
-void enqueue(SHARED_QUEUE *q, void *stats, pthread_mutex_t *queueLock, pthread_cond_t *condition);
-int dequeue(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *condition);
-void * peek(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *condition);
+void enqueue(
+	SHARED_QUEUE *q,
+	void *stats,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+);
+int dequeue(
+	SHARED_QUEUE *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+);
+void * peek(
+	SHARED_QUEUE *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+);
+int timedDequeue(
+	SHARED_QUEUE *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition,
+	unsigned short timeoutSec
+);
+void * timedPeek(
+	SHARED_QUEUE *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition,
+	unsigned short timeoutSec
+);
 
 #endif
 

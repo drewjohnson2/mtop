@@ -50,12 +50,7 @@ PROC_STATS ** get_processes(Arena *procArena)
 	{
 		char path[32];
 
-		int skip = (strcmp(dp->d_name, ".") == 0) ||
-			(strcmp(dp->d_name, "..") == 0) ||
-			(strcmp(dp->d_name, "1") == 0) ||
-			(strcmp(dp->d_name, "bus") == 0) ||
-			(strcmp(dp->d_name, "sys") == 0) ||
-			(strcmp(dp->d_name, "tty") == 0);
+		int skip = atoi(dp->d_name) == 0;
 
 		if (skip || dp->d_type != DT_DIR) continue;
 
@@ -69,12 +64,12 @@ PROC_STATS ** get_processes(Arena *procArena)
 		i++;
 	}
 
-	for (int y = 0; y < i; y++)
-	{
-		if (procs[y] == NULL) break;
-		printf("PID: %d\nProcess Name: %s\n", procs[y]->pid, procs[y]->procName);
-		printf("utime: %lu\nstime: %lu\n\n", procs[y]->utime, procs[y]->stime);
-	}
+//	for (int y = 0; y < i; y++)
+//	{
+//		if (procs[y] == NULL) break;
+//		printf("PID: %d\nProcess Name: %s\n", procs[y]->pid, procs[y]->procName);
+//		printf("utime: %lu\nstime: %lu\n\n", procs[y]->utime, procs[y]->stime);
+//	}
 
 	return procs;
 }

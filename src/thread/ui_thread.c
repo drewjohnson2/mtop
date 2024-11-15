@@ -1,5 +1,7 @@
+#include <bits/time.h>
+#include <ncurses.h>
 #include <pthread.h>
-#include <bits/pthreadtypes.h>
+#include <time.h>
 #include <unistd.h>
 #include <arena.h>
 
@@ -9,6 +11,7 @@
 #include "../include/monitor/cpu_monitor.h"
 #include "../include/util/shared_queue.h"
 #include "../include/monitor/mem_monitor.h"
+#include "../include/monitor/proc_monitor.h"
 
 void run_graphs(
 	Arena *graphArena,
@@ -25,19 +28,25 @@ void run_graphs(
 	WINDOW_DATA *memWin = di->windows[MEMORY_WIN];
 	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
 
+	// probably need to add some sort of shut down error
+	// handling here.
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
 	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), __alignof(GRAPH_DATA));
 	Arena cpuPointArena = a_new(sizeof(GRAPH_POINT));
 
-	GRAPH_DATA *memGraphData = a_alloc(memGraphArena, sizeof(GRAPH_DATA), __alignof(GRAPH_DATA));
+	GRAPH_DATA *memGraphData = a_alloc(
+		memGraphArena,
+		sizeof(GRAPH_DATA), 
+		__alignof(GRAPH_DATA)
+	);
+
 	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
 
 	float cpuPercentage, memoryPercentage;
-	int cont = 1;
 
-	while (cont)
+	while (!SHUTDOWN_FLAG)
 	{
 		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 		dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
@@ -58,11 +67,65 @@ void run_graphs(
 
 		REFRESH_WIN(container->window);
 
-		usleep(1000 * 200);
-
-		SHOULD_MERGE(&runLock, cont);
+		usleep(DISPLAY_SLEEP_TIME);
 	}
 
 	a_free(&cpuPointArena);
 	a_free(&memPointArena);
 }
+
+void run_process_list(SHARED_QUEUE *queue, WINDOW_DATA *wd)
+{
+	PROC_STATS **stats = timedPeek(queue, &procQueueLock, &procQueueCondition, 1);
+
+	if (stats) timedDequeue(queue, &procQueueLock, &procQueueCondition, 1);
+
+	int j = 0;
+
+	while (!SHUTDOWN_FLAG)
+	{
+		
+		if (stats)
+		{
+			int i = 0;
+			int x = 2;
+			int y = 2;
+
+			while (i < 10 && stats[i] != NULL)
+			{
+				mvwprintw(wd->window, y++, x, " %d     %d ", stats[i]->pid, j);
+				i++;
+			}
+
+			j++;
+		}
+
+		stats = timedPeek(queue, &procQueueLock, &procQueueCondition, 1);
+			
+		if (stats) timedDequeue(queue, &procQueueLock, &procQueueCondition, 1);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

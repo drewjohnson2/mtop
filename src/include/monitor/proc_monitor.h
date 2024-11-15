@@ -6,7 +6,7 @@
 typedef struct _proc_stats
 {
 	int pid;
-	char procName[16];
+	char procName[200];
 	unsigned long utime;
 	unsigned long stime;
 

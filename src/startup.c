@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "include/startup/startup.h"
+#include "include/monitor/proc_monitor.h"
 #include "include/util/shared_queue.h"
 #include "include/window/window.h"
 #include "include/window/window_setup.h"
@@ -27,13 +28,22 @@ typedef struct _io_thread_args
 {
 	Arena *cpuArena;
 	Arena *memArena;
+	Arena *processArena;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
+	SHARED_QUEUE *procQueue;
 } IO_THREAD_ARGS;
+
+typedef struct _proc_thread_args
+{
+	WINDOW_DATA *wd;
+	SHARED_QUEUE *queue;
+} PROC_THREAD_ARGS;
 
 static void * _graph_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DISPLAY_ITEMS *di);
+static void * _proc_thread_run(void *arg);
 
 void run() 
 {
@@ -43,22 +53,29 @@ void run()
 	Arena windowArena = a_new(2048);
 	Arena cpuArena = a_new(2048);
 	Arena memArena = a_new(2048);
-	Arena cpuGraphArena = a_new(2048);
-	Arena memoryGraphArena = a_new(2048);
+	Arena cpuGraphArena = a_new(2048);     // At some point come back and see
+	Arena memoryGraphArena = a_new(2048);  // if I can just use one graph arean
+	Arena processArena = a_new(512);
 	DISPLAY_ITEMS *di = init_display_items(&windowArena);
+
 	SHARED_QUEUE *cpuQueue = a_alloc(
 		&cpuArena,
 		sizeof(SHARED_QUEUE),
 		__alignof(SHARED_QUEUE)
 	);
+
 	SHARED_QUEUE *memoryQueue = a_alloc(
 		&memArena,
 		sizeof(SHARED_QUEUE),
 		__alignof(SHARED_QUEUE)
 	);
 
-	di->windows[CPU_WIN]->windowTitle = "hello";
-	di->windows[MEMORY_WIN]->windowTitle =  "ASASASSSAASASAS";
+	SHARED_QUEUE *procQueue = a_alloc(
+		&processArena,
+		sizeof(SHARED_QUEUE),
+		__alignof(SHARED_QUEUE)
+	);
+
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
@@ -76,31 +93,38 @@ void run()
 	{
 		.cpuArena = &cpuArena,
 		.memArena = &memArena,
+		.processArena = &processArena,
 		.cpuQueue = cpuQueue,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.procQueue = procQueue
 	};
 
-	// Using a mutex as a way to break
-	// out of the infinite loop in the 
-	// CPU/Memory threads, instead of
-	// actually locking a shared resource.
-	pthread_t ioThread;
+	PROC_THREAD_ARGS prcArgs = {
+		.wd = di->windows[PRC_WIN],
+		.queue = procQueue
+	};
+
+	pthread_t graphThread;
 	pthread_t cpuThread;
+	pthread_t procThread;
 
 	mutex_init();
 	condition_init();
 	
 	pthread_mutex_lock(&runLock);
-	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
+	pthread_create(&graphThread, NULL, _io_thread_run, (void *)&ioArgs);
 	pthread_create(&cpuThread, NULL, _graph_thread_run, (void *)&uiArgs);
+	pthread_create(&procThread, NULL, _proc_thread_run, (void *)&prcArgs);
+
 	
 	// wait for input to quit. Replace
 	// with controls for process list later.
 	_get_input(di);
 
 	pthread_mutex_unlock(&runLock);
-	pthread_join(ioThread, NULL);
+	pthread_join(graphThread, NULL);
 	pthread_join(cpuThread, NULL);
+	pthread_join(procThread, NULL);
 	mutex_destroy();
 	condition_destroy();
 	
@@ -111,19 +135,21 @@ void run()
 	a_free(&memArena);
 	a_free(&cpuGraphArena);
 	a_free(&memoryGraphArena);
+	a_free(&processArena);
 	fclose(tty);
 }
 
 void _get_input(DISPLAY_ITEMS *di)
 {
-	WINDOW *win = di->windows[CONTAINER_WIN]->window;
 	char ch;
-
+	WINDOW *win = di->windows[CONTAINER_WIN]->window;
+	
 	while ((ch = wgetch(win)))
 	{
 		switch (ch)
 		{
 			case 'q':
+				SHUTDOWN_FLAG = 1;
 				return;
 			default:
 				continue;
@@ -153,9 +179,20 @@ static void * _io_thread_run(void *arg)
 	run_io(
 		args->cpuArena,
 		args->memArena,
+		args->processArena,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->procQueue
 	);
+
+	return NULL;
+}
+
+static void * _proc_thread_run(void *arg)
+{
+	PROC_THREAD_ARGS *args = (PROC_THREAD_ARGS *)arg;
+
+	run_process_list(args->queue, args->wd);
 
 	return NULL;
 }
