@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "../include/monitor/proc_monitor.h"
+#include "../include/util/ui_utils.h"
 
 static void _fetch_proc_pid_stat(
 	Arena *procArena,
@@ -66,7 +67,10 @@ static void _fetch_proc_pid_stat(
 	fclose(statFile);
 }
 
-PROC_STATS ** get_processes(Arena *procArena) 
+PROC_STATS ** get_processes(
+	Arena *procArena,
+	int (*sortFunc)(const void *, const void *)
+) 
 {
 	DIR *directory;
 	struct dirent *dp;
@@ -96,6 +100,8 @@ PROC_STATS ** get_processes(Arena *procArena)
 
 		if (procs[i] != NULL) i++;
 	}
+
+	qsort(procs, i, sizeof(procs[0]), sortFunc);
 
 	// for (int y = 0; y < i; y++)
 	// {

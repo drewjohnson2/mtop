@@ -13,6 +13,7 @@
 #include "include/thread/ui_thread.h"
 #include "include/thread/io_thread.h"
 #include "include/thread/thread.h"
+#include "include/util/ui_utils.h"
 
 typedef struct _cpu_thread_args
 {
@@ -65,7 +66,7 @@ void run()
 		__alignof(SHARED_QUEUE)
 	);
 
-	PROC_STATS **procStats = get_processes(&processArena);
+	PROC_STATS **procStats = get_processes(&processArena, proc_name_compare);
 
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);

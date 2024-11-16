@@ -9,6 +9,7 @@
 #include "../include/monitor/cpu_monitor.h"
 #include "../include/util/shared_queue.h"
 #include "../include/thread/io_thread.h"
+#include "../include/util/ui_utils.h"
 
 void run_io(
 	Arena *cpuArena,
@@ -50,7 +51,7 @@ void run_io(
 			a_free(procArena);
 			*procArena = a_new(512);
 			stats = NULL;
-			stats = get_processes(procArena);  
+			stats = get_processes(procArena, proc_name_compare);  
 			clock_gettime(CLOCK_REALTIME, &start);
 			pthread_mutex_unlock(&procDataLock);
 		}
