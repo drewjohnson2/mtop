@@ -1,6 +1,8 @@
 #include <bits/time.h>
 #include <ncurses.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <arena.h>
@@ -13,12 +15,15 @@
 #include "../include/monitor/mem_monitor.h"
 #include "../include/monitor/proc_monitor.h"
 
+void print_stats(PROC_STATS **stats, WINDOW_DATA *wd);
+
 void run_graphs(
 	Arena *graphArena,
 	Arena *memGraphArena,
 	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memoryQueue	
+	SHARED_QUEUE *memoryQueue,
+	PROC_STATS **procStats
 )
 {
 	CPU_STATS *prevStats = NULL;
@@ -26,6 +31,7 @@ void run_graphs(
 	MEMORY_STATS *memStats = NULL;
 	WINDOW_DATA *cpuWin = di->windows[CPU_WIN];
 	WINDOW_DATA *memWin = di->windows[MEMORY_WIN];
+	WINDOW_DATA *procWin = di->windows[PRC_WIN];
 	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
 
 	// probably need to add some sort of shut down error
@@ -42,9 +48,11 @@ void run_graphs(
 		__alignof(GRAPH_DATA)
 	);
 
-	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
-
 	float cpuPercentage, memoryPercentage;
+	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
+	struct timespec start, current;
+
+	clock_gettime(CLOCK_REALTIME, &start);
 
 	while (!SHUTDOWN_FLAG)
 	{
@@ -65,6 +73,14 @@ void run_graphs(
 
 		prevStats = curStats;
 
+		clock_gettime(CLOCK_REALTIME, &current);	
+
+		if (current.tv_sec - start.tv_sec >= 2) 
+		{
+			print_stats(procStats, procWin);
+			clock_gettime(CLOCK_REALTIME, &start);
+		}
+
 		REFRESH_WIN(container->window);
 
 		usleep(DISPLAY_SLEEP_TIME);
@@ -74,43 +90,57 @@ void run_graphs(
 	a_free(&memPointArena);
 }
 
-void run_process_list(SHARED_QUEUE *queue, WINDOW_DATA *wd)
+void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
 {
-	PROC_STATS **stats = timedPeek(queue, &procQueueLock, &procQueueCondition, 1);
+	char *commandTitle = "Command";
+	char *pidTitle = "PID";
+	char *cpuTitle = "CPU %";
+	char *memTitle = "Memory %";
+	unsigned short pidPosX = wd->wWidth * .60;
+	unsigned short cpuPosX = pidPosX + (wd->wWidth * .15);
+	unsigned short memPosX = cpuPosX + (wd->wWidth * .15);
 
-	if (stats) timedDequeue(queue, &procQueueLock, &procQueueCondition, 1);
+	int fitMemory = wd->wWidth >= memPosX + strlen(memTitle);
 
-	int j = 0;
-
-	while (!SHUTDOWN_FLAG)
+	if (!fitMemory) 
 	{
-		
-		if (stats)
-		{
-			int i = 0;
-			int x = 2;
-			int y = 2;
-
-			while (i < 10 && stats[i] != NULL)
-			{
-				mvwprintw(wd->window, y++, x, " %d     %d ", stats[i]->pid, j);
-				i++;
-			}
-
-			j++;
-		}
-
-		stats = timedPeek(queue, &procQueueLock, &procQueueCondition, 1);
-			
-		if (stats) timedDequeue(queue, &procQueueLock, &procQueueCondition, 1);
+		pidPosX = wd->wWidth * .70;
+		cpuPosX = pidPosX + (wd->wWidth * .17);
 	}
+
+	int fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
+	
+	WINDOW *win = wd->window;
+
+	wattron(win, COLOR_PAIR(2));
+
+	werase(win);
+	box(win, 0, 0);
+
+	mvwprintw(win, 1, 1, "%s", commandTitle);
+	mvwprintw(win, 1, pidPosX, "%s", pidTitle);
+
+	if (fitCpu) mvwprintw(win, 1, cpuPosX, "%s", cpuTitle);
+	if (fitMemory) mvwprintw(win, 1, memPosX, "%s", memTitle);
+
+	int i = 0;
+	int posY = 2;
+
+	pthread_mutex_lock(&procDataLock);
+
+	while (i < 20 && stats[i] != NULL)
+	{
+		mvwprintw(win, posY, 1, "%s", stats[i]->procName);
+		mvwprintw(win, posY, pidPosX, "%d", stats[i]->pid);
+
+		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
+		if (fitMemory) mvwprintw(win, posY++, memPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
+
+		i++;
+	}
+
+	pthread_mutex_unlock(&procDataLock);
 }
-
-
-
-
-
-
 
 
 

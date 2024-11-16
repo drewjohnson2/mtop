@@ -5,32 +5,63 @@
 
 #include "../include/monitor/proc_monitor.h"
 
-static void _fetch_proc_pid_stat(char *dirName, PROC_STATS *stats)
+static void _fetch_proc_pid_stat(
+	Arena *procArena,
+	char *statPath,
+	char *statusPath,
+	PROC_STATS **stats
+)
 {
-	char buffer[1024];
+	char statBuffer[1024];
+	char statusBuffer[1024];
 
-	FILE *f = fopen(dirName, "r");	
+	FILE *statusFile = fopen(statusPath, "r");
 
-	if (!f) return;
+	if (!statusFile) return;
 
-	fgets(buffer, sizeof(buffer), f);
+	while(fgets(statusBuffer, sizeof(statusBuffer), statusFile))
+	{
+	  	int uid = 0;
 
-	sscanf(buffer,
+		if (sscanf(statusBuffer, "Uid:\t%d", &uid) <= 0) continue;
+		else if (uid < 1000)
+		{
+			fclose(statusFile);
+
+			return;
+		}
+		else 
+		{
+			fclose(statusFile);
+		
+			break;
+		}
+	}
+
+	FILE *statFile = fopen(statPath, "r");	
+
+	if (!statFile) return;
+
+	(*stats) = a_alloc(procArena, sizeof(PROC_STATS), __alignof(PROC_STATS));
+
+	fgets(statBuffer, sizeof(statBuffer), statFile);
+
+	sscanf(statBuffer,
 		"%d %s %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
-		&stats->pid, stats->procName,
-		&stats->utime, &stats->stime
+		&(*stats)->pid, (*stats)->procName,
+		&(*stats)->utime, &(*stats)->stime
 		);
 
-	char *start = strchr(stats->procName, '(') + 1;
-	char *end = strrchr(stats->procName, ')');
+	char *start = strchr((*stats)->procName, '(') + 1;
+	char *end = strrchr((*stats)->procName, ')');
 
-	memcpy(stats->procName, start, end - start);
+	memcpy((*stats)->procName, start, end - start);
 
-	stats->procName[end - start] = '\0';
+	(*stats)->procName[end - start] = '\0';
 
-	fclose(f);
+	fclose(statFile);
 }
 
 PROC_STATS ** get_processes(Arena *procArena) 
@@ -48,28 +79,27 @@ PROC_STATS ** get_processes(Arena *procArena)
 
 	while ((dp = readdir(directory)) != NULL)
 	{
-		char path[32];
+		char statPath[32];
+		char statusPath[32];
 
 		int skip = atoi(dp->d_name) == 0;
 
 		if (skip || dp->d_type != DT_DIR) continue;
 
-		snprintf(path, sizeof(path), "/proc/%s/stat", dp->d_name);
+		snprintf(statPath, sizeof(statPath), "/proc/%s/stat", dp->d_name);
+		snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", dp->d_name);
 
-		// open directory
-		procs[i] = a_alloc(procArena, sizeof(PROC_STATS), __alignof(PROC_STATS));
+		_fetch_proc_pid_stat(procArena, statPath, statusPath, &procs[i]);
 
-		_fetch_proc_pid_stat(path, procs[i]);
-
-		i++;
+		if (procs[i] != NULL) i++;
 	}
 
-//	for (int y = 0; y < i; y++)
-//	{
-//		if (procs[y] == NULL) break;
-//		printf("PID: %d\nProcess Name: %s\n", procs[y]->pid, procs[y]->procName);
-//		printf("utime: %lu\nstime: %lu\n\n", procs[y]->utime, procs[y]->stime);
-//	}
+	// for (int y = 0; y < i; y++)
+	// {
+	// 	if (procs[y] == NULL) break;
+	// 	printf("PID: %d\nProcess Name: %s\n", procs[y]->pid, procs[y]->procName);
+	// 	printf("utime: %lu\nstime: %lu\n\n", procs[y]->utime, procs[y]->stime);
+	// }
 
 	return procs;
 }

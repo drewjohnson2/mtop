@@ -19,11 +19,10 @@
 extern pthread_mutex_t runLock;
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
-extern pthread_mutex_t procQueueLock;
+extern pthread_mutex_t procDataLock;
 
 extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;
-extern pthread_cond_t procQueueCondition;
 
 extern volatile int SHUTDOWN_FLAG;
 

@@ -21,6 +21,8 @@ typedef struct _cpu_thread_args
 	DISPLAY_ITEMS *di;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
+	PROC_STATS **procStats;
+
 
 } GRAPH_THREAD_ARGS;
 
@@ -31,19 +33,12 @@ typedef struct _io_thread_args
 	Arena *processArena;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
-	SHARED_QUEUE *procQueue;
+	PROC_STATS **procStats;
 } IO_THREAD_ARGS;
-
-typedef struct _proc_thread_args
-{
-	WINDOW_DATA *wd;
-	SHARED_QUEUE *queue;
-} PROC_THREAD_ARGS;
 
 static void * _graph_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DISPLAY_ITEMS *di);
-static void * _proc_thread_run(void *arg);
 
 void run() 
 {
@@ -70,11 +65,7 @@ void run()
 		__alignof(SHARED_QUEUE)
 	);
 
-	SHARED_QUEUE *procQueue = a_alloc(
-		&processArena,
-		sizeof(SHARED_QUEUE),
-		__alignof(SHARED_QUEUE)
-	);
+	PROC_STATS **procStats = get_processes(&processArena);
 
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
@@ -86,7 +77,8 @@ void run()
 		.di = di,
 		.cpuQueue = cpuQueue,
 		.memGraphArena = &memoryGraphArena,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.procStats = procStats
 	};
 
 	IO_THREAD_ARGS ioArgs = 
@@ -96,17 +88,11 @@ void run()
 		.processArena = &processArena,
 		.cpuQueue = cpuQueue,
 		.memQueue = memoryQueue,
-		.procQueue = procQueue
-	};
-
-	PROC_THREAD_ARGS prcArgs = {
-		.wd = di->windows[PRC_WIN],
-		.queue = procQueue
+		.procStats = procStats
 	};
 
 	pthread_t graphThread;
 	pthread_t cpuThread;
-	pthread_t procThread;
 
 	mutex_init();
 	condition_init();
@@ -114,7 +100,6 @@ void run()
 	pthread_mutex_lock(&runLock);
 	pthread_create(&graphThread, NULL, _io_thread_run, (void *)&ioArgs);
 	pthread_create(&cpuThread, NULL, _graph_thread_run, (void *)&uiArgs);
-	pthread_create(&procThread, NULL, _proc_thread_run, (void *)&prcArgs);
 
 	
 	// wait for input to quit. Replace
@@ -124,7 +109,6 @@ void run()
 	pthread_mutex_unlock(&runLock);
 	pthread_join(graphThread, NULL);
 	pthread_join(cpuThread, NULL);
-	pthread_join(procThread, NULL);
 	mutex_destroy();
 	condition_destroy();
 	
@@ -166,7 +150,8 @@ static void * _graph_thread_run(void *arg)
 		args->memGraphArena,
 		args->di,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->procStats
 	);
 
 	return NULL;
@@ -182,17 +167,8 @@ static void * _io_thread_run(void *arg)
 		args->processArena,
 		args->cpuQueue,
 		args->memQueue,
-		args->procQueue
+		args->procStats
 	);
-
-	return NULL;
-}
-
-static void * _proc_thread_run(void *arg)
-{
-	PROC_THREAD_ARGS *args = (PROC_THREAD_ARGS *)arg;
-
-	run_process_list(args->queue, args->wd);
 
 	return NULL;
 }

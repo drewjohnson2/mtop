@@ -6,6 +6,7 @@
 
 #include "../util/shared_queue.h"
 #include "../window/window.h"
+#include "../monitor/proc_monitor.h"
 
 #define DISPLAY_SLEEP_TIME 1000 * 200
 
@@ -14,9 +15,8 @@ void run_graphs(
 	Arena *memGraphArena,
 	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memoryQueue	
+	SHARED_QUEUE *memoryQueue,
+	PROC_STATS **procStats
 );
-
-void run_process_list(SHARED_QUEUE *queue, WINDOW_DATA *wd);
 
 #endif

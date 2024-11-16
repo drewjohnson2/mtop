@@ -17,7 +17,7 @@ void run_io(
 	Arena *procArena,
 	SHARED_QUEUE *cpuQueue,
 	SHARED_QUEUE *memQueue,
-	SHARED_QUEUE *procQueue
+	PROC_STATS **stats
 );
 
 #endif

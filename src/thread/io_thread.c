@@ -16,16 +16,12 @@ void run_io(
 	Arena *procArena,
 	SHARED_QUEUE *cpuQueue,
 	SHARED_QUEUE *memQueue,
-	SHARED_QUEUE *procQueue
+	PROC_STATS **stats
 ) 
 {
 	struct timespec start, current;
 
 	clock_gettime(CLOCK_REALTIME, &start);
-
-	PROC_STATS **stats = get_processes(procArena);
-
-	enqueue(procQueue, stats, &procQueueLock, &procQueueCondition);
 
 	while (!SHUTDOWN_FLAG)
 	{
@@ -44,11 +40,12 @@ void run_io(
 
 		int totalTimeSecs = current.tv_sec - start.tv_sec;
 
-		if (totalTimeSecs > 5)
+		if (totalTimeSecs > 2)
 		{
+			pthread_mutex_lock(&procDataLock);
 			stats = get_processes(procArena);  
-			enqueue(procQueue, stats, &procQueueLock, &procQueueCondition);
 			clock_gettime(CLOCK_REALTIME, &start);
+			pthread_mutex_unlock(&procDataLock);
 		}
 
 		usleep(READ_SLEEP_TIME);
