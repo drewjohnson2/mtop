@@ -36,7 +36,7 @@ typedef struct _io_thread_args
 	PROC_STATS **procStats;
 } IO_THREAD_ARGS;
 
-static void * _graph_thread_run(void *arg);
+static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DISPLAY_ITEMS *di);
 
@@ -91,15 +91,15 @@ void run()
 		.procStats = procStats
 	};
 
-	pthread_t graphThread;
-	pthread_t cpuThread;
+	pthread_t ioThread;
+	pthread_t ui_thread;
 
 	mutex_init();
 	condition_init();
 	
 	pthread_mutex_lock(&runLock);
-	pthread_create(&graphThread, NULL, _io_thread_run, (void *)&ioArgs);
-	pthread_create(&cpuThread, NULL, _graph_thread_run, (void *)&uiArgs);
+	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
+	pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
 
 	
 	// wait for input to quit. Replace
@@ -107,8 +107,8 @@ void run()
 	_get_input(di);
 
 	pthread_mutex_unlock(&runLock);
-	pthread_join(graphThread, NULL);
-	pthread_join(cpuThread, NULL);
+	pthread_join(ioThread, NULL);
+	pthread_join(ui_thread, NULL);
 	mutex_destroy();
 	condition_destroy();
 	
@@ -141,11 +141,11 @@ void _get_input(DISPLAY_ITEMS *di)
 	}
 }
 
-static void * _graph_thread_run(void *arg)
+static void * _ui_thread_run(void *arg)
 {
 	GRAPH_THREAD_ARGS *args = (GRAPH_THREAD_ARGS *)arg;
 
-	run_graphs(
+	run_ui(
 		args->graphArena,
 		args->memGraphArena,
 		args->di,

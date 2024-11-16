@@ -17,7 +17,7 @@
 
 void print_stats(PROC_STATS **stats, WINDOW_DATA *wd);
 
-void run_graphs(
+void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
 	DISPLAY_ITEMS *di,
@@ -50,9 +50,6 @@ void run_graphs(
 
 	float cpuPercentage, memoryPercentage;
 	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
-	struct timespec start, current;
-
-	clock_gettime(CLOCK_REALTIME, &start);
 
 	while (!SHUTDOWN_FLAG)
 	{
@@ -73,13 +70,10 @@ void run_graphs(
 
 		prevStats = curStats;
 
-		clock_gettime(CLOCK_REALTIME, &current);	
-
-		if (current.tv_sec - start.tv_sec >= 2) 
-		{
-			print_stats(procStats, procWin);
-			clock_gettime(CLOCK_REALTIME, &start);
-		}
+		// There was once a two second 
+		// timer check here, if things
+		// get wonky put it back
+		print_stats(procStats, procWin);
 
 		REFRESH_WIN(container->window);
 
@@ -97,8 +91,8 @@ void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
 	char *cpuTitle = "CPU %";
 	char *memTitle = "Memory %";
 	unsigned short pidPosX = wd->wWidth * .60;
-	unsigned short cpuPosX = pidPosX + (wd->wWidth * .15);
-	unsigned short memPosX = cpuPosX + (wd->wWidth * .15);
+	unsigned short cpuPosX = pidPosX + (wd->wWidth * .14);
+	unsigned short memPosX = cpuPosX + (wd->wWidth * .14);
 
 	int fitMemory = wd->wWidth >= memPosX + strlen(memTitle);
 
@@ -117,20 +111,33 @@ void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
 	werase(win);
 	box(win, 0, 0);
 
-	mvwprintw(win, 1, 1, "%s", commandTitle);
-	mvwprintw(win, 1, pidPosX, "%s", pidTitle);
+	mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 
-	if (fitCpu) mvwprintw(win, 1, cpuPosX, "%s", cpuTitle);
-	if (fitMemory) mvwprintw(win, 1, memPosX, "%s", memTitle);
+	wattron(win, A_BOLD);
+
+	mvwprintw(win, 2, 2, "%s", commandTitle);
+	mvwprintw(win, 2, pidPosX, "%s", pidTitle);
+
+	if (fitCpu) mvwprintw(win, 2, cpuPosX, "%s", cpuTitle);
+	if (fitMemory) mvwprintw(win, 2, memPosX, "%s", memTitle);
+
+	int x = 2;
+
+	while (x < wd->wWidth - 3)
+	{
+		mvwprintw(win, 3, x++, "%c", '-');
+	}
+
+	wattroff(win, A_BOLD);
 
 	int i = 0;
-	int posY = 2;
+	int posY = 4;
 
 	pthread_mutex_lock(&procDataLock);
 
-	while (i < 20 && stats[i] != NULL)
+	while (i < wd->wHeight - 5 && stats[i] != NULL)
 	{
-		mvwprintw(win, posY, 1, "%s", stats[i]->procName);
+		mvwprintw(win, posY, 2, "%s", stats[i]->procName);
 		mvwprintw(win, posY, pidPosX, "%d", stats[i]->pid);
 
 		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));

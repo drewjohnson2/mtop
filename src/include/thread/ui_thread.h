@@ -10,7 +10,7 @@
 
 #define DISPLAY_SLEEP_TIME 1000 * 200
 
-void run_graphs(
+void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
 	DISPLAY_ITEMS *di,

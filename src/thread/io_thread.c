@@ -38,11 +38,18 @@ void run_io(
 
 		clock_gettime(CLOCK_REALTIME, &current);
 
-		int totalTimeSecs = current.tv_sec - start.tv_sec;
+		int totalTimeSec = current.tv_sec - start.tv_sec;
 
-		if (totalTimeSecs > 2)
+		if (totalTimeSec > 2)
 		{
 			pthread_mutex_lock(&procDataLock);
+			
+			// find a better way to free arena data.
+			// perhaps implement a way to free every
+			// region. Call it a_reset()?
+			a_free(procArena);
+			*procArena = a_new(512);
+			stats = NULL;
 			stats = get_processes(procArena);  
 			clock_gettime(CLOCK_REALTIME, &start);
 			pthread_mutex_unlock(&procDataLock);
