@@ -14,16 +14,17 @@
 #include "../include/util/shared_queue.h"
 #include "../include/monitor/mem_monitor.h"
 #include "../include/monitor/proc_monitor.h"
+#include "../include/startup/startup.h"
 
-void print_stats(PROC_STATS **stats, WINDOW_DATA *wd);
+void print_stats(WINDOW_DATA *wd, Arena *procArena);
 
 void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
+	Arena *procArena,
 	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memoryQueue,
-	PROC_STATS **procStats
+	SHARED_QUEUE *memoryQueue
 )
 {
 	CPU_STATS *prevStats = NULL;
@@ -50,7 +51,7 @@ void run_ui(
 
 	float cpuPercentage, memoryPercentage;
 	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
-
+	
 	while (!SHUTDOWN_FLAG)
 	{
 		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
@@ -73,7 +74,7 @@ void run_ui(
 		// There was once a two second 
 		// timer check here, if things
 		// get wonky put it back
-		print_stats(procStats, procWin);
+		print_stats(procWin, procArena);
 
 		REFRESH_WIN(container->window);
 
@@ -84,8 +85,10 @@ void run_ui(
 	a_free(&memPointArena);
 }
 
-void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
+void print_stats(WINDOW_DATA *wd, Arena *procArena)
 {
+	if (procStats == NULL) return;
+
 	char *commandTitle = "Command";
 	char *pidTitle = "PID";
 	char *cpuTitle = "CPU %";
@@ -111,7 +114,11 @@ void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
 	werase(win);
 	box(win, 0, 0);
 
+#ifdef DEBUG
+	mvwprintw(win, 0, 3, " Arena Regions Alloc'd = %zu ", procArena->regionsAllocated);
+#else
 	mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
+#endif
 
 	wattron(win, A_BOLD);
 
@@ -135,10 +142,10 @@ void print_stats(PROC_STATS **stats, WINDOW_DATA *wd)
 
 	pthread_mutex_lock(&procDataLock);
 
-	while (i < wd->wHeight - 5 && stats[i] != NULL)
+	while (i < wd->wHeight - 5 && procStats[i] != NULL)
 	{
-		mvwprintw(win, posY, 2, "%s", stats[i]->procName);
-		mvwprintw(win, posY, pidPosX, "%d", stats[i]->pid);
+		mvwprintw(win, posY, 2, "%s", procStats[i]->procName);
+		mvwprintw(win, posY, pidPosX, "%d", procStats[i]->pid);
 
 		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
 		if (fitMemory) mvwprintw(win, posY++, memPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));

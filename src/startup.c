@@ -15,17 +15,15 @@
 #include "include/thread/thread.h"
 #include "include/util/ui_utils.h"
 
-typedef struct _cpu_thread_args
+typedef struct _ui_thread_args
 {
 	Arena *graphArena;
 	Arena *memGraphArena;
+	Arena *procArena;
 	DISPLAY_ITEMS *di;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
-	PROC_STATS **procStats;
-
-
-} GRAPH_THREAD_ARGS;
+} UI_THREAD_ARGS;
 
 typedef struct _io_thread_args
 {
@@ -34,8 +32,9 @@ typedef struct _io_thread_args
 	Arena *processArena;
 	SHARED_QUEUE *cpuQueue;
 	SHARED_QUEUE *memQueue;
-	PROC_STATS **procStats;
 } IO_THREAD_ARGS;
+
+PROC_STATS **procStats;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
@@ -66,20 +65,18 @@ void run()
 		__alignof(SHARED_QUEUE)
 	);
 
-	PROC_STATS **procStats = get_processes(&processArena, proc_name_compare);
-
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
 	
-	GRAPH_THREAD_ARGS uiArgs = 
+	UI_THREAD_ARGS uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
 		.di = di,
+		.procArena = &processArena,
 		.cpuQueue = cpuQueue,
 		.memGraphArena = &memoryGraphArena,
-		.memQueue = memoryQueue,
-		.procStats = procStats
+		.memQueue = memoryQueue
 	};
 
 	IO_THREAD_ARGS ioArgs = 
@@ -88,8 +85,7 @@ void run()
 		.memArena = &memArena,
 		.processArena = &processArena,
 		.cpuQueue = cpuQueue,
-		.memQueue = memoryQueue,
-		.procStats = procStats
+		.memQueue = memoryQueue
 	};
 
 	pthread_t ioThread;
@@ -98,16 +94,13 @@ void run()
 	mutex_init();
 	condition_init();
 	
-	pthread_mutex_lock(&runLock);
 	pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
 	pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
 
-	
 	// wait for input to quit. Replace
 	// with controls for process list later.
 	_get_input(di);
 
-	pthread_mutex_unlock(&runLock);
 	pthread_join(ioThread, NULL);
 	pthread_join(ui_thread, NULL);
 	mutex_destroy();
@@ -144,15 +137,15 @@ void _get_input(DISPLAY_ITEMS *di)
 
 static void * _ui_thread_run(void *arg)
 {
-	GRAPH_THREAD_ARGS *args = (GRAPH_THREAD_ARGS *)arg;
+	UI_THREAD_ARGS *args = (UI_THREAD_ARGS *)arg;
 
 	run_ui(
 		args->graphArena,
 		args->memGraphArena,
+		args->procArena,
 		args->di,
 		args->cpuQueue,
-		args->memQueue,
-		args->procStats
+		args->memQueue
 	);
 
 	return NULL;
@@ -167,8 +160,7 @@ static void * _io_thread_run(void *arg)
 		args->memArena,
 		args->processArena,
 		args->cpuQueue,
-		args->memQueue,
-		args->procStats
+		args->memQueue
 	);
 
 	return NULL;

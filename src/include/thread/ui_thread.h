@@ -13,10 +13,10 @@
 void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
+	Arena *procArena,
 	DISPLAY_ITEMS *di,
 	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memoryQueue,
-	PROC_STATS **procStats
+	SHARED_QUEUE *memoryQueue
 );
 
 #endif

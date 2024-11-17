@@ -12,7 +12,7 @@ typedef struct _proc_stats
 
 } PROC_STATS;
 
-PROC_STATS ** get_processes(
+void get_processes(
 	Arena *procArena,
 	int (*f)(const void *, const void *)
 );

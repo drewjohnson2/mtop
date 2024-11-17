@@ -10,22 +10,28 @@
 #include "../include/util/shared_queue.h"
 #include "../include/thread/io_thread.h"
 #include "../include/util/ui_utils.h"
+#include "../include/startup/startup.h"
 
 void run_io(
 	Arena *cpuArena,
 	Arena *memArena,
 	Arena *procArena,
 	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memQueue,
-	PROC_STATS **stats
+	SHARED_QUEUE *memQueue
 ) 
 {
+	pthread_mutex_lock(&procDataLock);
+	get_processes(procArena, proc_name_compare);  
+	pthread_mutex_unlock(&procDataLock);
+
 	struct timespec start, current;
 
 	clock_gettime(CLOCK_REALTIME, &start);
 
 	while (!SHUTDOWN_FLAG)
 	{
+		// This check prevents lag between the read and display of stats
+		// without it the points on the graph can be several seconds behind.
 		int minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
 
 		if (minimumMet) 
@@ -44,16 +50,9 @@ void run_io(
 		if (totalTimeSec > 2)
 		{
 			pthread_mutex_lock(&procDataLock);
-			
-			// find a better way to free arena data.
-			// perhaps implement a way to free every
-			// region. Call it a_reset()?
-			a_free(procArena);
-			*procArena = a_new(512);
-			stats = NULL;
-			stats = get_processes(procArena, proc_name_compare);  
-			clock_gettime(CLOCK_REALTIME, &start);
+			get_processes(procArena, proc_name_compare);  
 			pthread_mutex_unlock(&procDataLock);
+			clock_gettime(CLOCK_REALTIME, &start);
 		}
 
 		usleep(READ_SLEEP_TIME);
