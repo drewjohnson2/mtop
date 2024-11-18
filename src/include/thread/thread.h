@@ -16,12 +16,14 @@
 		} \
 	} while(0) \
 
-extern pthread_mutex_t runLock;
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
+extern pthread_mutex_t procDataLock;
 
 extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;
+
+extern volatile int SHUTDOWN_FLAG;
 
 void mutex_init();
 void condition_init();

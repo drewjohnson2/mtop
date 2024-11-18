@@ -1,5 +1,7 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <time.h>
+#include <errno.h>
 
 #include "../include/util/shared_queue.h"
 
@@ -18,6 +20,7 @@ void enqueue(SHARED_QUEUE *q, void *stats, pthread_mutex_t *queueLock, pthread_c
 
 		q->size++;
 
+		pthread_cond_signal(condition);
 		pthread_mutex_unlock(queueLock);
 
 		return;
@@ -74,4 +77,3 @@ void * peek(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *conditi
 
 	return val;
 }
-

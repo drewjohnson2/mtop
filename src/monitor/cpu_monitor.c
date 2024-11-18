@@ -1,7 +1,7 @@
 #include <arena.h>
 #include <stdio.h>
 
-#include "../include/cpu_monitor.h"
+#include "../include/monitor/cpu_monitor.h"
 
 static void _parse_stat(CPU_STATS *stat, char *buffer);
 
@@ -13,7 +13,7 @@ CPU_STATS * fetch_cpu_stats(Arena *arena)
 	CPU_STATS *stat = a_alloc(
 		arena,
 		sizeof(CPU_STATS),
-		_Alignof(CPU_STATS) 
+		__alignof(CPU_STATS) 
 	);
 
 	fgets(buffer, sizeof(buffer), f);

@@ -1,29 +1,40 @@
+#include <bits/time.h>
 #include <pthread.h>
-#include <bits/pthreadtypes.h>
 #include <unistd.h>
 #include <arena.h>
+#include <time.h>
 
 #include "../include/thread/thread.h"
-#include "../include/mem_monitor.h"
-#include "../include/cpu_monitor.h"
+#include "../include/monitor/mem_monitor.h"
+#include "../include/monitor/cpu_monitor.h"
 #include "../include/util/shared_queue.h"
+#include "../include/thread/io_thread.h"
+#include "../include/util/ui_utils.h"
+#include "../include/startup/startup.h"
 
 void run_io(
 	Arena *cpuArena,
 	Arena *memArena,
+	Arena *procArena,
 	SHARED_QUEUE *cpuQueue,
 	SHARED_QUEUE *memQueue
 ) 
 {
-	int cont = 1;
+	pthread_mutex_lock(&procDataLock);
+	get_processes(procArena, proc_name_compare);  
+	pthread_mutex_unlock(&procDataLock);
 
-	while (cont)
+	struct timespec start, current;
+
+	clock_gettime(CLOCK_REALTIME, &start);
+
+	while (!SHUTDOWN_FLAG)
 	{
-		// need to find a better way to synchronize the sleeps 
-		// here and in graph.c
-		usleep(1000 * 100);
+		// This check prevents lag between the read and display of stats
+		// without it the points on the graph can be several seconds behind.
+		int minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
 
-		if (cpuQueue->size < 4 || memQueue->size < 4) 
+		if (minimumMet) 
 		{
 			CPU_STATS *cpuStats = fetch_cpu_stats(cpuArena);
 			MEMORY_STATS *memStats = fetch_memory_stats(memArena);
@@ -31,7 +42,19 @@ void run_io(
 			enqueue(cpuQueue, cpuStats, &cpuQueueLock, &cpuQueueCondition);
 			enqueue(memQueue, memStats, &memQueueLock, &memQueueCondition);
 		}
-		
-		SHOULD_MERGE(&runLock, cont);
+
+		clock_gettime(CLOCK_REALTIME, &current);
+
+		int totalTimeSec = current.tv_sec - start.tv_sec;
+
+		if (totalTimeSec > PROC_WAIT_TIME)
+		{
+			pthread_mutex_lock(&procDataLock);
+			get_processes(procArena, proc_name_compare);  
+			pthread_mutex_unlock(&procDataLock);
+			clock_gettime(CLOCK_REALTIME, &start);
+		}
+
+		usleep(READ_SLEEP_TIME);
 	}
 }
