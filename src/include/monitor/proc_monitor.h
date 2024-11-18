@@ -3,6 +3,8 @@
 
 #include <arena.h>
 
+#define MAX_PROCS 50
+
 typedef struct _proc_stats
 {
 	int pid;

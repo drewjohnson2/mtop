@@ -80,13 +80,13 @@ void get_processes(
 	*procArena = a_new(512);
 	procStats = a_alloc(
 		procArena,
-	   sizeof(PROC_STATS *) * 50,
+	   sizeof(PROC_STATS *) * MAX_PROCS,
 	   __alignof(PROC_STATS *)
 	);
 	
 	for (i = 0; (dp = readdir(directory)) != NULL;)
 	{
-		if (i > 49) break;
+		if (i > MAX_PROCS - 1) break;
 
 		char statPath[32];
 		char statusPath[32];
@@ -105,12 +105,5 @@ void get_processes(
 
 	qsort(procStats, i, sizeof(PROC_STATS *), sortFunc);
 
-	// for (int y = 0; y < i; y++)
-	// {
-	// 	if (procs[y] == NULL) break;
-	// 	printf("PID: %d\nProcess Name: %s\n", procs[y]->pid, procs[y]->procName);
-	// 	printf("utime: %lu\nstime: %lu\n\n", procs[y]->utime, procs[y]->stime);
-	// }
-	
 	closedir(directory);
 }
