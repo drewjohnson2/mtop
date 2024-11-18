@@ -34,7 +34,7 @@ typedef struct _io_thread_args
 	SHARED_QUEUE *memQueue;
 } IO_THREAD_ARGS;
 
-PROC_STATS **procStats;
+volatile PROC_STATS **procStats;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);

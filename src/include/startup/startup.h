@@ -5,7 +5,7 @@
 
 #include "../monitor/proc_monitor.h"
 
-extern PROC_STATS **procStats;
+extern volatile PROC_STATS **procStats;
 
 void run();
 

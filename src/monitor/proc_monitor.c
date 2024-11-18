@@ -54,19 +54,12 @@ static void _fetch_proc_pid_stat(
 	fgets(statBuffer, sizeof(statBuffer), statFile);
 
 	sscanf(statBuffer,
-		"%d %s %*c %*d %*d "
+		"%d %*[(]%99[^)'] %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
 		&procStats[index]->pid, procStats[index]->procName,
 		&procStats[index]->utime, &procStats[index]->stime
 		);
-
-	char *start = strchr(procStats[index]->procName, '(') + 1;
-	char *end = strrchr(procStats[index]->procName, ')');
-
-	memcpy(procStats[index]->procName, start, end - start);
-
-	procStats[index]->procName[end - start] = '\0';
 
 	fclose(statFile);
 }
@@ -93,7 +86,7 @@ void get_processes(
 	
 	for (i = 0; (dp = readdir(directory)) != NULL;)
 	{
-		if (i > 50) break;
+		if (i > 49) break;
 
 		char statPath[32];
 		char statusPath[32];

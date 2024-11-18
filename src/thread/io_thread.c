@@ -47,7 +47,7 @@ void run_io(
 
 		int totalTimeSec = current.tv_sec - start.tv_sec;
 
-		if (totalTimeSec > 2)
+		if (totalTimeSec > PROC_WAIT_TIME)
 		{
 			pthread_mutex_lock(&procDataLock);
 			get_processes(procArena, proc_name_compare);  

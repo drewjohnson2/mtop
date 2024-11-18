@@ -155,21 +155,3 @@ void print_stats(WINDOW_DATA *wd, Arena *procArena)
 
 	pthread_mutex_unlock(&procDataLock);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -6,7 +6,7 @@
 typedef struct _proc_stats
 {
 	int pid;
-	char procName[200];
+	char procName[99];
 	unsigned long utime;
 	unsigned long stime;
 
@@ -14,7 +14,7 @@ typedef struct _proc_stats
 
 void get_processes(
 	Arena *procArena,
-	int (*f)(const void *, const void *)
+	int (*sortFunc)(const void *, const void *)
 );
 
 #endif

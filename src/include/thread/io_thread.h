@@ -10,6 +10,7 @@
 #define PROC_WAIT_TIME_SEC 5
 #define MIN_QUEUE_SIZE 5
 #define READ_SLEEP_TIME 1000 * 100 
+#define PROC_WAIT_TIME 2
 
 void run_io(
 	Arena *cpuArena,
