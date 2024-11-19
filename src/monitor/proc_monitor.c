@@ -48,7 +48,7 @@ static void _fetch_proc_pid_stat(
 
 	if (!statFile) return;
 
-	procStats[index] = a_alloc(procArena, sizeof(PROC_STATS), __alignof(PROC_STATS));
+	procStats[index] = a_alloc(procArena, sizeof(ProcessStats), __alignof(ProcessStats));
 
 	fgets(statBuffer, sizeof(statBuffer), statFile);
 
@@ -79,8 +79,8 @@ void get_processes(
 	*procArena = a_new(512);
 	procStats = a_alloc(
 		procArena,
-	   sizeof(PROC_STATS *) * MAX_PROCS,
-	   __alignof(PROC_STATS *)
+	   sizeof(ProcessStats *) * MAX_PROCS,
+	   __alignof(ProcessStats *)
 	);
 	
 	for (i = 0; (dp = readdir(directory)) != NULL;)
@@ -102,7 +102,7 @@ void get_processes(
 		if (procStats[i] != NULL) i++;
 	}
 
-	qsort(procStats, i, sizeof(PROC_STATS *), sortFunc);
+	qsort(procStats, i, sizeof(ProcessStats *), sortFunc);
 
 	closedir(directory);
 }

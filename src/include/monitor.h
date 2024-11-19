@@ -12,7 +12,7 @@ typedef struct _proc_stats
 	unsigned long utime;
 	unsigned long stime;
 
-} PROC_STATS;
+} ProcessStats;
 
 typedef struct _mem_stats
 {
@@ -22,7 +22,7 @@ typedef struct _mem_stats
 	unsigned long long int sReclaimable;
 	unsigned long long int shared;
 	unsigned long long int buffers;
-} MEMORY_STATS;
+} MemoryStats;
 
 typedef struct _cpu_stats 
 {
@@ -37,7 +37,7 @@ typedef struct _cpu_stats
 	unsigned long long int steal;
 	unsigned long long int guest;
 	unsigned long long int guestNice;
-} CPU_STATS;
+} CpuStats;
 
 #define CALCULATE_MEMORY_USAGE(stats, percentage) \
 	do { \
@@ -75,9 +75,9 @@ typedef struct _cpu_stats
 	} while(0)\
 
 
-MEMORY_STATS * fetch_memory_stats(Arena *arena);
+MemoryStats * fetch_memory_stats(Arena *arena);
 void get_processes(Arena *procArena,int (*sortFunc)(const void *, const void *));
-CPU_STATS * fetch_cpu_stats(Arena *arena);
+CpuStats * fetch_cpu_stats(Arena *arena);
 
 #endif
 

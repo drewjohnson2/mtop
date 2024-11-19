@@ -2,17 +2,17 @@
 
 #include "../include/monitor.h"
 
-static void _parse_stat(MEMORY_STATS *stat, char *buffer);
+static void _parse_stat(MemoryStats *stat, char *buffer);
 
-MEMORY_STATS * fetch_memory_stats(Arena *arena)
+MemoryStats * fetch_memory_stats(Arena *arena)
 {
 	FILE *f = fopen("/proc/meminfo", "r");
 	char buffer[256];
 
-	MEMORY_STATS *stat = a_alloc(
+	MemoryStats *stat = a_alloc(
 		arena,
-		sizeof(MEMORY_STATS),
-		__alignof(MEMORY_STATS)
+		sizeof(MemoryStats),
+		__alignof(MemoryStats)
 	);
 
 	while (fgets(buffer, sizeof(buffer), f))
@@ -25,7 +25,7 @@ MEMORY_STATS * fetch_memory_stats(Arena *arena)
 	return stat;
 }
 
-static void _parse_stat(MEMORY_STATS *stat, char *buffer)
+static void _parse_stat(MemoryStats *stat, char *buffer)
 {
 	if (sscanf(buffer, "MemTotal: %llu kB\n", &stat->memTotal) == 1) return;
 	else if (sscanf(buffer, "MemFree: %llu kB\n", &stat->memFree) == 1) return;

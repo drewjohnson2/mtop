@@ -3,17 +3,17 @@
 
 #include "../include/monitor.h"
 
-static void _parse_stat(CPU_STATS *stat, char *buffer);
+static void _parse_stat(CpuStats *stat, char *buffer);
 
-CPU_STATS * fetch_cpu_stats(Arena *arena) 
+CpuStats * fetch_cpu_stats(Arena *arena) 
 {
 	FILE *f = fopen("/proc/stat", "r");
 	char buffer[256];
 
-	CPU_STATS *stat = a_alloc(
+	CpuStats *stat = a_alloc(
 		arena,
-		sizeof(CPU_STATS),
-		__alignof(CPU_STATS) 
+		sizeof(CpuStats),
+		__alignof(CpuStats) 
 	);
 
 	fgets(buffer, sizeof(buffer), f);
@@ -25,7 +25,7 @@ CPU_STATS * fetch_cpu_stats(Arena *arena)
 	return stat;
 }
 
-static void _parse_stat(CPU_STATS *stat, char *buffer)
+static void _parse_stat(CpuStats *stat, char *buffer)
 {
 	sscanf(buffer, 
 		"cpu  %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu\n", 

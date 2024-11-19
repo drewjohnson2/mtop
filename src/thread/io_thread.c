@@ -34,8 +34,8 @@ void run_io(
 
 		if (minimumMet) 
 		{
-			CPU_STATS *cpuStats = fetch_cpu_stats(cpuArena);
-			MEMORY_STATS *memStats = fetch_memory_stats(memArena);
+			CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
+			MemoryStats *memStats = fetch_memory_stats(memArena);
 
 			enqueue(cpuQueue, cpuStats, &cpuQueueLock, &cpuQueueCondition);
 			enqueue(memQueue, memStats, &memQueueLock, &memQueueCondition);

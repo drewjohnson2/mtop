@@ -24,9 +24,9 @@ void run_ui(
 	ThreadSafeQueue *memoryQueue
 )
 {
-	CPU_STATS *prevStats = NULL;
-	CPU_STATS *curStats = NULL;
-	MEMORY_STATS *memStats = NULL;
+	CpuStats *prevStats = NULL;
+	CpuStats *curStats = NULL;
+	MemoryStats *memStats = NULL;
 	WindowData *cpuWin = di->windows[CPU_WIN];
 	WindowData *memWin = di->windows[MEMORY_WIN];
 	WindowData *procWin = di->windows[PRC_WIN];

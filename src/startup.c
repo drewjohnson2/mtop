@@ -19,7 +19,7 @@ typedef struct _ui_thread_args
 	DisplayItems *di;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
-} UI_THREAD_ARGS;
+} UIThreadArgs;
 
 typedef struct _io_thread_args
 {
@@ -28,9 +28,9 @@ typedef struct _io_thread_args
 	Arena *processArena;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
-} IO_THREAD_ARGS;
+} IOThreadArgs;
 
-volatile PROC_STATS **procStats;
+volatile ProcessStats **procStats;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
@@ -65,7 +65,7 @@ void run()
 	init_window_dimens(di);
 	init_windows(di);
 	
-	UI_THREAD_ARGS uiArgs = 
+	UIThreadArgs uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
 		.di = di,
@@ -75,7 +75,7 @@ void run()
 		.memQueue = memoryQueue
 	};
 
-	IO_THREAD_ARGS ioArgs = 
+	IOThreadArgs ioArgs = 
 	{
 		.cpuArena = &cpuArena,
 		.memArena = &memArena,
@@ -133,7 +133,7 @@ void _get_input(DisplayItems *di)
 
 static void * _ui_thread_run(void *arg)
 {
-	UI_THREAD_ARGS *args = (UI_THREAD_ARGS *)arg;
+	UIThreadArgs *args = (UIThreadArgs *)arg;
 
 	run_ui(
 		args->graphArena,
@@ -149,7 +149,7 @@ static void * _ui_thread_run(void *arg)
 
 static void * _io_thread_run(void *arg)
 {
-	IO_THREAD_ARGS *args = (IO_THREAD_ARGS *)arg;
+	IOThreadArgs *args = (IOThreadArgs *)arg;
 
 	run_io(
 		args->cpuArena,
