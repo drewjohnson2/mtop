@@ -7,50 +7,47 @@
 #include <unistd.h>
 #include <arena.h>
 
-#include "../include/thread/thread.h"
-#include "../include/graph.h"
-#include "../include/thread/ui_thread.h"
-#include "../include/monitor/cpu_monitor.h"
-#include "../include/util/shared_queue.h"
-#include "../include/monitor/mem_monitor.h"
-#include "../include/monitor/proc_monitor.h"
-#include "../include/startup/startup.h"
+#include "../include/thread.h"
+#include "../include/window.h"
+#include "../include/monitor.h"
+#include "../include/thread_safe_queue.h"
+#include "../include/startup.h"
 
-void print_stats(WINDOW_DATA *wd, Arena *procArena);
+void print_stats(WindowData *wd, Arena *procArena);
 
 void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
 	Arena *procArena,
-	DISPLAY_ITEMS *di,
-	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memoryQueue
+	DisplayItems *di,
+	ThreadSafeQueue *cpuQueue,
+	ThreadSafeQueue *memoryQueue
 )
 {
 	CPU_STATS *prevStats = NULL;
 	CPU_STATS *curStats = NULL;
 	MEMORY_STATS *memStats = NULL;
-	WINDOW_DATA *cpuWin = di->windows[CPU_WIN];
-	WINDOW_DATA *memWin = di->windows[MEMORY_WIN];
-	WINDOW_DATA *procWin = di->windows[PRC_WIN];
-	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
+	WindowData *cpuWin = di->windows[CPU_WIN];
+	WindowData *memWin = di->windows[MEMORY_WIN];
+	WindowData *procWin = di->windows[PRC_WIN];
+	WindowData *container = di->windows[CONTAINER_WIN];
 
 	// probably need to add some sort of shut down error
 	// handling here.
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
-	GRAPH_DATA *cpuGraphData = a_alloc(graphArena, sizeof(GRAPH_DATA), __alignof(GRAPH_DATA));
-	Arena cpuPointArena = a_new(sizeof(GRAPH_POINT));
+	GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
+	Arena cpuPointArena = a_new(sizeof(GraphPoint));
 
-	GRAPH_DATA *memGraphData = a_alloc(
+	GraphData *memGraphData = a_alloc(
 		memGraphArena,
-		sizeof(GRAPH_DATA), 
-		__alignof(GRAPH_DATA)
+		sizeof(GraphData), 
+		__alignof(GraphData)
 	);
 
 	float cpuPercentage, memoryPercentage;
-	Arena memPointArena = a_new(sizeof(GRAPH_POINT));
+	Arena memPointArena = a_new(sizeof(GraphPoint));
 	
 	while (!SHUTDOWN_FLAG)
 	{
@@ -85,7 +82,7 @@ void run_ui(
 	a_free(&memPointArena);
 }
 
-void print_stats(WINDOW_DATA *wd, Arena *procArena)
+void print_stats(WindowData *wd, Arena *procArena)
 {
 	if (procStats == NULL) return;
 

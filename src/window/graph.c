@@ -6,14 +6,14 @@
 #include <arena.h>
 #include <unistd.h>
 
-#include "../include/graph.h"
+#include "../include/window.h"
 
-void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
+void graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {
 	if (!gd->head) return;
 
 	WINDOW *win = wd->window;
-	GRAPH_POINT *current = gd->head;
+	GraphPoint *current = gd->head;
 	short posX = wd->wWidth - gd->graphPointCount - 2;
 	short posY = wd->wHeight - 2;
 
@@ -28,18 +28,25 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	{
 		if (posX > wd->wWidth - 3) break;
 
+		int pctLabel = (int)(current->percent * 100);
+
 #ifdef DEBUG
 		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
 		mvwprintw(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated);
 #else 
-		mvwprintw(win, 0, 3, " %s: %d%% ", wd->windowTitle, (int)(current->percent * 100));
+		mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 #endif
 
-		int lineHeight = wd->wHeight * current->percent;
+		int lineHeight = (wd->wHeight - 1) * current->percent;
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 
 		char dataChar = current->percent * 100 == 0 ? '.' : '|';
+		int pctPadLeft = pctLabel < 10 ?
+			wd->wWidth - 5 :
+			wd->wWidth - 6;
+
+		mvwprintw(win, 1, pctPadLeft, " %d%% ", pctLabel);
 
 		while (lineHeight--)
 		{
@@ -65,14 +72,14 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	// linked list grow without bounds we'll
 	// eventually run out of memory. So I make 
 	// each region on the arena the size of 
-	// GRAPH_POINT, and when a graph point
+	// GraphPoint, and when a graph point
 	// is outside of render bounds I free it.
 	// This is essentially just freeing the head
 	// of the region linked list. Then we set the
 	// head of the point linked list to NULL.
 	if (gd->graphPointCount >= wd->wWidth)
 	{
-		GRAPH_POINT *tmp = gd->head;
+		GraphPoint *tmp = gd->head;
 		gd->head = gd->head->next;
 
 		tmp = NULL;
@@ -84,9 +91,9 @@ void graph_render(Arena *arena, GRAPH_DATA *gd, WINDOW_DATA *wd)
 	wattroff(win, COLOR_PAIR(2));
 }
 
-void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)
+void add_graph_point(Arena *arena, GraphData *gd, float percentage)
 {
-	GRAPH_POINT *gp = a_alloc(arena, sizeof(GRAPH_POINT), __alignof(GRAPH_POINT));
+	GraphPoint *gp = a_alloc(arena, sizeof(GraphPoint), __alignof(GraphPoint));
 	
 	gp->percent = percentage;
 	
@@ -99,7 +106,7 @@ void add_graph_point(Arena *arena, GRAPH_DATA *gd, float percentage)
 		return;
 	}
 
-	GRAPH_POINT *tmp = gd->head;
+	GraphPoint *tmp = gd->head;
 
 	while (tmp->next != NULL) tmp = tmp->next;
 

@@ -5,24 +5,20 @@
 #include <arena.h>
 #include <unistd.h>
 
-#include "include/startup/startup.h"
-#include "include/monitor/proc_monitor.h"
-#include "include/util/shared_queue.h"
-#include "include/window/window.h"
-#include "include/window/window_setup.h"
-#include "include/thread/ui_thread.h"
-#include "include/thread/io_thread.h"
-#include "include/thread/thread.h"
-#include "include/util/ui_utils.h"
+#include "include/startup.h"
+#include "include/monitor.h"
+#include "include/thread_safe_queue.h"
+#include "include/window.h"
+#include "include/thread.h"
 
 typedef struct _ui_thread_args
 {
 	Arena *graphArena;
 	Arena *memGraphArena;
 	Arena *procArena;
-	DISPLAY_ITEMS *di;
-	SHARED_QUEUE *cpuQueue;
-	SHARED_QUEUE *memQueue;
+	DisplayItems *di;
+	ThreadSafeQueue *cpuQueue;
+	ThreadSafeQueue *memQueue;
 } UI_THREAD_ARGS;
 
 typedef struct _io_thread_args
@@ -30,15 +26,15 @@ typedef struct _io_thread_args
 	Arena *cpuArena;
 	Arena *memArena;
 	Arena *processArena;
-	SHARED_QUEUE *cpuQueue;
-	SHARED_QUEUE *memQueue;
+	ThreadSafeQueue *cpuQueue;
+	ThreadSafeQueue *memQueue;
 } IO_THREAD_ARGS;
 
 volatile PROC_STATS **procStats;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
-static void _get_input(DISPLAY_ITEMS *di);
+static void _get_input(DisplayItems *di);
 
 void run() 
 {
@@ -51,18 +47,18 @@ void run()
 	Arena cpuGraphArena = a_new(2048);     // At some point come back and see
 	Arena memoryGraphArena = a_new(2048);  // if I can just use one graph arean
 	Arena processArena = a_new(512);
-	DISPLAY_ITEMS *di = init_display_items(&windowArena);
+	DisplayItems *di = init_display_items(&windowArena);
 
-	SHARED_QUEUE *cpuQueue = a_alloc(
+	ThreadSafeQueue *cpuQueue = a_alloc(
 		&cpuArena,
-		sizeof(SHARED_QUEUE),
-		__alignof(SHARED_QUEUE)
+		sizeof(ThreadSafeQueue),
+		__alignof(ThreadSafeQueue)
 	);
 
-	SHARED_QUEUE *memoryQueue = a_alloc(
+	ThreadSafeQueue *memoryQueue = a_alloc(
 		&memArena,
-		sizeof(SHARED_QUEUE),
-		__alignof(SHARED_QUEUE)
+		sizeof(ThreadSafeQueue),
+		__alignof(ThreadSafeQueue)
 	);
 
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
@@ -117,7 +113,7 @@ void run()
 	fclose(tty);
 }
 
-void _get_input(DISPLAY_ITEMS *di)
+void _get_input(DisplayItems *di)
 {
 	char ch;
 	WINDOW *win = di->windows[CONTAINER_WIN]->window;

@@ -4,20 +4,18 @@
 #include <arena.h>
 #include <time.h>
 
-#include "../include/thread/thread.h"
-#include "../include/monitor/mem_monitor.h"
-#include "../include/monitor/cpu_monitor.h"
-#include "../include/util/shared_queue.h"
-#include "../include/thread/io_thread.h"
-#include "../include/util/ui_utils.h"
-#include "../include/startup/startup.h"
+#include "../include/thread.h"
+#include "../include/monitor.h"
+#include "../include/thread_safe_queue.h"
+#include "../include/thread.h"
+#include "../include/ui_utils.h"
 
 void run_io(
 	Arena *cpuArena,
 	Arena *memArena,
 	Arena *procArena,
-	SHARED_QUEUE *cpuQueue,
-	SHARED_QUEUE *memQueue
+	ThreadSafeQueue *cpuQueue,
+	ThreadSafeQueue *memQueue
 ) 
 {
 	pthread_mutex_lock(&procDataLock);
