@@ -1,7 +1,18 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#include <arena.h>
 #include <pthread.h>
+
+#include "thread_safe_queue.h"
+#include "window.h"
+
+#define DISPLAY_SLEEP_TIME 1000 * 200
+#define PROC_WAIT_TIME_SEC 5
+#define MIN_QUEUE_SIZE 5
+#define READ_SLEEP_TIME 1000 * 100 
+#define PROC_WAIT_TIME 2
+
 
 #define SHOULD_MERGE(mutex, cont) \
 	do { \
@@ -25,9 +36,37 @@ extern pthread_cond_t memQueueCondition;
 
 extern volatile int SHUTDOWN_FLAG;
 
+//
+// 		thread.c
+//
+//
 void mutex_init();
 void condition_init();
 void mutex_destroy();
 void condition_destroy();
 
+//
+//		ui_thread.c
+//
+//
+void run_ui(
+	Arena *graphArena,
+	Arena *memGraphArena,
+	Arena *procArena,
+	DisplayItems *di,
+	ThreadSafeQueue *cpuQueue,
+	ThreadSafeQueue *memoryQueue
+);
+
+//
+//		io_thread.c
+//
+//
+void run_io(
+	Arena *cpuArena,
+	Arena *memArena,
+	Arena *procArena,
+	ThreadSafeQueue *cpuQueue,
+	ThreadSafeQueue *memQueue
+);
 #endif

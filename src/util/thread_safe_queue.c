@@ -3,9 +3,9 @@
 #include <time.h>
 #include <errno.h>
 
-#include "../include/util/shared_queue.h"
+#include "../include/thread_safe_queue.h"
 
-void enqueue(SHARED_QUEUE *q, void *stats, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthread_cond_t *condition)
 {
 	pthread_mutex_lock(queueLock);
 
@@ -38,7 +38,7 @@ void enqueue(SHARED_QUEUE *q, void *stats, pthread_mutex_t *queueLock, pthread_c
 	pthread_mutex_unlock(queueLock);
 }
 
-int dequeue(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
 {
 	pthread_mutex_lock(queueLock);
 
@@ -62,7 +62,7 @@ int dequeue(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *conditi
 	return 1;
 }
 
-void * peek(SHARED_QUEUE *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+void * peek(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
 {
 	pthread_mutex_lock(queueLock);
 

@@ -1,4 +1,4 @@
-#include "include/startup/startup.h"
+#include "include/startup.h"
 
 int main() 
 {

@@ -1,7 +1,7 @@
 #include <arena.h>
 #include <stdio.h>
 
-#include "../include/monitor/cpu_monitor.h"
+#include "../include/monitor.h"
 
 static void _parse_stat(CPU_STATS *stat, char *buffer);
 

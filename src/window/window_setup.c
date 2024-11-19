@@ -2,45 +2,44 @@
 #include <ncurses.h>
 #include <arena.h>
 
-#include "../include/window/window_setup.h"
-#include "../include/window/window.h"
+#include "../include/window.h"
 
-DISPLAY_ITEMS * init_display_items(Arena *arena) 
+DisplayItems * init_display_items(Arena *arena) 
 {
-	DISPLAY_ITEMS *di = a_alloc(arena, sizeof(DISPLAY_ITEMS), __alignof(DISPLAY_ITEMS));
+	DisplayItems *di = a_alloc(arena, sizeof(DisplayItems), __alignof(DisplayItems));
 
 	di->windowCount = 4;
 
 	di->windows = a_alloc(
 		arena,
-		sizeof(WINDOW_DATA *) * di->windowCount,
-		__alignof(WINDOW_DATA *)
+		sizeof(WindowData *) * di->windowCount,
+		__alignof(WindowData *)
 	);
 	di->windows[CONTAINER_WIN] = a_alloc(
 		arena, 
-		sizeof(WINDOW_DATA),
-		__alignof(WINDOW_DATA)
+		sizeof(WindowData),
+		__alignof(WindowData)
 	);
 	di->windows[CPU_WIN] = a_alloc(
 		arena,
-		sizeof(WINDOW_DATA),
-		__alignof(WINDOW_DATA)
+		sizeof(WindowData),
+		__alignof(WindowData)
 	);
 	di->windows[MEMORY_WIN] = a_alloc(
 		arena,
-		sizeof(WINDOW_DATA),
-		__alignof(WINDOW_DATA)
+		sizeof(WindowData),
+		__alignof(WindowData)
 	);
 	di->windows[PRC_WIN] = a_alloc(
 		arena,
-		sizeof(WINDOW_DATA),
-		__alignof(WINDOW_DATA)
+		sizeof(WindowData),
+		__alignof(WindowData)
 	);
 
 	return di;
 }
 
-void init_ncurses(WINDOW_DATA *wd, SCREEN *screen)
+void init_ncurses(WindowData *wd, SCREEN *screen)
 {
 	setlocale(LC_ALL, "");
 	set_term(screen);
@@ -51,12 +50,12 @@ void init_ncurses(WINDOW_DATA *wd, SCREEN *screen)
 	curs_set(0);
 }
 
-void init_window_dimens(DISPLAY_ITEMS *di) 
+void init_window_dimens(DisplayItems *di) 
 {
-	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
-	WINDOW_DATA *cpuWin = di->windows[CPU_WIN];
-	WINDOW_DATA *memoryWin = di->windows[MEMORY_WIN];
-	WINDOW_DATA *prcWin = di->windows[PRC_WIN];
+	WindowData *container = di->windows[CONTAINER_WIN];
+	WindowData *cpuWin = di->windows[CPU_WIN];
+	WindowData *memoryWin = di->windows[MEMORY_WIN];
+	WindowData *prcWin = di->windows[PRC_WIN];
 
 
 	container->windowX = 0;
@@ -100,12 +99,12 @@ void init_window_dimens(DISPLAY_ITEMS *di)
 
 }
 
-void init_windows(DISPLAY_ITEMS *di) 
+void init_windows(DisplayItems *di) 
 {
-	WINDOW_DATA *container = di->windows[CONTAINER_WIN];
-	WINDOW_DATA *cpuWin = di->windows[CPU_WIN];
-	WINDOW_DATA *memoryWin = di->windows[MEMORY_WIN];
-	WINDOW_DATA *prcWin = di->windows[PRC_WIN];
+	WindowData *container = di->windows[CONTAINER_WIN];
+	WindowData *cpuWin = di->windows[CPU_WIN];
+	WindowData *memoryWin = di->windows[MEMORY_WIN];
+	WindowData *prcWin = di->windows[PRC_WIN];
 
 	 container->window = newwin(
 		container->wHeight,

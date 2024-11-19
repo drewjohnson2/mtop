@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "../include/monitor/mem_monitor.h"
+#include "../include/monitor.h"
 
 static void _parse_stat(MEMORY_STATS *stat, char *buffer);
 

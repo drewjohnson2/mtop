@@ -4,9 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../include/monitor/proc_monitor.h"
-#include "../include/startup/startup.h"
-#include "../include/util/ui_utils.h"
+#include "../include/monitor.h"
+#include "../include/startup.h"
 
 static void _fetch_proc_pid_stat(
 	Arena *procArena,

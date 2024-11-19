@@ -1,5 +1,5 @@
-#include "../include/util/ui_utils.h"
-#include "../include/monitor/proc_monitor.h"
+#include "../include/ui_utils.h"
+#include "../include/monitor.h"
 
 typedef enum _sort_order 
 {
