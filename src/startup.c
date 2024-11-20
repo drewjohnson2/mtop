@@ -32,6 +32,16 @@ typedef struct _io_thread_args
 
 volatile ProcessStats **procStats;
 
+static Arena windowArena;
+static Arena cpuArena;
+static Arena memArena; 
+static Arena cpuGraphArena;     // At some point come back and see
+static Arena memoryGraphArena;  // if I can just use one graph arean
+static Arena processArena;
+
+static ThreadSafeQueue *cpuQueue;
+static ThreadSafeQueue *memoryQueue;
+
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _get_input(DisplayItems *di);
@@ -41,21 +51,22 @@ void run()
 	FILE *tty = fopen("/dev/tty", "r+");
 	SCREEN *screen = newterm(NULL, tty, tty);
 
-	Arena windowArena = a_new(2048);
-	Arena cpuArena = a_new(2048);
-	Arena memArena = a_new(2048);
-	Arena cpuGraphArena = a_new(2048);     // At some point come back and see
-	Arena memoryGraphArena = a_new(2048);  // if I can just use one graph arean
-	Arena processArena = a_new(512);
+	windowArena = a_new(2048);
+	cpuArena = a_new(2048);
+	memArena = a_new(2048);
+	cpuGraphArena = a_new(2048);     // At some point come back and see
+	memoryGraphArena = a_new(2048);  // if I can just use one graph arean
+	processArena = a_new(512);
+
 	DisplayItems *di = init_display_items(&windowArena);
 
-	ThreadSafeQueue *cpuQueue = a_alloc(
+	cpuQueue = a_alloc(
 		&cpuArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
 
-	ThreadSafeQueue *memoryQueue = a_alloc(
+	memoryQueue = a_alloc(
 		&memArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
@@ -104,13 +115,39 @@ void run()
 	
 	endwin();
 	free(screen);
+	fclose(tty);
+}
+
+void cleanup()
+{
+	QueueNode *memTmp;
+	QueueNode *memHead = memoryQueue->head;
+
+	while (memHead)
+	{
+		memTmp = memHead;
+		memHead = memHead->next;
+
+		free(memTmp);
+	}
+
+	QueueNode *cpuTmp;
+	QueueNode *cpuHead = cpuQueue->head;
+
+	while (cpuHead)
+	{
+		cpuTmp = cpuHead;
+		cpuHead = cpuHead->next;
+
+		free(cpuTmp);
+	}
+
 	a_free(&windowArena);
 	a_free(&cpuArena);
 	a_free(&memArena);
 	a_free(&cpuGraphArena);
 	a_free(&memoryGraphArena);
 	a_free(&processArena);
-	fclose(tty);
 }
 
 void _get_input(DisplayItems *di)

@@ -8,5 +8,6 @@
 extern volatile ProcessStats **procStats;
 
 void run();
+void cleanup();
 
 #endif

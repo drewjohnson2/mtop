@@ -1,7 +1,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
 
 #include "../include/thread_safe_queue.h"
 
@@ -9,7 +8,7 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
 {
 	pthread_mutex_lock(queueLock);
 
-	QUEUE_NODE *newNode = malloc(sizeof(QUEUE_NODE));
+	QueueNode *newNode = malloc(sizeof(QueueNode));
 
 	if(q->head == NULL)
 	{
@@ -47,7 +46,7 @@ int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *cond
 		pthread_cond_wait(condition, queueLock);
 	}
 
-	QUEUE_NODE *tmp = q->head;
+	QueueNode *tmp = q->head;
 
 	q->head = q->head->next;
 

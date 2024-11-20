@@ -2,46 +2,50 @@
 #define MONITOR_H
 
 #include <arena.h>
+#include <stdint.h>
 
 #define MAX_PROCS 50
+
+typedef unsigned long long u64;
+typedef unsigned long u32;
 
 typedef struct _proc_stats
 {
 	int pid;
 	char procName[99];
-	unsigned long utime;
-	unsigned long stime;
+	u32 utime;
+	u32 stime;
 
 } ProcessStats;
 
 typedef struct _mem_stats
 {
-	unsigned long long int memTotal;
-	unsigned long long int memFree;
-	unsigned long long int cachedMem;
-	unsigned long long int sReclaimable;
-	unsigned long long int shared;
-	unsigned long long int buffers;
+	u64 memTotal;
+	u64 memFree;
+	u64 cachedMem;
+	u64 sReclaimable;
+	u64 shared;
+	u64 buffers;
 } MemoryStats;
 
 typedef struct _cpu_stats 
 {
 	int cpuNumber;
-	unsigned long long int user;
-	unsigned long long int nice;
-	unsigned long long int system;
-	unsigned long long int idle;
-	unsigned long long int ioWait;
-	unsigned long long int irq;
-	unsigned long long int softIrq;
-	unsigned long long int steal;
-	unsigned long long int guest;
-	unsigned long long int guestNice;
+	u64 user;
+	u64 nice;
+	u64 system;
+	u64 idle;
+	u64 ioWait;
+	u64 irq;
+	u64 softIrq;
+	u64 steal;
+	u64 guest;
+	u64 guestNice;
 } CpuStats;
 
 #define CALCULATE_MEMORY_USAGE(stats, percentage) \
 	do { \
-		unsigned long long usedDiff = stats->memFree + stats->cachedMem \
+		u64 usedDiff = stats->memFree + stats->cachedMem \
 			+ stats->sReclaimable + stats->buffers; \
 		\
 		percentage = (stats->memTotal - usedDiff) / (float)stats->memTotal; \
@@ -49,9 +53,9 @@ typedef struct _cpu_stats
 
 #define CALCULATE_CPU_PERCENTAGE(prev, cur, percentage) \
 	do { \
-		unsigned long long int prevIdle, idle, prevActive, active; \
-		unsigned long long int prevTotal, total; \
-		unsigned long long int totalDiff, idleDiff; \
+		u64 prevIdle, idle, prevActive, active; \
+		u64 prevTotal, total; \
+		u64 totalDiff, idleDiff; \
 		\
 		prevIdle = prev->idle + prev->ioWait; \
 		idle = cur->idle + cur->ioWait; \
@@ -75,9 +79,9 @@ typedef struct _cpu_stats
 	} while(0)\
 
 
+CpuStats * fetch_cpu_stats(Arena *arena);
 MemoryStats * fetch_memory_stats(Arena *arena);
 void get_processes(Arena *procArena,int (*sortFunc)(const void *, const void *));
-CpuStats * fetch_cpu_stats(Arena *arena);
 
 #endif
 
