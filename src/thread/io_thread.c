@@ -19,7 +19,7 @@ void run_io(
 ) 
 {
 	pthread_mutex_lock(&procDataLock);
-	get_processes(procArena, proc_name_compare);  
+	get_processes(procArena, proc_pid_compare);  
 	pthread_mutex_unlock(&procDataLock);
 
 	struct timespec start, current;
@@ -45,10 +45,10 @@ void run_io(
 
 		int totalTimeSec = current.tv_sec - start.tv_sec;
 
-		if (totalTimeSec > PROC_WAIT_TIME)
+		if (totalTimeSec > PROC_WAIT_TIME_SEC)
 		{
 			pthread_mutex_lock(&procDataLock);
-			get_processes(procArena, proc_name_compare);  
+			get_processes(procArena, proc_pid_compare);  
 			pthread_mutex_unlock(&procDataLock);
 			clock_gettime(CLOCK_REALTIME, &start);
 		}

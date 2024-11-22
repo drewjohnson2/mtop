@@ -4,6 +4,8 @@
 #include <ncurses.h>
 #include <arena.h>
 
+typedef unsigned short u16;
+
 #define REFRESH_WIN(win) \
 	do { \
 		touchwin(win); \
@@ -21,12 +23,12 @@ typedef enum _mt_window
 typedef struct _window_data
 {
 	WINDOW *window;
-	unsigned short wHeight, wWidth;
-	unsigned short windowX, windowY;
-	unsigned short paddingTop;
-	unsigned short paddingBottom;
-	unsigned short paddingRight;
-	unsigned short paddingLeft;
+	u16 wHeight, wWidth;
+	u16 windowX, windowY;
+	u16 paddingTop;
+	u16 paddingBottom;
+	u16 paddingRight;
+	u16 paddingLeft;
 	char *windowTitle;
 } WindowData;
 
@@ -44,9 +46,9 @@ typedef struct _graph_point
 
 typedef struct _graph_data 
 {
-	unsigned short graphHeight;
-	unsigned short graphWidth;
-	unsigned short graphPointCount;
+	u16 graphHeight;
+	u16 graphWidth;
+	u16 graphPointCount;
 	GraphPoint *head;
 } GraphData;
 
@@ -63,7 +65,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen);
 //		graph.c
 //
 //
-void graph_render(Arena *arena, GraphData *gd, WindowData *wd);
-void add_graph_point(Arena *arena, GraphData *gd, float percentage);
+int graph_render(Arena *arena, GraphData *gd, WindowData *wd);
+int add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 #endif

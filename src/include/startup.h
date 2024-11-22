@@ -5,7 +5,7 @@
 
 #include "monitor.h"
 
-extern volatile ProcessStats **procStats;
+extern volatile ProcessStats *procStats;
 
 void run();
 void cleanup();

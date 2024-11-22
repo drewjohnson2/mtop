@@ -10,12 +10,12 @@
 static void _fetch_proc_pid_stat(
 	Arena *procArena,
 	char *statPath,
-	char *statusPath,
-	int index
+	char *statusPath
 )
 {
 	char statBuffer[1024];
 	char statusBuffer[1024];
+	int index = procStats->count;
 	uid_t uid = getuid();
 
 	FILE *statusFile = fopen(statusPath, "r");
@@ -48,7 +48,11 @@ static void _fetch_proc_pid_stat(
 
 	if (!statFile) return;
 
-	procStats[index] = a_alloc(procArena, sizeof(ProcessStats), __alignof(ProcessStats));
+	procStats->processes[index] = a_alloc(
+		procArena,
+		sizeof(ProcessList),
+		__alignof(ProcessList)
+	);
 
 	fgets(statBuffer, sizeof(statBuffer), statFile);
 
@@ -56,8 +60,8 @@ static void _fetch_proc_pid_stat(
 		"%d %*[(]%99[^)'] %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
-		&procStats[index]->pid, procStats[index]->procName,
-		&procStats[index]->utime, &procStats[index]->stime
+		&procStats->processes[index]->pid, procStats->processes[index]->procName,
+		&procStats->processes[index]->utime, &procStats->processes[index]->stime
 		);
 
 	fclose(statFile);
@@ -70,22 +74,27 @@ void get_processes(
 {
 	DIR *directory;
 	struct dirent *dp;
-	int i;
 
 	if ((directory = opendir("/proc")) == NULL) exit(1);
 
 	a_free(procArena);
 
 	*procArena = a_new(512);
+
 	procStats = a_alloc(
 		procArena,
-	   sizeof(ProcessStats *) * MAX_PROCS,
-	   __alignof(ProcessStats *)
+		sizeof(ProcessStats),
+		__alignof(ProcessStats)
 	);
-	
-	for (i = 0; (dp = readdir(directory)) != NULL;)
+	procStats->processes = a_alloc(
+		procArena,
+	   sizeof(ProcessList *) * MAX_PROCS,
+	   __alignof(ProcessList *)
+	);
+
+	for (procStats->count = 0; (dp = readdir(directory)) != NULL;)
 	{
-		if (i > MAX_PROCS - 1) break;
+		if (procStats->count > MAX_PROCS - 1) break;
 
 		char statPath[32];
 		char statusPath[32];
@@ -97,12 +106,14 @@ void get_processes(
 		snprintf(statPath, sizeof(statPath), "/proc/%s/stat", dp->d_name);
 		snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", dp->d_name);
 
-		_fetch_proc_pid_stat(procArena, statPath, statusPath, i);
+		_fetch_proc_pid_stat(procArena, statPath, statusPath);
 
-		if (procStats[i] != NULL) i++;
+		if (procStats->processes[procStats->count] != NULL) procStats->count++;
 	}
 
-	qsort(procStats, i, sizeof(ProcessStats *), sortFunc);
+	procStats->cpuTimeAtSample = cpu_time_now();
+
+	qsort(procStats->processes, procStats->count, sizeof(ProcessList *), sortFunc);
 
 	closedir(directory);
 }

@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
 #include "../include/thread_safe_queue.h"
 
@@ -9,6 +10,8 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
 	pthread_mutex_lock(queueLock);
 
 	QueueNode *newNode = malloc(sizeof(QueueNode));
+
+	assert(newNode);
 
 	if(q->head == NULL)
 	{

@@ -5,12 +5,15 @@
 #include <wchar.h>
 #include <arena.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "../include/window.h"
 
-void graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {
-	if (!gd->head) return;
+	if (!gd->head) return 1;
+
+	assert(gd && wd);
 
 	WINDOW *win = wd->window;
 	GraphPoint *current = gd->head;
@@ -89,12 +92,18 @@ void graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	}
 
 	wattroff(win, COLOR_PAIR(2));
+
+	return 0;
 }
 
-void add_graph_point(Arena *arena, GraphData *gd, float percentage)
+int add_graph_point(Arena *arena, GraphData *gd, float percentage)
 {
+	assert(arena && gd);
+
 	GraphPoint *gp = a_alloc(arena, sizeof(GraphPoint), __alignof(GraphPoint));
-	
+
+	assert(gp);
+
 	gp->percent = percentage;
 	
 	gd->graphPointCount++;
@@ -103,7 +112,7 @@ void add_graph_point(Arena *arena, GraphData *gd, float percentage)
 	{
 		gd->head = gp;
 
-		return;
+		return 0;
 	}
 
 	GraphPoint *tmp = gd->head;
@@ -111,4 +120,6 @@ void add_graph_point(Arena *arena, GraphData *gd, float percentage)
 	while (tmp->next != NULL) tmp = tmp->next;
 
 	tmp->next = gp;
+
+	return 0;
 }

@@ -1,12 +1,15 @@
 #include <locale.h>
 #include <ncurses.h>
 #include <arena.h>
+#include <assert.h>
 
 #include "../include/window.h"
 
 DisplayItems * init_display_items(Arena *arena) 
 {
 	DisplayItems *di = a_alloc(arena, sizeof(DisplayItems), __alignof(DisplayItems));
+
+	assert(di);
 
 	di->windowCount = 4;
 
@@ -15,6 +18,9 @@ DisplayItems * init_display_items(Arena *arena)
 		sizeof(WindowData *) * di->windowCount,
 		__alignof(WindowData *)
 	);
+
+	assert(di->windows);
+
 	di->windows[CONTAINER_WIN] = a_alloc(
 		arena, 
 		sizeof(WindowData),
@@ -35,6 +41,11 @@ DisplayItems * init_display_items(Arena *arena)
 		sizeof(WindowData),
 		__alignof(WindowData)
 	);
+
+	assert(di->windows[CONTAINER_WIN]);
+	assert(di->windows[CPU_WIN]);
+	assert(di->windows[MEMORY_WIN]);
+	assert(di->windows[PRC_WIN]);
 
 	return di;
 }
@@ -135,6 +146,13 @@ void init_windows(DisplayItems *di)
 		prcWin->wWidth,
 		prcWin->windowY,
 		prcWin->windowX
+	);
+
+	assert(
+		container->window &&
+		cpuWin->window &&
+		memoryWin->window &&
+		prcWin->window
 	);
 
 	/*

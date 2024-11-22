@@ -30,7 +30,7 @@ typedef struct _io_thread_args
 	ThreadSafeQueue *memQueue;
 } IOThreadArgs;
 
-volatile ProcessStats **procStats;
+volatile ProcessStats *procStats;
 
 static Arena windowArena;
 static Arena cpuArena;
@@ -120,26 +120,25 @@ void run()
 
 void cleanup()
 {
-	QueueNode *memTmp;
-	QueueNode *memHead = memoryQueue->head;
+	QueueNode *tmp;
+	QueueNode *head = memoryQueue->head;
 
-	while (memHead)
+	while (head)
 	{
-		memTmp = memHead;
-		memHead = memHead->next;
+		tmp = head;
+		head = head->next;
 
-		free(memTmp);
+		free(tmp);
 	}
 
-	QueueNode *cpuTmp;
-	QueueNode *cpuHead = cpuQueue->head;
+	head = cpuQueue->head;
 
-	while (cpuHead)
+	while (head)
 	{
-		cpuTmp = cpuHead;
-		cpuHead = cpuHead->next;
+		tmp = head;
+		head = head->next;
 
-		free(cpuTmp);
+		free(tmp);
 	}
 
 	a_free(&windowArena);

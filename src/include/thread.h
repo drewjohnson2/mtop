@@ -8,10 +8,9 @@
 #include "window.h"
 
 #define DISPLAY_SLEEP_TIME 1000 * 200
-#define PROC_WAIT_TIME_SEC 5
+#define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
 #define READ_SLEEP_TIME 1000 * 100 
-#define PROC_WAIT_TIME 2
 
 
 #define SHOULD_MERGE(mutex, cont) \
@@ -30,6 +29,7 @@
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
 extern pthread_mutex_t procDataLock;
+extern pthread_mutex_t exitLock;
 
 extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;

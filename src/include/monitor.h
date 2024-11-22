@@ -3,19 +3,27 @@
 
 #include <arena.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #define MAX_PROCS 50
 
 typedef unsigned long long u64;
 typedef unsigned long u32;
 
-typedef struct _proc_stats
+typedef struct _proc_list
 {
 	int pid;
 	char procName[99];
 	u32 utime;
 	u32 stime;
 
+} ProcessList;
+
+typedef struct _proc_stats
+{
+	int count;
+	u64 cpuTimeAtSample;
+	ProcessList **processes;
 } ProcessStats;
 
 typedef struct _mem_stats
@@ -51,6 +59,7 @@ typedef struct _cpu_stats
 		percentage = (stats->memTotal - usedDiff) / (float)stats->memTotal; \
 	} while(0) \
 
+// found this calculation at https://stackoverflow.com/a/23376195
 #define CALCULATE_CPU_PERCENTAGE(prev, cur, percentage) \
 	do { \
 		u64 prevIdle, idle, prevActive, active; \
@@ -78,6 +87,23 @@ typedef struct _cpu_stats
 		\
 	} while(0)\
 
+static inline u64 cpu_time_now()
+{
+	FILE *f = fopen("/proc/stat", "r");
+	char buffer[512];
+
+	u64 user, nice, system, idle, ioWait, irq, softIrq, steal;
+
+	fgets(buffer, sizeof(buffer), f);
+
+	sscanf(buffer, 
+		"cpu  %llu %llu %llu %llu %llu %llu %llu %llu\n", 
+		&user, &nice, &system, &idle, &ioWait,
+		&irq, &softIrq, &steal
+	);
+
+	return user + nice + system + idle + ioWait + irq + softIrq + steal;
+}
 
 CpuStats * fetch_cpu_stats(Arena *arena);
 MemoryStats * fetch_memory_stats(Arena *arena);
