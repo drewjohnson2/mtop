@@ -107,7 +107,10 @@ static inline u64 cpu_time_now()
 
 CpuStats * fetch_cpu_stats(Arena *arena);
 MemoryStats * fetch_memory_stats(Arena *arena);
-void get_processes(Arena *procArena,int (*sortFunc)(const void *, const void *));
+ProcessStats * get_processes(
+	Arena *procArena,
+	int (*sortFunc)(const void *, const void *)
+);
 
 #endif
 

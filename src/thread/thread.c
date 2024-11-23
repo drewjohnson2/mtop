@@ -9,6 +9,7 @@ pthread_mutex_t exitLock;
 
 pthread_cond_t cpuQueueCondition;
 pthread_cond_t memQueueCondition;
+pthread_cond_t procQueueCondition;
 
 volatile int SHUTDOWN_FLAG = 0;
 
@@ -29,9 +30,11 @@ void condition_init()
 {
 	pthread_cond_init(&cpuQueueCondition, NULL);
 	pthread_cond_init(&memQueueCondition, NULL);
+	pthread_cond_init(&procQueueCondition, NULL);
 
 	assert(&cpuQueueCondition);
 	assert(&memQueueCondition);
+	assert(&procQueueCondition);
 }
 
 void mutex_destroy()
@@ -46,4 +49,5 @@ void condition_destroy()
 {
 	pthread_cond_destroy(&cpuQueueCondition);
 	pthread_cond_destroy(&memQueueCondition);
+	pthread_cond_destroy(&procQueueCondition);
 }

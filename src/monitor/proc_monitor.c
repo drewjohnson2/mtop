@@ -9,13 +9,13 @@
 
 static void _fetch_proc_pid_stat(
 	Arena *procArena,
+	ProcessList **item,
 	char *statPath,
 	char *statusPath
 )
 {
 	char statBuffer[1024];
 	char statusBuffer[1024];
-	int index = procStats->count;
 	uid_t uid = getuid();
 
 	FILE *statusFile = fopen(statusPath, "r");
@@ -48,7 +48,7 @@ static void _fetch_proc_pid_stat(
 
 	if (!statFile) return;
 
-	procStats->processes[index] = a_alloc(
+	*item = a_alloc(
 		procArena,
 		sizeof(ProcessList),
 		__alignof(ProcessList)
@@ -56,18 +56,24 @@ static void _fetch_proc_pid_stat(
 
 	fgets(statBuffer, sizeof(statBuffer), statFile);
 
+	char name[99];
+
 	sscanf(statBuffer,
-		"%d %*[(]%99[^)'] %*c %*d %*d "
+		"%d %98s %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
-		&procStats->processes[index]->pid, procStats->processes[index]->procName,
-		&procStats->processes[index]->utime, &procStats->processes[index]->stime
-		);
+		&(*item)->pid, name,
+		&(*item)->utime, &(*item)->stime
+	);
+
+	size_t len = strlen(name) - 2;
+
+	strncpy((*item)->procName, name + 1, len);
 
 	fclose(statFile);
 }
 
-void get_processes(
+ProcessStats * get_processes(
 	Arena *procArena,
 	int (*sortFunc)(const void *, const void *)
 ) 
@@ -77,11 +83,7 @@ void get_processes(
 
 	if ((directory = opendir("/proc")) == NULL) exit(1);
 
-	a_free(procArena);
-
-	*procArena = a_new(512);
-
-	procStats = a_alloc(
+	ProcessStats *procStats = a_alloc(
 		procArena,
 		sizeof(ProcessStats),
 		__alignof(ProcessStats)
@@ -106,7 +108,12 @@ void get_processes(
 		snprintf(statPath, sizeof(statPath), "/proc/%s/stat", dp->d_name);
 		snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", dp->d_name);
 
-		_fetch_proc_pid_stat(procArena, statPath, statusPath);
+		_fetch_proc_pid_stat(
+			procArena,
+			&procStats->processes[procStats->count],
+			statPath,
+			statusPath
+		);
 
 		if (procStats->processes[procStats->count] != NULL) procStats->count++;
 	}
@@ -116,4 +123,6 @@ void get_processes(
 	qsort(procStats->processes, procStats->count, sizeof(ProcessList *), sortFunc);
 
 	closedir(directory);
+
+	return procStats;
 }

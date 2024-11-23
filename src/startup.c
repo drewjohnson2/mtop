@@ -10,6 +10,7 @@
 #include "include/thread_safe_queue.h"
 #include "include/window.h"
 #include "include/thread.h"
+#include "include/ui_utils.h"
 
 typedef struct _ui_thread_args
 {
@@ -19,6 +20,7 @@ typedef struct _ui_thread_args
 	DisplayItems *di;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
+	ThreadSafeQueue *processQueue;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
@@ -28,9 +30,8 @@ typedef struct _io_thread_args
 	Arena *processArena;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
+	ThreadSafeQueue *processQueue;
 } IOThreadArgs;
-
-volatile ProcessStats *procStats;
 
 static Arena windowArena;
 static Arena cpuArena;
@@ -41,6 +42,7 @@ static Arena processArena;
 
 static ThreadSafeQueue *cpuQueue;
 static ThreadSafeQueue *memoryQueue;
+static ThreadSafeQueue *processQueue;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
@@ -56,7 +58,7 @@ void run()
 	memArena = a_new(2048);
 	cpuGraphArena = a_new(2048);     // At some point come back and see
 	memoryGraphArena = a_new(2048);  // if I can just use one graph arean
-	processArena = a_new(512);
+	processArena = a_new(2048);
 
 	DisplayItems *di = init_display_items(&windowArena);
 
@@ -72,10 +74,16 @@ void run()
 		__alignof(ThreadSafeQueue)
 	);
 
+	processQueue = a_alloc(
+		&processArena,
+		sizeof(ThreadSafeQueue),
+		__alignof(ThreadSafeQueue)
+	);
+
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
-	
+
 	UIThreadArgs uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
@@ -83,7 +91,8 @@ void run()
 		.procArena = &processArena,
 		.cpuQueue = cpuQueue,
 		.memGraphArena = &memoryGraphArena,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.processQueue = processQueue,
 	};
 
 	IOThreadArgs ioArgs = 
@@ -92,7 +101,8 @@ void run()
 		.memArena = &memArena,
 		.processArena = &processArena,
 		.cpuQueue = cpuQueue,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.processQueue = processQueue
 	};
 
 	pthread_t ioThread;
@@ -177,7 +187,8 @@ static void * _ui_thread_run(void *arg)
 		args->procArena,
 		args->di,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->processQueue
 	);
 
 	return NULL;
@@ -192,7 +203,8 @@ static void * _io_thread_run(void *arg)
 		args->memArena,
 		args->processArena,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->processQueue
 	);
 
 	return NULL;

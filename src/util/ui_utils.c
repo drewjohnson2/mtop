@@ -27,3 +27,24 @@ int proc_pid_compare(const void *a, const void *b)
 
 	return x->pid > y->pid;
 }
+
+int pid_search_func(const void *a, const void *b)
+{
+	assert(a && b);
+
+	const ProcessList *x = *(ProcessList **)a;
+	const ProcessList *y = *(ProcessList **)b;
+
+	if (x->pid > y->pid)
+	{
+		return 1;
+	}
+	else if (x->pid < y->pid)
+	{
+		return -1;
+	}
+	else
+	{
+		return 0;
+	}
+}

@@ -31,7 +31,8 @@ void run_ui(
 	Arena *procArena,
 	DisplayItems *di,
 	ThreadSafeQueue *cpuQueue,
-	ThreadSafeQueue *memoryQueue
+	ThreadSafeQueue *memoryQueue,
+	ThreadSafeQueue *procQueue
 )
 {
 	float cpuPercentage, memoryPercentage;
@@ -48,8 +49,8 @@ void run_ui(
 	Arena memPointArena = a_new(sizeof(GraphPoint));
 	Arena procUiArena = a_new(1024);
 
-	ProcessStats *prevStatSample = _create_stats_copy(&procUiArena);
-	ProcessStats *curStatSample = NULL;
+	ProcessStats *prevProcSample = NULL;
+	ProcessStats *curProcSample = NULL;
 
 	GraphData *memGraphData = a_alloc(
 		memGraphArena,
@@ -61,6 +62,9 @@ void run_ui(
 	// handling here.
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+
+	prevProcSample = peek(procQueue, &procDataLock, &procQueueCondition);
+	dequeue(procQueue, &procDataLock, &procQueueCondition);
 	
 	while (!SHUTDOWN_FLAG)
 	{
@@ -81,33 +85,24 @@ void run_ui(
 
 		prevStats = curStats;
 
-		curStatSample = _create_stats_copy(&procUiArena);
-
-		StatsViewData vd[curStatSample->count]; 
-
-		for (int i = 0; i < curStatSample->count; i++)
+		if (procQueue->size > 0)
 		{
-			ProcessList *cur = curStatSample->processes[i];
-			ProcessList *data = bsearch(
-				&curStatSample,
-				prevStatSample,
-				prevStatSample->count,
-				sizeof(ProcessList *),
-				proc_pid_compare
-			);
+			curProcSample = peek(procQueue, &procDataLock, &procQueueCondition);
+			dequeue(procQueue, &procDataLock, &procQueueCondition);
+		}
 
-			if (data == NULL) data = curStatSample->processes[i];
+		ProcessStats *procs = curProcSample == NULL ?
+			prevProcSample :
+			curProcSample;
 
-			u64 elapsedCpuTime = curStatSample->cpuTimeAtSample - prevStatSample->cpuTimeAtSample;
-			u64 procCpuTime = (cur->stime + cur->utime) - (data->stime + data->utime);
-			float cpuPct = elapsedCpuTime > 0 ?
-	   			(procCpuTime / elapsedCpuTime) * 100 :
-				0;
+		StatsViewData vd[procs->count]; 
 
+		for (int i = 0; i < procs->count; i++)
+		{
 			vd[i] = (StatsViewData){
-				.command = curStatSample->processes[i]->procName,
-				.pid = curStatSample->processes[i]->pid,
-				.cpuPercentage = cpuPct,
+				.command = procs->processes[i]->procName,
+				.pid = procs->processes[i]->pid,
+				.cpuPercentage = 0,
 				.memPercentage = 0
 	   		};
 		}
@@ -115,9 +110,10 @@ void run_ui(
 		// There was once a two second 
 		// timer check here, if things
 		// get wonky put it back
-		_print_stats(procWin, vd, curStatSample->count, procArena);
+		_print_stats(procWin, vd, procs->count, procArena);
 
-		prevStatSample = curStatSample;
+		if (curProcSample != NULL)
+			prevProcSample = curProcSample;
 
 		REFRESH_WIN(container->window);
 
@@ -129,40 +125,40 @@ void run_ui(
 	a_free(&procUiArena);
 }
 
-ProcessStats * _create_stats_copy(Arena *arena)
-{
-	pthread_mutex_lock(&procDataLock);
-
-	ProcessStats *stat = a_alloc(arena, sizeof(ProcessStats), __alignof(ProcessStats));
-
-	stat->count = procStats->count;
-	stat->cpuTimeAtSample = procStats->cpuTimeAtSample;
-
-	stat->processes = a_alloc(
-		arena,
-		sizeof(ProcessList *) * procStats->count,
-		__alignof(ProcessList *)
-	);
-
-	for (int i = 0; i < procStats->count; i++)
-	{
-		char * command = a_strdup(arena, procStats->processes[i]->procName);
-
-		stat->processes[i] = a_alloc(arena, sizeof(ProcessList), __alignof(ProcessList));
-		stat->processes[i]->pid = procStats->processes[i]->pid;
-		stat->processes[i]->stime = procStats->processes[i]->stime;
-		stat->processes[i]->utime = procStats->processes[i]->utime;
-		strcpy(stat->processes[i]->procName, command);	
-	}
-
-	pthread_mutex_unlock(&procDataLock);
-
-	return stat;
-}
+// ProcessStats * _create_stats_copy(Arena *arena)
+// {
+// 	pthread_mutex_lock(&procDataLock);
+//
+// 	ProcessStats *stat = a_alloc(arena, sizeof(ProcessStats), __alignof(ProcessStats));
+//
+// 	stat->count = procStats->count;
+// 	stat->cpuTimeAtSample = procStats->cpuTimeAtSample;
+//
+// 	stat->processes = a_alloc(
+// 		arena,
+// 		sizeof(ProcessList *) * procStats->count,
+// 		__alignof(ProcessList *)
+// 	);
+//
+// 	for (int i = 0; i < procStats->count; i++)
+// 	{
+// 		char * command = a_strdup(arena, procStats->processes[i]->procName);
+//
+// 		stat->processes[i] = a_alloc(arena, sizeof(ProcessList), __alignof(ProcessList));
+// 		stat->processes[i]->pid = procStats->processes[i]->pid;
+// 		stat->processes[i]->stime = procStats->processes[i]->stime;
+// 		stat->processes[i]->utime = procStats->processes[i]->utime;
+// 		strcpy(stat->processes[i]->procName, command);	
+// 	}
+//
+// 	pthread_mutex_unlock(&procDataLock);
+//
+// 	return stat;
+// }
 
 void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procArena)
 {
-	if (procStats == NULL) return;
+	if (vd == NULL) return;
 
 	char *commandTitle = "Command";
 	char *pidTitle = "PID";
