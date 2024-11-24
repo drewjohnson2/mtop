@@ -20,7 +20,7 @@ void run_io(
 ) 
 {
 	pthread_mutex_lock(&procDataLock);
-	get_processes(procArena, proc_pid_compare);  
+	get_processes(procArena, pid_search_func);  
 	pthread_mutex_unlock(&procDataLock);
 
 	struct timespec start, current;
@@ -29,7 +29,7 @@ void run_io(
 
 	enqueue(
 		procQueue,
-		get_processes(procArena, proc_pid_compare),
+		get_processes(procArena, pid_search_func),
 		&procDataLock,
 		&procQueueCondition
 	);
@@ -58,7 +58,7 @@ void run_io(
 			// pthread_mutex_lock(&procDataLock);
 			// get_processes(procArena, proc_pid_compare);  
 			// pthread_mutex_unlock(&procDataLock);
-			ProcessStats *stats = get_processes(procArena, proc_name_compare);
+			ProcessStats *stats = get_processes(procArena, pid_search_func);
 
 			enqueue(
 				procQueue,

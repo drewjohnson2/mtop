@@ -87,6 +87,14 @@ typedef struct _cpu_stats
 		\
 	} while(0)\
 
+#define CALC_PROC_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
+	do { \
+		float elapsedCpuTime = curCpuTime - prevCpuTime; \
+		float procCpuTime = (cur->stime + cur->utime) - (prev->stime + prev->utime); \
+		\
+		pct = elapsedCpuTime > 0 ? (procCpuTime / elapsedCpuTime) * 100 : 0; \
+	} while(0)\
+
 static inline u64 cpu_time_now()
 {
 	FILE *f = fopen("/proc/stat", "r");

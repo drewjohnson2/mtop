@@ -6,12 +6,12 @@
 #include <time.h>
 #include <unistd.h>
 #include <arena.h>
+#include <assert.h>
 
 #include "../include/thread.h"
 #include "../include/window.h"
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
-#include "../include/startup.h"
 #include "../include/ui_utils.h"
 
 typedef struct _stats_view_data 
@@ -23,7 +23,7 @@ typedef struct _stats_view_data
 } StatsViewData;
 
 ProcessStats * _create_stats_copy(Arena *arena);
-void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procArena);
+void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena);
 
 void run_ui(
 	Arena *graphArena,
@@ -36,6 +36,8 @@ void run_ui(
 )
 {
 	float cpuPercentage, memoryPercentage;
+	int numCpus = sysconf(_SC_NPROCESSORS_ONLN);
+
 	CpuStats *prevStats = NULL;
 	CpuStats *curStats = NULL;
 	MemoryStats *memStats = NULL;
@@ -60,18 +62,18 @@ void run_ui(
 
 	// probably need to add some sort of shut down error
 	// handling here.
-	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition, 1);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
-	prevProcSample = peek(procQueue, &procDataLock, &procQueueCondition);
+	prevProcSample = peek(procQueue, &procDataLock, &procQueueCondition, 1);
 	dequeue(procQueue, &procDataLock, &procQueueCondition);
 	
 	while (!SHUTDOWN_FLAG)
 	{
-		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition, 1);
 		dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
- 		memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
+ 		memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition, 1);
 		dequeue(memoryQueue, &memQueueLock, &memQueueCondition);
  
 		CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
@@ -87,7 +89,8 @@ void run_ui(
 
 		if (procQueue->size > 0)
 		{
-			curProcSample = peek(procQueue, &procDataLock, &procQueueCondition);
+			if (curProcSample) prevProcSample = curProcSample;
+			curProcSample = peek(procQueue, &procDataLock, &procQueueCondition, 0);
 			dequeue(procQueue, &procDataLock, &procQueueCondition);
 		}
 
@@ -95,16 +98,49 @@ void run_ui(
 			prevProcSample :
 			curProcSample;
 
-		StatsViewData vd[procs->count]; 
+		Arena scratch = a_new(512);
 
+		StatsViewData **vd = a_alloc(
+			&scratch,
+			sizeof(StatsViewData *) * procs->count,
+			__alignof(StatsViewData *)
+		); 
+		
 		for (int i = 0; i < procs->count; i++)
 		{
-			vd[i] = (StatsViewData){
-				.command = procs->processes[i]->procName,
-				.pid = procs->processes[i]->pid,
-				.cpuPercentage = 0,
-				.memPercentage = 0
-	   		};
+			ProcessList *target;
+			ProcessList *cur = procs->processes[i];
+			ProcessList **match = bsearch(
+				&cur,
+				prevProcSample->processes,
+				prevProcSample->count,
+				sizeof(ProcessList *),
+				pid_search_func
+			);
+
+			if (!match) target = cur;
+			else target = *match;
+
+			float cpuPct = 0.0;
+
+			CALC_PROC_USAGE_PCT(
+				target,
+				cur,
+				cpuPct,
+				prevProcSample->cpuTimeAtSample,
+				procs->cpuTimeAtSample
+			);
+
+			vd[i] = a_alloc(
+				&scratch,
+				sizeof(StatsViewData),
+				__alignof(StatsViewData)
+			);
+
+			vd[i]->pid = cur->pid;
+			vd[i]->command = cur->procName;
+			vd[i]->cpuPercentage = cpuPct;
+			vd[i]->memPercentage = 0;
 		}
 
 		// There was once a two second 
@@ -112,8 +148,14 @@ void run_ui(
 		// get wonky put it back
 		_print_stats(procWin, vd, procs->count, procArena);
 
-		if (curProcSample != NULL)
-			prevProcSample = curProcSample;
+		a_free(&scratch);
+
+		// if (curProcSample != NULL)
+		// {
+		// 	if (curProcSample->processes[5]->utime > 0)
+		// 		curProcSample->processes[5]->utime++;
+		// 	prevProcSample = curProcSample;
+		// }
 
 		REFRESH_WIN(container->window);
 
@@ -125,40 +167,21 @@ void run_ui(
 	a_free(&procUiArena);
 }
 
-// ProcessStats * _create_stats_copy(Arena *arena)
-// {
-// 	pthread_mutex_lock(&procDataLock);
-//
-// 	ProcessStats *stat = a_alloc(arena, sizeof(ProcessStats), __alignof(ProcessStats));
-//
-// 	stat->count = procStats->count;
-// 	stat->cpuTimeAtSample = procStats->cpuTimeAtSample;
-//
-// 	stat->processes = a_alloc(
-// 		arena,
-// 		sizeof(ProcessList *) * procStats->count,
-// 		__alignof(ProcessList *)
-// 	);
-//
-// 	for (int i = 0; i < procStats->count; i++)
-// 	{
-// 		char * command = a_strdup(arena, procStats->processes[i]->procName);
-//
-// 		stat->processes[i] = a_alloc(arena, sizeof(ProcessList), __alignof(ProcessList));
-// 		stat->processes[i]->pid = procStats->processes[i]->pid;
-// 		stat->processes[i]->stime = procStats->processes[i]->stime;
-// 		stat->processes[i]->utime = procStats->processes[i]->utime;
-// 		strcpy(stat->processes[i]->procName, command);	
-// 	}
-//
-// 	pthread_mutex_unlock(&procDataLock);
-//
-// 	return stat;
-// }
+int view_data_name_compare_func(const void *a, const void *b)
+{
+	assert(a && b);
 
-void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procArena)
+	const StatsViewData *x = *(StatsViewData **)a;
+	const StatsViewData *y = *(StatsViewData **)b;
+
+	return strcmp(x->command, y->command);
+}
+
+void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena)
 {
 	if (vd == NULL) return;
+
+	qsort(vd, count, sizeof(StatsViewData *), view_data_name_compare_func);
 
 	char *commandTitle = "Command";
 	char *pidTitle = "PID";
@@ -168,9 +191,9 @@ void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procAren
 	u16 cpuPosX = pidPosX + (wd->wWidth * .14);
 	u16 memPosX = cpuPosX + (wd->wWidth * .14);
 
-	int fitMemory = wd->wWidth >= memPosX + strlen(memTitle);
+	int fitMem = wd->wWidth >= memPosX + strlen(memTitle);
 
-	if (!fitMemory) 
+	if (!fitMem) 
 	{
 		pidPosX = wd->wWidth * .70;
 		cpuPosX = pidPosX + (wd->wWidth * .17);
@@ -197,7 +220,7 @@ void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procAren
 	mvwprintw(win, 2, pidPosX, "%s", pidTitle);
 
 	if (fitCpu) mvwprintw(win, 2, cpuPosX, "%s", cpuTitle);
-	if (fitMemory) mvwprintw(win, 2, memPosX, "%s", memTitle);
+	if (fitMem) mvwprintw(win, 2, memPosX, "%s", memTitle);
 
 	int x = 2;
 
@@ -215,11 +238,11 @@ void _print_stats(WindowData *wd, StatsViewData vd[], int count, Arena *procAren
 
 	while (i < wd->wHeight - 5 && i < count)
 	{
-		mvwprintw(win, posY, 2, "%s", vd[i].command);
-		mvwprintw(win, posY, pidPosX, "%d", vd[i].pid);
+		mvwprintw(win, posY, 2, "%s", vd[i]->command);
+		mvwprintw(win, posY, pidPosX, "%d", vd[i]->pid);
 
-		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", vd[i].cpuPercentage);
-		if (fitMemory) mvwprintw(win, posY++, memPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
+		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
+		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
 
 		i++;
 	}

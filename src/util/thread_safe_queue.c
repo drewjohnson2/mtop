@@ -40,7 +40,11 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
 	pthread_mutex_unlock(queueLock);
 }
 
-int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+int dequeue(
+	ThreadSafeQueue *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+)
 {
 	pthread_mutex_lock(queueLock);
 
@@ -64,12 +68,23 @@ int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *cond
 	return 1;
 }
 
-void * peek(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+void * peek(
+	ThreadSafeQueue *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition,
+	int wait
+)
 {
 	pthread_mutex_lock(queueLock);
 
 	while (q->head == NULL)
 	{
+		if (!wait)
+		{
+			pthread_mutex_unlock(queueLock);
+			return NULL;
+		}
+
 		pthread_cond_wait(condition, queueLock);
 	}
 
