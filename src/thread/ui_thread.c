@@ -36,7 +36,6 @@ void run_ui(
 )
 {
 	float cpuPercentage, memoryPercentage;
-	int numCpus = sysconf(_SC_NPROCESSORS_ONLN);
 
 	CpuStats *prevStats = NULL;
 	CpuStats *curStats = NULL;
@@ -51,8 +50,8 @@ void run_ui(
 	Arena memPointArena = a_new(sizeof(GraphPoint));
 	Arena procUiArena = a_new(1024);
 
-	ProcessStats *prevProcSample = NULL;
-	ProcessStats *curProcSample = NULL;
+	ProcessStats *prevProcs = NULL;
+	ProcessStats *curProcs = NULL;
 
 	GraphData *memGraphData = a_alloc(
 		memGraphArena,
@@ -65,8 +64,10 @@ void run_ui(
 	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition, 1);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
-	prevProcSample = peek(procQueue, &procDataLock, &procQueueCondition, 1);
+	prevProcs = peek(procQueue, &procDataLock, &procQueueCondition, 1);
 	dequeue(procQueue, &procDataLock, &procQueueCondition);
+
+	curProcs = prevProcs;
 	
 	while (!SHUTDOWN_FLAG)
 	{
@@ -89,31 +90,27 @@ void run_ui(
 
 		if (procQueue->size > 0)
 		{
-			if (curProcSample) prevProcSample = curProcSample;
-			curProcSample = peek(procQueue, &procDataLock, &procQueueCondition, 0);
+			prevProcs = curProcs;
+			curProcs = peek(procQueue, &procDataLock, &procQueueCondition, 0);
 			dequeue(procQueue, &procDataLock, &procQueueCondition);
 		}
-
-		ProcessStats *procs = curProcSample == NULL ?
-			prevProcSample :
-			curProcSample;
 
 		Arena scratch = a_new(512);
 
 		StatsViewData **vd = a_alloc(
 			&scratch,
-			sizeof(StatsViewData *) * procs->count,
+			sizeof(StatsViewData *) * curProcs->count,
 			__alignof(StatsViewData *)
 		); 
 		
-		for (int i = 0; i < procs->count; i++)
+		for (int i = 0; i < curProcs->count; i++)
 		{
 			ProcessList *target;
-			ProcessList *cur = procs->processes[i];
+			ProcessList *cur = curProcs->processes[i];
 			ProcessList **match = bsearch(
 				&cur,
-				prevProcSample->processes,
-				prevProcSample->count,
+				prevProcs->processes,
+				prevProcs->count,
 				sizeof(ProcessList *),
 				pid_search_func
 			);
@@ -127,8 +124,8 @@ void run_ui(
 				target,
 				cur,
 				cpuPct,
-				prevProcSample->cpuTimeAtSample,
-				procs->cpuTimeAtSample
+				prevProcs->cpuTimeAtSample,
+				curProcs->cpuTimeAtSample
 			);
 
 			vd[i] = a_alloc(
@@ -146,16 +143,9 @@ void run_ui(
 		// There was once a two second 
 		// timer check here, if things
 		// get wonky put it back
-		_print_stats(procWin, vd, procs->count, procArena);
+		_print_stats(procWin, vd, curProcs->count, procArena);
 
 		a_free(&scratch);
-
-		// if (curProcSample != NULL)
-		// {
-		// 	if (curProcSample->processes[5]->utime > 0)
-		// 		curProcSample->processes[5]->utime++;
-		// 	prevProcSample = curProcSample;
-		// }
 
 		REFRESH_WIN(container->window);
 
@@ -234,8 +224,6 @@ void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procAren
 	int i = 0;
 	int posY = 4;
 
-	//pthread_mutex_lock(&procDataLock);
-
 	while (i < wd->wHeight - 5 && i < count)
 	{
 		mvwprintw(win, posY, 2, "%s", vd[i]->command);
@@ -246,6 +234,4 @@ void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procAren
 
 		i++;
 	}
-
-	//pthread_mutex_unlock(&procDataLock);
 }

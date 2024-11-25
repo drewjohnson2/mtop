@@ -1,3 +1,4 @@
+#include <arena.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -82,6 +83,11 @@ ProcessStats * get_processes(
 	struct dirent *dp;
 
 	if ((directory = opendir("/proc")) == NULL) exit(1);
+
+	if (procArena->regionsAllocated > 2)
+	{
+		r_free_head(procArena);
+	}
 
 	ProcessStats *procStats = a_alloc(
 		procArena,

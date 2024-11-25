@@ -10,7 +10,6 @@
 #include "include/thread_safe_queue.h"
 #include "include/window.h"
 #include "include/thread.h"
-#include "include/ui_utils.h"
 
 typedef struct _ui_thread_args
 {
@@ -39,6 +38,7 @@ static Arena memArena;
 static Arena cpuGraphArena;     // At some point come back and see
 static Arena memoryGraphArena;  // if I can just use one graph arean
 static Arena processArena;
+static Arena queueArena;
 
 static ThreadSafeQueue *cpuQueue;
 static ThreadSafeQueue *memoryQueue;
@@ -54,28 +54,33 @@ void run()
 	SCREEN *screen = newterm(NULL, tty, tty);
 
 	windowArena = a_new(2048);
-	cpuArena = a_new(2048);
+	cpuArena = a_new(sizeof(CpuStats) + 8);
 	memArena = a_new(2048);
 	cpuGraphArena = a_new(2048);     // At some point come back and see
 	memoryGraphArena = a_new(2048);  // if I can just use one graph arean
-	processArena = a_new(2048);
+	processArena = a_new(
+		MAX_PROCS * sizeof(ProcessList *) +
+		sizeof(ProcessStats) +
+		sizeof(ProcessList) * MAX_PROCS
+	);
+	queueArena = a_new(2048);
 
 	DisplayItems *di = init_display_items(&windowArena);
 
 	cpuQueue = a_alloc(
-		&cpuArena,
+		&queueArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
 
 	memoryQueue = a_alloc(
-		&memArena,
+		&queueArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
 
 	processQueue = a_alloc(
-		&processArena,
+		&queueArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
@@ -157,6 +162,7 @@ void cleanup()
 	a_free(&cpuGraphArena);
 	a_free(&memoryGraphArena);
 	a_free(&processArena);
+	a_free(&queueArena);
 }
 
 void _get_input(DisplayItems *di)

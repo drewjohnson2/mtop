@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MAX_PROCS 50
+#define MAX_PROCS 50 
 
 typedef unsigned long long u64;
 typedef unsigned long u32;
@@ -89,10 +89,13 @@ typedef struct _cpu_stats
 
 #define CALC_PROC_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
 	do { \
+		int cpuCount = sysconf(_SC_NPROCESSORS_ONLN); \
 		float elapsedCpuTime = curCpuTime - prevCpuTime; \
 		float procCpuTime = (cur->stime + cur->utime) - (prev->stime + prev->utime); \
 		\
-		pct = elapsedCpuTime > 0 ? (procCpuTime / elapsedCpuTime) * 100 : 0; \
+		pct = elapsedCpuTime > 0 ? \
+			(procCpuTime / elapsedCpuTime) * 100 * cpuCount \
+			: 0; \
 	} while(0)\
 
 static inline u64 cpu_time_now()

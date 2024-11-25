@@ -42,6 +42,9 @@ void run_io(
 
 		if (minimumMet) 
 		{
+			// I think this head free is causing an intermittent segfault. 
+			// only happned once though.
+			if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE) r_free_head(cpuArena);
 			CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
 			MemoryStats *memStats = fetch_memory_stats(memArena);
 
@@ -55,9 +58,6 @@ void run_io(
 
 		if (totalTimeSec > PROC_WAIT_TIME_SEC)
 		{
-			// pthread_mutex_lock(&procDataLock);
-			// get_processes(procArena, proc_pid_compare);  
-			// pthread_mutex_unlock(&procDataLock);
 			ProcessStats *stats = get_processes(procArena, pid_search_func);
 
 			enqueue(
@@ -66,6 +66,7 @@ void run_io(
 				&procDataLock,
 				&procQueueCondition
 			);
+
 			clock_gettime(CLOCK_REALTIME, &start);
 		}
 
