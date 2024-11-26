@@ -48,7 +48,6 @@ void run_ui(
 
 	Arena cpuPointArena = a_new(sizeof(GraphPoint));
 	Arena memPointArena = a_new(sizeof(GraphPoint));
-	Arena procUiArena = a_new(1024);
 
 	ProcessStats *prevProcs = NULL;
 	ProcessStats *curProcs = NULL;
@@ -115,8 +114,10 @@ void run_ui(
 				pid_search_func
 			);
 
-			if (!match) target = cur;
-			else target = *match;
+			// if (!match) target = cur;
+			// else target = *match;
+
+			target = !match ? cur : *match;
 
 			float cpuPct = 0.0;
 
@@ -154,10 +155,9 @@ void run_ui(
 
 	a_free(&cpuPointArena);
 	a_free(&memPointArena);
-	a_free(&procUiArena);
 }
 
-int view_data_name_compare_func(const void *a, const void *b)
+int vd_name_compare_func(const void *a, const void *b)
 {
 	assert(a && b);
 
@@ -171,7 +171,7 @@ void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procAren
 {
 	if (vd == NULL) return;
 
-	qsort(vd, count, sizeof(StatsViewData *), view_data_name_compare_func);
+	qsort(vd, count, sizeof(StatsViewData *), vd_name_compare_func);
 
 	char *commandTitle = "Command";
 	char *pidTitle = "PID";

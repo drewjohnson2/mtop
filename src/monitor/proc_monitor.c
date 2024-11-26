@@ -6,7 +6,6 @@
 #include <unistd.h>
 
 #include "../include/monitor.h"
-#include "../include/startup.h"
 
 static void _fetch_proc_pid_stat(
 	Arena *procArena,
@@ -84,7 +83,7 @@ ProcessStats * get_processes(
 
 	if ((directory = opendir("/proc")) == NULL) exit(1);
 
-	if (procArena->regionsAllocated > 2)
+	if (procArena->regionsAllocated > 3)
 	{
 		r_free_head(procArena);
 	}
@@ -106,7 +105,6 @@ ProcessStats * get_processes(
 
 		char statPath[32];
 		char statusPath[32];
-
 		int skip = atoi(dp->d_name) == 0;
 
 		if (skip || dp->d_type != DT_DIR) continue;

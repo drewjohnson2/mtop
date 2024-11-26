@@ -103,6 +103,8 @@ static inline u64 cpu_time_now()
 	FILE *f = fopen("/proc/stat", "r");
 	char buffer[512];
 
+	if (!f) return 0;
+
 	u64 user, nice, system, idle, ioWait, irq, softIrq, steal;
 
 	fgets(buffer, sizeof(buffer), f);
@@ -112,6 +114,8 @@ static inline u64 cpu_time_now()
 		&user, &nice, &system, &idle, &ioWait,
 		&irq, &softIrq, &steal
 	);
+
+	fclose(f);
 
 	return user + nice + system + idle + ioWait + irq + softIrq + steal;
 }
