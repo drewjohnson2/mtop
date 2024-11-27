@@ -108,6 +108,10 @@ void run_ui(
 		
 		for (int i = 0; i < curPrcs->count; i++)
 		{
+			float cpuPct = 0.0;
+			float memPct = 0.0;
+			u64 memTotal = memStats->memTotal;
+
 			ProcessList *target;
 			ProcessList *cur = curPrcs->processes[i];
 			ProcessList **match = bsearch(
@@ -120,15 +124,17 @@ void run_ui(
 
 			target = !match ? cur : *match;
 
-			float cpuPct = 0.0;
-
-			CALC_PRC_USAGE_PCT(
+			CALC_PRC_CPU_USAGE_PCT(
 				target,
 				cur,
 				cpuPct,
 				prevPrcs->cpuTimeAtSample,
 				curPrcs->cpuTimeAtSample
 			);
+
+			memPct = memTotal > 0 ? 
+				(cur->vmRss / (float)memTotal) * 100 :
+				0;
 
 			vd[i] = a_alloc(
 				&scratch,
@@ -139,7 +145,7 @@ void run_ui(
 			vd[i]->pid = cur->pid;
 			vd[i]->command = cur->procName;
 			vd[i]->cpuPercentage = cpuPct;
-			vd[i]->memPercentage = 0;
+			vd[i]->memPercentage = memPct;	
 		}
 
 		// There was once a two second 
@@ -231,7 +237,7 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 		mvwprintw(win, posY, pidPosX, "%d", vd[i]->pid);
 
 		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
-		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", (float)rand()/(float)(RAND_MAX/2));
+		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", vd[i]->memPercentage);
 
 		i++;
 	}

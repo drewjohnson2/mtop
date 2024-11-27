@@ -17,29 +17,33 @@ static void _fetch_proc_pid_stat(
 	char statBuffer[1024];
 	char statusBuffer[1024];
 	uid_t uid = getuid();
+	u64 vmRss = 0;
 
 	FILE *statusFile = fopen(statusPath, "r");
 
 	if (!statusFile) return;
 
-	while(fgets(statusBuffer, sizeof(statusBuffer), statusFile))
+	while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
 	{
 	  	int fuid = 0;
 
-		if (sscanf(statusBuffer, "Uid:\t%d", &fuid) <= 0) 
-		{
-			continue;
-		}
+		if (sscanf(statusBuffer, "Uid:\t%d", &fuid) <= 0) continue;
 		else if (fuid != (int)uid)
 		{
 			fclose(statusFile);
 
 			return;
 		}
+		else break;
+	}
+
+	while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
+	{
+		if (sscanf(statusBuffer, "VmRSS:\t%lu kB\n", &vmRss) <= 0) continue;
 		else 
 		{
 			fclose(statusFile);
-		
+
 			break;
 		}
 	}
@@ -69,6 +73,8 @@ static void _fetch_proc_pid_stat(
 	size_t len = strlen(name) - 2;
 
 	strncpy((*item)->procName, name + 1, len);
+
+	(*item)->vmRss = vmRss;
 
 	fclose(statFile);
 }
