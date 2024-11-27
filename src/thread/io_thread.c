@@ -15,16 +15,24 @@ void run_io(
 	Arena *memArena,
 	Arena *procArena,
 	ThreadSafeQueue *cpuQueue,
-	ThreadSafeQueue *memQueue
+	ThreadSafeQueue *memQueue,
+	ThreadSafeQueue *procQueue
 ) 
 {
 	pthread_mutex_lock(&procDataLock);
-	get_processes(procArena, proc_name_compare);  
+	get_processes(procArena, prc_pid_compare);  
 	pthread_mutex_unlock(&procDataLock);
 
 	struct timespec start, current;
 
 	clock_gettime(CLOCK_REALTIME, &start);
+
+	enqueue(
+		procQueue,
+		get_processes(procArena, prc_pid_compare),
+		&procDataLock,
+		&procQueueCondition
+	);
 
 	while (!SHUTDOWN_FLAG)
 	{
@@ -34,6 +42,9 @@ void run_io(
 
 		if (minimumMet) 
 		{
+			// I think this head free is causing an intermittent segfault. 
+			// only happned once though.
+			if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE) r_free_head(cpuArena);
 			CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
 			MemoryStats *memStats = fetch_memory_stats(memArena);
 
@@ -45,11 +56,17 @@ void run_io(
 
 		int totalTimeSec = current.tv_sec - start.tv_sec;
 
-		if (totalTimeSec > PROC_WAIT_TIME)
+		if (totalTimeSec > PROC_WAIT_TIME_SEC)
 		{
-			pthread_mutex_lock(&procDataLock);
-			get_processes(procArena, proc_name_compare);  
-			pthread_mutex_unlock(&procDataLock);
+			ProcessStats *stats = get_processes(procArena, prc_pid_compare);
+
+			enqueue(
+				procQueue,
+				stats,
+				&procDataLock,
+				&procQueueCondition
+			);
+
 			clock_gettime(CLOCK_REALTIME, &start);
 		}
 

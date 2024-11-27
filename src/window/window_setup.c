@@ -1,12 +1,15 @@
 #include <locale.h>
 #include <ncurses.h>
 #include <arena.h>
+#include <assert.h>
 
 #include "../include/window.h"
 
 DisplayItems * init_display_items(Arena *arena) 
 {
 	DisplayItems *di = a_alloc(arena, sizeof(DisplayItems), __alignof(DisplayItems));
+
+	assert(di);
 
 	di->windowCount = 4;
 
@@ -15,26 +18,25 @@ DisplayItems * init_display_items(Arena *arena)
 		sizeof(WindowData *) * di->windowCount,
 		__alignof(WindowData *)
 	);
+
+	assert(di->windows);
+
 	di->windows[CONTAINER_WIN] = a_alloc(
 		arena, 
 		sizeof(WindowData),
 		__alignof(WindowData)
 	);
-	di->windows[CPU_WIN] = a_alloc(
-		arena,
-		sizeof(WindowData),
-		__alignof(WindowData)
-	);
-	di->windows[MEMORY_WIN] = a_alloc(
-		arena,
-		sizeof(WindowData),
-		__alignof(WindowData)
-	);
-	di->windows[PRC_WIN] = a_alloc(
-		arena,
-		sizeof(WindowData),
-		__alignof(WindowData)
-	);
+
+#define DEFINE_WINDOWS(winName, enumName) \
+	di->windows[enumName] = a_alloc( \
+		arena, \
+		sizeof(WindowData), \
+		__alignof(WindowData) \
+	); \
+	\
+	assert(di->windows[enumName]);		
+#include "../include/tables/window_def_table.h"
+#undef DEFINE_WINDOWS
 
 	return di;
 }
@@ -102,9 +104,6 @@ void init_window_dimens(DisplayItems *di)
 void init_windows(DisplayItems *di) 
 {
 	WindowData *container = di->windows[CONTAINER_WIN];
-	WindowData *cpuWin = di->windows[CPU_WIN];
-	WindowData *memoryWin = di->windows[MEMORY_WIN];
-	WindowData *prcWin = di->windows[PRC_WIN];
 
 	 container->window = newwin(
 		container->wHeight,
@@ -113,28 +112,24 @@ void init_windows(DisplayItems *di)
 		container->windowX
 	);
 
-	cpuWin->window = subwin(
-		container->window,
-		cpuWin->wHeight,
-		cpuWin->wWidth,
-		cpuWin->windowY,
-		cpuWin->windowX
+#define DEFINE_WINDOWS(winName, enumName) \
+	WindowData *winName##Win = di->windows[enumName]; \
+	\
+	winName##Win->window = subwin(	\
+		container->window,	\
+		winName##Win->wHeight,	\
+		winName##Win->wWidth,	\
+		winName##Win->windowY,	\
+		winName##Win->windowX	\
 	);
+#include "../include/tables/window_def_table.h"
+#undef DEFINE_WINDOWS
 
-	memoryWin->window = subwin(
-		container->window,
-		memoryWin->wHeight,
-		memoryWin->wWidth,
-		memoryWin->windowY,
-		memoryWin->windowX
-	);
-
-	prcWin->window = subwin(
-		container->window,
-		prcWin->wHeight,
-		prcWin->wWidth,
-		prcWin->windowY,
-		prcWin->windowX
+	assert(
+		container->window &&
+		cpuWin->window &&
+		memoryWin->window &&
+		prcWin->window
 	);
 
 	/*
@@ -144,16 +139,4 @@ void init_windows(DisplayItems *di)
 	init_pair(2, COLOR_CYAN, COLOR_BLACK);
 
 	wbkgd(container->window, COLOR_PAIR(1));
-	//
-	// wattron(container->window, COLOR_PAIR(1));
-	// box(cpuWin->window, 0, 0);
-	// box(memoryWin->window, 0, 0);
-	// box(prcWin->window, 0, 0);
-	// wattroff(container->window, COLOR_PAIR(1));
-	//
-	// wmove(container->window, 1, 1);
-	// wprintw(container->window, "A test of the windows");
-
-	 //touchwin(container->window);
-	 //wrefresh(container->window);
 }

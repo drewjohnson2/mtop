@@ -2,16 +2,17 @@
 #define THREAD_SAFE_QUEUE_H
 
 #include <pthread.h>
+#include <arena.h>
 
 typedef struct _queue_node
 {
 	void *data;
 	struct _queue_node *next;
-} QUEUE_NODE;
+} QueueNode;
 
 typedef struct _shared_queue
 {
-	QUEUE_NODE *head, *tail;
+	QueueNode *head, *tail;
 	int size;
 } ThreadSafeQueue;
 
@@ -30,18 +31,6 @@ void * peek(
 	ThreadSafeQueue *q,
 	pthread_mutex_t *queueLock,
 	pthread_cond_t *condition
-);
-int timedDequeue(
-	ThreadSafeQueue *q,
-	pthread_mutex_t *queueLock,
-	pthread_cond_t *condition,
-	unsigned short timeoutSec
-);
-void * timedPeek(
-	ThreadSafeQueue *q,
-	pthread_mutex_t *queueLock,
-	pthread_cond_t *condition,
-	unsigned short timeoutSec
 );
 
 #endif

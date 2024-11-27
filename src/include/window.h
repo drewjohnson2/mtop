@@ -4,29 +4,34 @@
 #include <ncurses.h>
 #include <arena.h>
 
+#include "mt_type_defs.h"
+
 #define REFRESH_WIN(win) \
 	do { \
 		touchwin(win); \
 		wrefresh(win); \
 	} while (0) \
 
+
 typedef enum _mt_window 
 {
-	CONTAINER_WIN = 0,
-	CPU_WIN = 1,
-	MEMORY_WIN = 2,
-	PRC_WIN = 3
+#define DEFINE_WINDOWS(winName, enumName) enumName,
+	CONTAINER_WIN,
+#include "../include/tables/window_def_table.h"
+	WINDOW_ID_MAX
+#undef DEFINE_WINDOWS
 } mt_Window;
+
 
 typedef struct _window_data
 {
 	WINDOW *window;
-	unsigned short wHeight, wWidth;
-	unsigned short windowX, windowY;
-	unsigned short paddingTop;
-	unsigned short paddingBottom;
-	unsigned short paddingRight;
-	unsigned short paddingLeft;
+	u16 wHeight, wWidth;
+	u16 windowX, windowY;
+	u16 paddingTop;
+	u16 paddingBottom;
+	u16 paddingRight;
+	u16 paddingLeft;
 	char *windowTitle;
 } WindowData;
 
@@ -44,9 +49,9 @@ typedef struct _graph_point
 
 typedef struct _graph_data 
 {
-	unsigned short graphHeight;
-	unsigned short graphWidth;
-	unsigned short graphPointCount;
+	u16 graphHeight;
+	u16 graphWidth;
+	u16 graphPointCount;
 	GraphPoint *head;
 } GraphData;
 
@@ -63,7 +68,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen);
 //		graph.c
 //
 //
-void graph_render(Arena *arena, GraphData *gd, WindowData *wd);
-void add_graph_point(Arena *arena, GraphData *gd, float percentage);
+int graph_render(Arena *arena, GraphData *gd, WindowData *wd);
+int add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 #endif

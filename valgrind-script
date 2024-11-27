@@ -1,0 +1,1 @@
+valgrind --leak-check=full --track-origins=yes --verbose --default-suppressions=no --suppressions=./mtop.supp --log-file=out ./mtop

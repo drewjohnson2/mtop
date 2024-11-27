@@ -15,22 +15,34 @@ typedef struct _ui_thread_args
 {
 	Arena *graphArena;
 	Arena *memGraphArena;
-	Arena *procArena;
+	Arena *prcArena;
 	DisplayItems *di;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
+	ThreadSafeQueue *prcQueue;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
 	Arena *cpuArena;
 	Arena *memArena;
-	Arena *processArena;
+	Arena *prcArena;
 	ThreadSafeQueue *cpuQueue;
 	ThreadSafeQueue *memQueue;
+	ThreadSafeQueue *prcQueue;
 } IOThreadArgs;
 
-volatile ProcessStats **procStats;
+Arena windowArena;
+Arena cpuArena;
+Arena memArena; 
+Arena cpuGraphArena;     // At some point come back and see
+Arena memoryGraphArena;  // if I can just use one graph arean
+Arena prcArena;
+Arena queueArena;
+
+ThreadSafeQueue *cpuQueue;
+ThreadSafeQueue *memoryQueue;
+ThreadSafeQueue *prcQueue;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
@@ -41,22 +53,34 @@ void run()
 	FILE *tty = fopen("/dev/tty", "r+");
 	SCREEN *screen = newterm(NULL, tty, tty);
 
-	Arena windowArena = a_new(2048);
-	Arena cpuArena = a_new(2048);
-	Arena memArena = a_new(2048);
-	Arena cpuGraphArena = a_new(2048);     // At some point come back and see
-	Arena memoryGraphArena = a_new(2048);  // if I can just use one graph arean
-	Arena processArena = a_new(512);
+	windowArena = a_new(2048);
+	cpuArena = a_new(sizeof(CpuStats) + 8);
+	memArena = a_new(2048);
+	cpuGraphArena = a_new(2048);     // At some point come back and see
+	memoryGraphArena = a_new(2048);  // if I can just use one graph arean
+	prcArena = a_new(
+		(MAX_PROCS * sizeof(ProcessList *)) +
+		sizeof(ProcessStats) +
+		(MAX_PROCS * sizeof(ProcessList))
+	);
+	queueArena = a_new(2048);
+
 	DisplayItems *di = init_display_items(&windowArena);
 
-	ThreadSafeQueue *cpuQueue = a_alloc(
-		&cpuArena,
+	cpuQueue = a_alloc(
+		&queueArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
 
-	ThreadSafeQueue *memoryQueue = a_alloc(
-		&memArena,
+	memoryQueue = a_alloc(
+		&queueArena,
+		sizeof(ThreadSafeQueue),
+		__alignof(ThreadSafeQueue)
+	);
+
+	prcQueue = a_alloc(
+		&queueArena,
 		sizeof(ThreadSafeQueue),
 		__alignof(ThreadSafeQueue)
 	);
@@ -64,24 +88,26 @@ void run()
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
-	
+
 	UIThreadArgs uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,
 		.di = di,
-		.procArena = &processArena,
+		.prcArena = &prcArena,
 		.cpuQueue = cpuQueue,
 		.memGraphArena = &memoryGraphArena,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.prcQueue = prcQueue,
 	};
 
 	IOThreadArgs ioArgs = 
 	{
 		.cpuArena = &cpuArena,
 		.memArena = &memArena,
-		.processArena = &processArena,
+		.prcArena = &prcArena,
 		.cpuQueue = cpuQueue,
-		.memQueue = memoryQueue
+		.memQueue = memoryQueue,
+		.prcQueue = prcQueue
 	};
 
 	pthread_t ioThread;
@@ -104,13 +130,39 @@ void run()
 	
 	endwin();
 	free(screen);
+	fclose(tty);
+}
+
+void cleanup()
+{
+	QueueNode *tmp;
+	QueueNode *head = memoryQueue->head;
+
+	while (head)
+	{
+		tmp = head;
+		head = head->next;
+
+		free(tmp);
+	}
+
+	head = cpuQueue->head;
+
+	while (head)
+	{
+		tmp = head;
+		head = head->next;
+
+		free(tmp);
+	}
+
 	a_free(&windowArena);
 	a_free(&cpuArena);
 	a_free(&memArena);
 	a_free(&cpuGraphArena);
 	a_free(&memoryGraphArena);
-	a_free(&processArena);
-	fclose(tty);
+	a_free(&prcArena);
+	a_free(&queueArena);
 }
 
 void _get_input(DisplayItems *di)
@@ -138,10 +190,11 @@ static void * _ui_thread_run(void *arg)
 	run_ui(
 		args->graphArena,
 		args->memGraphArena,
-		args->procArena,
+		args->prcArena,
 		args->di,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->prcQueue
 	);
 
 	return NULL;
@@ -154,9 +207,10 @@ static void * _io_thread_run(void *arg)
 	run_io(
 		args->cpuArena,
 		args->memArena,
-		args->processArena,
+		args->prcArena,
 		args->cpuQueue,
-		args->memQueue
+		args->memQueue,
+		args->prcQueue
 	);
 
 	return NULL;

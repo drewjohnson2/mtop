@@ -1,3 +1,4 @@
+#include <arena.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -5,13 +6,12 @@
 #include <unistd.h>
 
 #include "../include/monitor.h"
-#include "../include/startup.h"
 
 static void _fetch_proc_pid_stat(
-	Arena *procArena,
+	Arena *prcArena,
+	ProcessList **item,
 	char *statPath,
-	char *statusPath,
-	int index
+	char *statusPath
 )
 {
 	char statBuffer[1024];
@@ -48,48 +48,63 @@ static void _fetch_proc_pid_stat(
 
 	if (!statFile) return;
 
-	procStats[index] = a_alloc(procArena, sizeof(ProcessStats), __alignof(ProcessStats));
+	*item = a_alloc(
+		prcArena,
+		sizeof(ProcessList),
+		__alignof(ProcessList)
+	);
 
 	fgets(statBuffer, sizeof(statBuffer), statFile);
 
+	char name[99];
+
 	sscanf(statBuffer,
-		"%d %*[(]%99[^)'] %*c %*d %*d "
+		"%d %98s %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
-		&procStats[index]->pid, procStats[index]->procName,
-		&procStats[index]->utime, &procStats[index]->stime
-		);
+		&(*item)->pid, name,
+		&(*item)->utime, &(*item)->stime
+	);
+
+	size_t len = strlen(name) - 2;
+
+	strncpy((*item)->procName, name + 1, len);
 
 	fclose(statFile);
 }
 
-void get_processes(
+ProcessStats * get_processes(
 	Arena *procArena,
 	int (*sortFunc)(const void *, const void *)
 ) 
 {
 	DIR *directory;
 	struct dirent *dp;
-	int i;
 
 	if ((directory = opendir("/proc")) == NULL) exit(1);
 
-	a_free(procArena);
-
-	*procArena = a_new(512);
-	procStats = a_alloc(
-		procArena,
-	   sizeof(ProcessStats *) * MAX_PROCS,
-	   __alignof(ProcessStats *)
-	);
-	
-	for (i = 0; (dp = readdir(directory)) != NULL;)
+	if (procArena->regionsAllocated > 3)
 	{
-		if (i > MAX_PROCS - 1) break;
+		r_free_head(procArena);
+	}
+
+	ProcessStats *procStats = a_alloc(
+		procArena,
+		sizeof(ProcessStats),
+		__alignof(ProcessStats)
+	);
+	procStats->processes = a_alloc(
+		procArena,
+	   sizeof(ProcessList *) * MAX_PROCS,
+	   __alignof(ProcessList *)
+	);
+
+	for (procStats->count = 0; (dp = readdir(directory)) != NULL;)
+	{
+		if (procStats->count > MAX_PROCS - 1) break;
 
 		char statPath[32];
 		char statusPath[32];
-
 		int skip = atoi(dp->d_name) == 0;
 
 		if (skip || dp->d_type != DT_DIR) continue;
@@ -97,12 +112,21 @@ void get_processes(
 		snprintf(statPath, sizeof(statPath), "/proc/%s/stat", dp->d_name);
 		snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", dp->d_name);
 
-		_fetch_proc_pid_stat(procArena, statPath, statusPath, i);
+		_fetch_proc_pid_stat(
+			procArena,
+			&procStats->processes[procStats->count],
+			statPath,
+			statusPath
+		);
 
-		if (procStats[i] != NULL) i++;
+		if (procStats->processes[procStats->count] != NULL) procStats->count++;
 	}
 
-	qsort(procStats, i, sizeof(ProcessStats *), sortFunc);
+	procStats->cpuTimeAtSample = cpu_time_now();
+
+	qsort(procStats->processes, procStats->count, sizeof(ProcessList *), sortFunc);
 
 	closedir(directory);
+
+	return procStats;
 }

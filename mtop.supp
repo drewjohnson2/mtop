@@ -1,0 +1,1135 @@
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:update_getenv
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_foreground_color
+   fun:_nc_do_color_sp
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_background_color
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:_nc_mvcur_resume_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_home_terminfo
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:_nc_mvcur_resume_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_foreground_color
+   fun:_nc_do_color_sp
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_background_color
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:vid_puts_sp
+   fun:EmitRange
+   fun:PutRange
+   fun:TransformLine
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:_nc_init_pair
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_first_db
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:vid_puts_sp
+   fun:EmitRange
+   fun:PutRange
+   fun:TransformLine
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_tparm_analyze
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:vid_puts_sp
+   fun:EmitRange
+   fun:PutRange
+   fun:TransformLine
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:_nc_mvcur_resume_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_foreground_color
+   fun:_nc_do_color_sp
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:set_background_color
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:_get_input
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:vid_puts_sp
+   fun:EmitRange
+   fun:PutRange
+   fun:TransformLine
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:tparm_setup.lto_priv.0
+   fun:_nc_tiparm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+   fun:clone
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+   fun:clone
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+   fun:clone
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_reserve_pairs
+   fun:start_color_sp
+   fun:init_ncurses
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__tsearch
+   fun:tsearch
+   fun:_nc_init_pair
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:newwin_sp
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_tic_entry.constprop.0
+   fun:_nc_read_entry2
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:copy_termtype
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:doupdate_sp
+   fun:wrefresh
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+   fun:clone
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:start_color_sp
+   fun:init_ncurses
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_printf_string_sp
+   fun:vw_printw
+   fun:mvwprintw
+   fun:graph_render
+   fun:run_ui
+   fun:_ui_thread_run
+   fun:start_thread
+   fun:clone
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:newwin_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   fun:newwin_sp
+   fun:init_windows
+   fun:run
+   fun:main
+}
+{
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:_nc_makenew_sp
+   fun:derwin
+   fun:init_windows
+   fun:run
+   fun:main
+}

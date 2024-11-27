@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
+#include <assert.h>
 
 #include "../include/thread_safe_queue.h"
 
@@ -9,7 +9,9 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
 {
 	pthread_mutex_lock(queueLock);
 
-	QUEUE_NODE *newNode = malloc(sizeof(QUEUE_NODE));
+	QueueNode *newNode = malloc(sizeof(QueueNode));
+
+	assert(newNode);
 
 	if(q->head == NULL)
 	{
@@ -38,7 +40,11 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
 	pthread_mutex_unlock(queueLock);
 }
 
-int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+int dequeue(
+	ThreadSafeQueue *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+)
 {
 	pthread_mutex_lock(queueLock);
 
@@ -47,7 +53,7 @@ int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *cond
 		pthread_cond_wait(condition, queueLock);
 	}
 
-	QUEUE_NODE *tmp = q->head;
+	QueueNode *tmp = q->head;
 
 	q->head = q->head->next;
 
@@ -62,7 +68,11 @@ int dequeue(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *cond
 	return 1;
 }
 
-void * peek(ThreadSafeQueue *q, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+void * peek(
+	ThreadSafeQueue *q,
+	pthread_mutex_t *queueLock,
+	pthread_cond_t *condition
+)
 {
 	pthread_mutex_lock(queueLock);
 
