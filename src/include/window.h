@@ -12,13 +12,16 @@ typedef unsigned short u16;
 		wrefresh(win); \
 	} while (0) \
 
+
 typedef enum _mt_window 
 {
-	CONTAINER_WIN = 0,
-	CPU_WIN = 1,
-	MEMORY_WIN = 2,
-	PRC_WIN = 3
+#define DEFINE_WINDOWS(winName, enumName) enumName,
+	CONTAINER_WIN,
+#include "../include/tables/window_def_table.h"
+	WINDOW_ID_MAX
+#undef DEFINE_WINDOWS
 } mt_Window;
+
 
 typedef struct _window_data
 {

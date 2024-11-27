@@ -94,7 +94,11 @@ void run_ui(
 			dequeue(procQueue, &procDataLock, &procQueueCondition);
 		}
 
-		Arena scratch = a_new(512);
+		Arena scratch = a_new(
+			(sizeof(StatsViewData *) * curProcs->count) +
+			sizeof(StatsViewData) +
+			(sizeof(StatsViewData) * curProcs->count)
+		);
 
 		StatsViewData **vd = a_alloc(
 			&scratch,
@@ -113,9 +117,6 @@ void run_ui(
 				sizeof(ProcessList *),
 				pid_search_func
 			);
-
-			// if (!match) target = cur;
-			// else target = *match;
 
 			target = !match ? cur : *match;
 
