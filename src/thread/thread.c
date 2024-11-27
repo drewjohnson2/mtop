@@ -5,7 +5,6 @@
 pthread_mutex_t cpuQueueLock;
 pthread_mutex_t memQueueLock;
 pthread_mutex_t procDataLock;
-pthread_mutex_t exitLock;                                
 
 pthread_cond_t cpuQueueCondition;
 pthread_cond_t memQueueCondition;
@@ -18,12 +17,10 @@ void mutex_init()
 	pthread_mutex_init(&cpuQueueLock, NULL);
 	pthread_mutex_init(&memQueueLock, NULL);
 	pthread_mutex_init(&procDataLock, NULL);
-	pthread_mutex_init(&exitLock, NULL);
 
 	assert(&cpuQueueLock);
 	assert(&memQueueLock);
 	assert(&procDataLock);
-	assert(&exitLock);
 }
 
 void condition_init()
@@ -42,7 +39,6 @@ void mutex_destroy()
 	pthread_mutex_destroy(&cpuQueueLock);
 	pthread_mutex_destroy(&memQueueLock);
 	pthread_mutex_destroy(&procDataLock);
-	pthread_mutex_destroy(&exitLock);
 }
 
 void condition_destroy()

@@ -17,22 +17,22 @@
 typedef struct _stats_view_data 
 {
 	char *command;
-	int pid;
+	u32 pid;
 	float cpuPercentage;
 	float memPercentage;
 } StatsViewData;
 
 ProcessStats * _create_stats_copy(Arena *arena);
-void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena);
+static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena);
 
 void run_ui(
 	Arena *graphArena,
 	Arena *memGraphArena,
-	Arena *procArena,
+	Arena *prcArena,
 	DisplayItems *di,
 	ThreadSafeQueue *cpuQueue,
 	ThreadSafeQueue *memoryQueue,
-	ThreadSafeQueue *procQueue
+	ThreadSafeQueue *prcQueue
 )
 {
 	float cpuPercentage, memoryPercentage;
@@ -49,8 +49,8 @@ void run_ui(
 	Arena cpuPointArena = a_new(sizeof(GraphPoint));
 	Arena memPointArena = a_new(sizeof(GraphPoint));
 
-	ProcessStats *prevProcs = NULL;
-	ProcessStats *curProcs = NULL;
+	ProcessStats *prevPrcs = NULL;
+	ProcessStats *curPrcs = NULL;
 
 	GraphData *memGraphData = a_alloc(
 		memGraphArena,
@@ -60,20 +60,20 @@ void run_ui(
 
 	// probably need to add some sort of shut down error
 	// handling here.
-	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition, 1);
+	prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
-	prevProcs = peek(procQueue, &procDataLock, &procQueueCondition, 1);
-	dequeue(procQueue, &procDataLock, &procQueueCondition);
+	prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
+	dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
-	curProcs = prevProcs;
+	curPrcs = prevPrcs;
 	
 	while (!SHUTDOWN_FLAG)
 	{
-		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition, 1);
+		curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 		dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
- 		memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition, 1);
+ 		memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
 		dequeue(memoryQueue, &memQueueLock, &memQueueCondition);
  
 		CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
@@ -87,47 +87,47 @@ void run_ui(
 
 		prevStats = curStats;
 
-		if (procQueue->size > 0)
+		if (prcQueue->size > 0)
 		{
-			prevProcs = curProcs;
-			curProcs = peek(procQueue, &procDataLock, &procQueueCondition, 0);
-			dequeue(procQueue, &procDataLock, &procQueueCondition);
+			prevPrcs = curPrcs;
+			curPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
+			dequeue(prcQueue, &procDataLock, &procQueueCondition);
 		}
 
 		Arena scratch = a_new(
-			(sizeof(StatsViewData *) * curProcs->count) +
+			(sizeof(StatsViewData *) * curPrcs->count) +
 			sizeof(StatsViewData) +
-			(sizeof(StatsViewData) * curProcs->count)
+			(sizeof(StatsViewData) * curPrcs->count)
 		);
 
 		StatsViewData **vd = a_alloc(
 			&scratch,
-			sizeof(StatsViewData *) * curProcs->count,
+			sizeof(StatsViewData *) * curPrcs->count,
 			__alignof(StatsViewData *)
 		); 
 		
-		for (int i = 0; i < curProcs->count; i++)
+		for (int i = 0; i < curPrcs->count; i++)
 		{
 			ProcessList *target;
-			ProcessList *cur = curProcs->processes[i];
+			ProcessList *cur = curPrcs->processes[i];
 			ProcessList **match = bsearch(
 				&cur,
-				prevProcs->processes,
-				prevProcs->count,
+				prevPrcs->processes,
+				prevPrcs->count,
 				sizeof(ProcessList *),
-				pid_search_func
+				prc_pid_compare	
 			);
 
 			target = !match ? cur : *match;
 
 			float cpuPct = 0.0;
 
-			CALC_PROC_USAGE_PCT(
+			CALC_PRC_USAGE_PCT(
 				target,
 				cur,
 				cpuPct,
-				prevProcs->cpuTimeAtSample,
-				curProcs->cpuTimeAtSample
+				prevPrcs->cpuTimeAtSample,
+				curPrcs->cpuTimeAtSample
 			);
 
 			vd[i] = a_alloc(
@@ -145,7 +145,7 @@ void run_ui(
 		// There was once a two second 
 		// timer check here, if things
 		// get wonky put it back
-		_print_stats(procWin, vd, curProcs->count, procArena);
+		_print_stats(procWin, vd, curPrcs->count, prcArena);
 
 		a_free(&scratch);
 
@@ -168,7 +168,7 @@ int vd_name_compare_func(const void *a, const void *b)
 	return strcmp(x->command, y->command);
 }
 
-void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena)
+static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *procArena)
 {
 	if (vd == NULL) return;
 

@@ -8,7 +8,7 @@
 #include "../include/monitor.h"
 
 static void _fetch_proc_pid_stat(
-	Arena *procArena,
+	Arena *prcArena,
 	ProcessList **item,
 	char *statPath,
 	char *statusPath
@@ -49,7 +49,7 @@ static void _fetch_proc_pid_stat(
 	if (!statFile) return;
 
 	*item = a_alloc(
-		procArena,
+		prcArena,
 		sizeof(ProcessList),
 		__alignof(ProcessList)
 	);

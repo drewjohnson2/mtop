@@ -17,7 +17,7 @@ CpuStats * fetch_cpu_stats(Arena *arena)
 	fgets(buffer, sizeof(buffer), f);
 
 	sscanf(buffer, 
-		"cpu  %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu\n", 
+		"cpu  %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n", 
 		&stat->user, &stat->nice, &stat->system, &stat->idle, &stat->ioWait,
 		&stat->irq, &stat->softIrq, &stat->steal, &stat->guest, &stat->guestNice
 	);

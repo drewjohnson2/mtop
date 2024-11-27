@@ -20,7 +20,7 @@ void run_io(
 ) 
 {
 	pthread_mutex_lock(&procDataLock);
-	get_processes(procArena, pid_search_func);  
+	get_processes(procArena, prc_pid_compare);  
 	pthread_mutex_unlock(&procDataLock);
 
 	struct timespec start, current;
@@ -29,7 +29,7 @@ void run_io(
 
 	enqueue(
 		procQueue,
-		get_processes(procArena, pid_search_func),
+		get_processes(procArena, prc_pid_compare),
 		&procDataLock,
 		&procQueueCondition
 	);
@@ -58,7 +58,7 @@ void run_io(
 
 		if (totalTimeSec > PROC_WAIT_TIME_SEC)
 		{
-			ProcessStats *stats = get_processes(procArena, pid_search_func);
+			ProcessStats *stats = get_processes(procArena, prc_pid_compare);
 
 			enqueue(
 				procQueue,

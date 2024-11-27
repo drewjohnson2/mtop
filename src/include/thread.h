@@ -29,7 +29,6 @@
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
 extern pthread_mutex_t procDataLock;
-extern pthread_mutex_t exitLock;
 
 extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;

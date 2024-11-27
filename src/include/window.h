@@ -4,7 +4,7 @@
 #include <ncurses.h>
 #include <arena.h>
 
-typedef unsigned short u16;
+#include "mt_type_defs.h"
 
 #define REFRESH_WIN(win) \
 	do { \

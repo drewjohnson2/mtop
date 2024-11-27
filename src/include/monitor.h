@@ -5,17 +5,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MAX_PROCS 50 
+#include "mt_type_defs.h"
 
-typedef unsigned long long u64;
-typedef unsigned long u32;
+#define MAX_PROCS 50 
 
 typedef struct _proc_list
 {
 	int pid;
 	char procName[99];
-	u32 utime;
-	u32 stime;
+	u64 utime;
+	u64 stime;
 
 } ProcessList;
 
@@ -87,7 +86,7 @@ typedef struct _cpu_stats
 		\
 	} while(0)\
 
-#define CALC_PROC_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
+#define CALC_PRC_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
 	do { \
 		int cpuCount = sysconf(_SC_NPROCESSORS_ONLN); \
 		float elapsedCpuTime = curCpuTime - prevCpuTime; \
@@ -110,7 +109,7 @@ static inline u64 cpu_time_now()
 	fgets(buffer, sizeof(buffer), f);
 
 	sscanf(buffer, 
-		"cpu  %llu %llu %llu %llu %llu %llu %llu %llu\n", 
+		"cpu  %lu %lu %lu %lu %lu %lu %lu %lu\n", 
 		&user, &nice, &system, &idle, &ioWait,
 		&irq, &softIrq, &steal
 	);

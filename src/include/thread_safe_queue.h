@@ -30,8 +30,7 @@ int dequeue(
 void * peek(
 	ThreadSafeQueue *q,
 	pthread_mutex_t *queueLock,
-	pthread_cond_t *condition,
-	int wait
+	pthread_cond_t *condition
 );
 
 #endif

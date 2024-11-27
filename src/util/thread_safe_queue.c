@@ -71,20 +71,13 @@ int dequeue(
 void * peek(
 	ThreadSafeQueue *q,
 	pthread_mutex_t *queueLock,
-	pthread_cond_t *condition,
-	int wait
+	pthread_cond_t *condition
 )
 {
 	pthread_mutex_lock(queueLock);
 
 	while (q->head == NULL)
 	{
-		if (!wait)
-		{
-			pthread_mutex_unlock(queueLock);
-			return NULL;
-		}
-
 		pthread_cond_wait(condition, queueLock);
 	}
 

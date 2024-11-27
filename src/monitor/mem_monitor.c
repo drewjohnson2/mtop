@@ -27,10 +27,10 @@ MemoryStats * fetch_memory_stats(Arena *arena)
 
 static void _parse_stat(MemoryStats *stat, char *buffer)
 {
-	if (sscanf(buffer, "MemTotal: %llu kB\n", &stat->memTotal) == 1) return;
-	else if (sscanf(buffer, "MemFree: %llu kB\n", &stat->memFree) == 1) return;
-	else if (sscanf(buffer, "Buffers: %llu kB\n", &stat->buffers) == 1) return;
-	else if (sscanf(buffer, "Cached: %llu kB\n", &stat->cachedMem) == 1) return;
-	else if (sscanf(buffer, "Shmem: %llu kB\n", &stat->shared) == 1) return;
-	else if (sscanf(buffer, "SReclaimable: %llu kB\n", &stat->sReclaimable) == 1) return;
+	if (sscanf(buffer, "MemTotal: %lu kB\n", &stat->memTotal) == 1) return;
+	else if (sscanf(buffer, "MemFree: %lu kB\n", &stat->memFree) == 1) return;
+	else if (sscanf(buffer, "Buffers: %lu kB\n", &stat->buffers) == 1) return;
+	else if (sscanf(buffer, "Cached: %lu kB\n", &stat->cachedMem) == 1) return;
+	else if (sscanf(buffer, "Shmem: %lu kB\n", &stat->shared) == 1) return;
+	else if (sscanf(buffer, "SReclaimable: %lu kB\n", &stat->sReclaimable) == 1) return;
 }
