@@ -15,6 +15,7 @@ typedef struct _proc_list
 	char procName[99];
 	u64 utime;
 	u64 stime;
+	u64 vmRss;
 
 } ProcessList;
 
@@ -86,7 +87,7 @@ typedef struct _cpu_stats
 		\
 	} while(0)\
 
-#define CALC_PRC_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
+#define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) \
 	do { \
 		int cpuCount = sysconf(_SC_NPROCESSORS_ONLN); \
 		float elapsedCpuTime = curCpuTime - prevCpuTime; \
