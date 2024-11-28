@@ -37,7 +37,7 @@ typedef struct _window_data
 
 typedef struct _display_items
 {
-	unsigned int windowCount;
+	u32 windowCount;
 	WindowData **windows;
 } DisplayItems;
 

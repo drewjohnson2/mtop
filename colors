@@ -1,0 +1,6 @@
+backgroundColor = [2, 23, 28]
+boxColor = [123, 131, 158]
+cpuPointColor = [93, 122, 131]
+memPointColor = [93, 122, 131]
+prcUnselectedTextColor = [161, 182, 201]
+zeroPercentColor = [40, 61, 82]
