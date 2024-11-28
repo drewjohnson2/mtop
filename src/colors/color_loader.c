@@ -6,17 +6,6 @@
 MT_UI_Theme * import_colors(Arena *arena);
 static MT_UI_Theme * _alloc_theme(Arena *arena);
 
-int main(void)
-{
-	Arena a = a_new(2048);
-
-	MT_UI_Theme *theme = import_colors(&a);
-
-	printf("Background:  red - %hhu, green - %hhu, blue - %hhu", 
-		theme->backgroundColor->red, theme->backgroundColor->green,
-		theme->backgroundColor->blue);
-}
-
 MT_UI_Theme * import_colors(Arena *arena)
 {
 	FILE *f = fopen("../../colors", "r");
