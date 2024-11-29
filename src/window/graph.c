@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include "../include/window.h"
+#include "../include/mt_colors.h"
 
 int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {
@@ -22,10 +23,14 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 	if (posX < 2) posX = 2;
 
-	wattron(wd->window, COLOR_PAIR(2));
+	wattron(wd->window, COLOR_PAIR(MT_PAIR_BOX));
 
 	werase(win);	
 	box(win, 0, 0);
+	
+	wattroff(wd->window, COLOR_PAIR(MT_PAIR_BOX));
+
+	wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
 
 	while (current)
 	{
@@ -91,7 +96,7 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 		r_free_head(arena);
 	}
 
-	wattroff(win, COLOR_PAIR(2));
+	wattroff(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
 
 	return 0;
 }

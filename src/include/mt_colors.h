@@ -1,9 +1,18 @@
 #ifndef MT_COLORS_H
 #define MT_COLORS_H
 
+#include <arena.h>
+
 #include "mt_type_defs.h"
 
-#define TO_NC_COLOR(rgbVal) (rgbVal = (int)((double)(rgbVal) * 3.92156))
+#define TO_NC_COLOR(rgbVal) (rgbVal = (unsigned short)((double)(rgbVal) * 3.92156))
+
+typedef struct _mt_color 
+{
+	u16 red;
+	u16 green;
+	u16 blue;
+} MT_Color;
 
 typedef enum _ui_colors
 {
@@ -15,18 +24,12 @@ typedef enum _ui_colors
 
 typedef enum _mt_color_pairs
 {
-#define DEF_PAIRS(pair, pairEnumVal) pair = pairEnumVal,
+#define DEF_PAIRS(pair, pairEnumVal, fg, bg) pair = pairEnumVal,
+	MT_PAIR_BACKGROUND = 1,
 #include "tables/pair_table.h"
-	MT_PAIR_MAX = 6
+	MT_PAIR_MAX = 7
 #undef DEF_PAIRS
 } MT_Color_Pairs;
-
-typedef struct _mt_color 
-{
-	u8 red;
-	u8 green;
-	u8 blue;
-} MT_Color;
 
 typedef struct _mt_ui_theme 
 {
@@ -36,4 +39,5 @@ typedef struct _mt_ui_theme
 #undef DEF_COLORS
 } MT_UI_Theme;
 
+MT_UI_Theme * import_colors(Arena *arena);
 #endif

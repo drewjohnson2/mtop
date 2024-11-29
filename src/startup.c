@@ -88,7 +88,7 @@ void run()
 	init_ncurses(di->windows[CONTAINER_WIN], screen);
 	init_window_dimens(di);
 	init_windows(di);
-
+	
 	UIThreadArgs uiArgs = 
 	{
 		.graphArena = &cpuGraphArena,

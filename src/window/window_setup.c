@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "../include/window.h"
+#include "../include/mt_colors.h"
 
 DisplayItems * init_display_items(Arena *arena) 
 {
@@ -135,8 +136,8 @@ void init_windows(DisplayItems *di)
 	/*
 		* just some test stuff, remove later
 	*/
-	init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(2, COLOR_CYAN, COLOR_BLACK);
-
-	wbkgd(container->window, COLOR_PAIR(1));
+	// init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
+	// init_pair(2, COLOR_CYAN, COLOR_BLACK);
+	//
+	//wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
 }
