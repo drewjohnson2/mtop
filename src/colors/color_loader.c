@@ -23,6 +23,10 @@ void import_colors()
 		TO_NC_COLOR(theme->memberName->red); \
 		TO_NC_COLOR(theme->memberName->green); \
 		TO_NC_COLOR(theme->memberName->blue); \
+		\
+		init_color(color, theme->memberName->red, \
+			theme->memberName->green, \
+			theme->memberName->blue); \
 	}
 
 
@@ -30,13 +34,6 @@ void import_colors()
 	{
 #include "../include/tables/color_table.h"
 	}
-#undef DEF_COLORS
-
-#define DEF_COLORS(color, colEnumVal, memberName) \
-	init_color(color, theme->memberName->red, \
-		theme->memberName->green, \
-		theme->memberName->blue);
-#include "../include/tables/color_table.h"
 #undef DEF_COLORS
 
 	init_pair(MT_PAIR_BACKGROUND, MT_CLR_BOX, MT_CLR_BACKGROUND);
