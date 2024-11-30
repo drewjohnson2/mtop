@@ -1,6 +1,7 @@
 #include <bits/time.h>
 #include <ncurses.h>
 #include <pthread.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -109,7 +110,7 @@ void run_ui(
 			__alignof(StatsViewData *)
 		); 
 		
-		for (u32 i = 0; i < curPrcs->count; i++)
+		for (size_t i = 0; i < curPrcs->count; i++)
 		{
 			float cpuPct = 0.0;
 			float memPct = 0.0;
