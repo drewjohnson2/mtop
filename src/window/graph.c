@@ -24,12 +24,8 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	if (posX < 2) posX = 2;
 
 	wattron(wd->window, COLOR_PAIR(MT_PAIR_BOX));
-
 	werase(win);	
 	box(win, 0, 0);
-	
-	wattroff(wd->window, COLOR_PAIR(MT_PAIR_BOX));
-
 	wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
 
 	while (current)
@@ -38,13 +34,14 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 		int pctLabel = (int)(current->percent * 100);
 
+		wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_HEADER));
+
 #ifdef DEBUG
 		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
 		mvwprintw(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated);
 #else 
 		mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 #endif
-
 		int lineHeight = (wd->wHeight - 1) * current->percent;
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
@@ -55,6 +52,8 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 			wd->wWidth - 6;
 
 		mvwprintw(win, 1, pctPadLeft, " %d%% ", pctLabel);
+
+		wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
 
 		while (lineHeight--)
 		{

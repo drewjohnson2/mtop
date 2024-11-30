@@ -209,17 +209,20 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 	
 	WINDOW *win = wd->window;
 
-	wattron(win, COLOR_PAIR(2));
+	wattron(win, COLOR_PAIR(MT_PAIR_BOX));
 
+	
 	werase(win);
 	box(win, 0, 0);
 
+	wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #ifdef DEBUG
 	mvwprintw(win, 0, 3, " Arena Regions Alloc'd = %zu ", procArena->regionsAllocated);
 #else
 	mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 #endif
 
+	wattron(win, COLOR_PAIR(MT_PAIR_PRC_TBL_HEADER));
 	wattron(win, A_BOLD);
 
 	mvwprintw(win, 2, 2, "%s", commandTitle);
@@ -242,12 +245,31 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 
 	while (i < wd->wHeight - 5 && i < count)
 	{
+		wattron(win, COLOR_PAIR(MT_PAIR_PRC_UNSEL_TEXT));
+
 		mvwprintw(win, posY, 2, "%s", vd[i]->command);
 		mvwprintw(win, posY, pidPosX, "%d", vd[i]->pid);
 
-		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
-		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", vd[i]->memPercentage);
+		if (fitCpu)
+		{
+			if (vd[i]->cpuPercentage < 0.01) 
+				wattron(win, COLOR_PAIR(MT_PAIR_PRC_PCT_ZERO));
+
+			mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
+		}
+
+		wattron(win, COLOR_PAIR(MT_PAIR_PRC_UNSEL_TEXT));
+
+		if (fitMem)
+		{
+			if (vd[i]->memPercentage < 0.01)
+				wattron(win, COLOR_PAIR(MT_PAIR_PRC_PCT_ZERO));
+
+			mvwprintw(win, posY++, memPosX, "%.2f", vd[i]->memPercentage);
+		}
 
 		i++;
 	}
+
+	wattroff(win, COLOR_PAIR(MT_PAIR_PRC_UNSEL_TEXT));
 }

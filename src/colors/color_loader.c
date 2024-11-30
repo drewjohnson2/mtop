@@ -70,7 +70,7 @@ static void define_colors(MT_UI_Theme *theme)
 
 	init_pair(MT_PAIR_BACKGROUND, MT_CLR_BOX, MT_CLR_BACKGROUND);
 
-#define DEF_PAIRS(pair, pairEnumVal, fg, bg) init_pair(pair, fg, bg);
+#define DEF_PAIRS(pair, fg, bg) init_pair(pair, fg, bg);
 #include "../include/tables/pair_table.h"
 #undef DEF_PAIRS
 }

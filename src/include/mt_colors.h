@@ -24,10 +24,10 @@ typedef enum _ui_colors
 
 typedef enum _mt_color_pairs
 {
-#define DEF_PAIRS(pair, pairEnumVal, fg, bg) pair = pairEnumVal,
+#define DEF_PAIRS(pair,fg, bg) pair,
 	MT_PAIR_BACKGROUND = 1,
 #include "tables/pair_table.h"
-	MT_PAIR_MAX = 7
+	MT_PAIR_MAX
 #undef DEF_PAIRS
 } MT_Color_Pairs;
 
