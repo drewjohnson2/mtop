@@ -10,7 +10,7 @@
 #include "../include/window.h"
 #include "../include/mt_colors.h"
 
-int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {
 	if (!gd->head) return 1;
 
@@ -18,8 +18,8 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 	WINDOW *win = wd->window;
 	GraphPoint *current = gd->head;
-	short posX = wd->wWidth - gd->graphPointCount - 2;
-	short posY = wd->wHeight - 2;
+	s16 posX = wd->wWidth - gd->graphPointCount - 2;
+	s16 posY = wd->wHeight - 2;
 
 	if (posX < 2) posX = 2;
 
@@ -32,7 +32,7 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	{
 		if (posX > wd->wWidth - 3) break;
 
-		int pctLabel = (int)(current->percent * 100);
+		s8 pctLabel = (int)(current->percent * 100);
 
 		wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_HEADER));
 
@@ -42,12 +42,12 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 #else 
 		mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 #endif
-		int lineHeight = (wd->wHeight - 1) * current->percent;
+		s16 lineHeight = (wd->wHeight - 1) * current->percent;
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 
 		char dataChar = current->percent * 100 == 0 ? '.' : '|';
-		int pctPadLeft = pctLabel < 10 ?
+		s16 pctPadLeft = pctLabel < 10 ?
 			wd->wWidth - 5 :
 			wd->wWidth - 6;
 
@@ -100,7 +100,7 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	return 0;
 }
 
-int add_graph_point(Arena *arena, GraphData *gd, float percentage)
+s8 add_graph_point(Arena *arena, GraphData *gd, float percentage)
 {
 	assert(arena && gd);
 

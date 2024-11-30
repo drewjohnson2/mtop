@@ -37,7 +37,7 @@ typedef struct _window_data
 
 typedef struct _display_items
 {
-	u32 windowCount;
+	size_t windowCount;
 	WindowData **windows;
 } DisplayItems;
 
@@ -49,9 +49,9 @@ typedef struct _graph_point
 
 typedef struct _graph_data 
 {
-	u16 graphHeight;
-	u16 graphWidth;
-	u16 graphPointCount;
+	u16 graphHeight; // as far as I'm aware 
+	u16 graphWidth; // these values are unused.
+	size_t graphPointCount;
 	GraphPoint *head;
 } GraphData;
 
@@ -68,7 +68,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen);
 //		graph.c
 //
 //
-int graph_render(Arena *arena, GraphData *gd, WindowData *wd);
-int add_graph_point(Arena *arena, GraphData *gd, float percentage);
+s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd);
+s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 #endif

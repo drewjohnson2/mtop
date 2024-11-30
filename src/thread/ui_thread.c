@@ -109,7 +109,7 @@ void run_ui(
 			__alignof(StatsViewData *)
 		); 
 		
-		for (int i = 0; i < curPrcs->count; i++)
+		for (u32 i = 0; i < curPrcs->count; i++)
 		{
 			float cpuPct = 0.0;
 			float memPct = 0.0;
@@ -191,7 +191,7 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 	u16 cpuPosX = pidPosX + (wd->wWidth * .14);
 	u16 memPosX = cpuPosX + (wd->wWidth * .14);
 
-	int fitMem = wd->wWidth >= memPosX + strlen(memTitle);
+	u8 fitMem = wd->wWidth >= memPosX + strlen(memTitle);
 
 	if (!fitMem) 
 	{
@@ -199,7 +199,7 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 		cpuPosX = pidPosX + (wd->wWidth * .17);
 	}
 
-	int fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
+	u8 fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
 	
 	WINDOW *win = wd->window;
 
@@ -234,8 +234,8 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 
 	wattroff(win, A_BOLD);
 
-	int i = 0;
-	int posY = 4;
+	u8 i = 0;
+	u8 posY = 4;
 
 	while (i < wd->wHeight - 5 && i < count)
 	{
