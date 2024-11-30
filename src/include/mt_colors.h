@@ -39,5 +39,5 @@ typedef struct _mt_ui_theme
 #undef DEF_COLORS
 } MT_UI_Theme;
 
-MT_UI_Theme * import_colors(Arena *arena);
+void import_colors();
 #endif

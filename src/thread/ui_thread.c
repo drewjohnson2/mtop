@@ -36,9 +36,7 @@ void run_ui(
 	ThreadSafeQueue *prcQueue
 )
 {
-
 	float cpuPercentage, memoryPercentage;
-
 	CpuStats *prevStats = NULL;
 	CpuStats *curStats = NULL;
 	MemoryStats *memStats = NULL;
@@ -47,13 +45,7 @@ void run_ui(
 	WindowData *procWin = di->windows[PRC_WIN];
 	WindowData *container = di->windows[CONTAINER_WIN];
 	GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
-
-	Arena colorArena = a_new(512);
-
-	MT_UI_Theme *theme = import_colors(&colorArena);
-
-	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-
+	
 	Arena cpuPointArena = a_new(sizeof(GraphPoint));
 	Arena memPointArena = a_new(sizeof(GraphPoint));
 
@@ -75,6 +67,9 @@ void run_ui(
 	dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
 	curPrcs = prevPrcs;
+
+	import_colors();
+	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
 	
 	while (!SHUTDOWN_FLAG)
 	{
@@ -170,7 +165,6 @@ void run_ui(
 
 	a_free(&cpuPointArena);
 	a_free(&memPointArena);
-	a_free(&colorArena);
 }
 
 int vd_name_compare_func(const void *a, const void *b)
