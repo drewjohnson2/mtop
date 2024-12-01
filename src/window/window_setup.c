@@ -131,12 +131,4 @@ void init_windows(DisplayItems *di)
 		memoryWin->window &&
 		prcWin->window
 	);
-
-	/*
-		* just some test stuff, remove later
-	*/
-	init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(2, COLOR_CYAN, COLOR_BLACK);
-
-	wbkgd(container->window, COLOR_PAIR(1));
 }

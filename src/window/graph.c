@@ -8,8 +8,9 @@
 #include <assert.h>
 
 #include "../include/window.h"
+#include "../include/mt_colors.h"
 
-int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {
 	if (!gd->head) return 1;
 
@@ -17,21 +18,23 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 	WINDOW *win = wd->window;
 	GraphPoint *current = gd->head;
-	short posX = wd->wWidth - gd->graphPointCount - 2;
-	short posY = wd->wHeight - 2;
+	s16 posX = wd->wWidth - gd->graphPointCount - 2;
+	s16 posY = wd->wHeight - 2;
 
 	if (posX < 2) posX = 2;
 
-	wattron(wd->window, COLOR_PAIR(2));
-
+	SET_COLOR(wd->window, MT_PAIR_BOX);
 	werase(win);	
 	box(win, 0, 0);
+	SET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 	while (current)
 	{
 		if (posX > wd->wWidth - 3) break;
 
-		int pctLabel = (int)(current->percent * 100);
+		s8 pctLabel = (s8)(current->percent * 100);
+
+		SET_COLOR(wd->window, MT_PAIR_CPU_HEADER);
 
 #ifdef DEBUG
 		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
@@ -39,17 +42,18 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 #else 
 		mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
 #endif
-
-		int lineHeight = (wd->wHeight - 1) * current->percent;
+		s16 lineHeight = (wd->wHeight - 1) * current->percent;
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 
 		char dataChar = current->percent * 100 == 0 ? '.' : '|';
-		int pctPadLeft = pctLabel < 10 ?
+		s16 pctPadLeft = pctLabel < 10 ?
 			wd->wWidth - 5 :
 			wd->wWidth - 6;
 
 		mvwprintw(win, 1, pctPadLeft, " %d%% ", pctLabel);
+
+		SET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 		while (lineHeight--)
 		{
@@ -91,12 +95,12 @@ int graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 		r_free_head(arena);
 	}
 
-	wattroff(win, COLOR_PAIR(2));
+	UNSET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 	return 0;
 }
 
-int add_graph_point(Arena *arena, GraphData *gd, float percentage)
+s8 add_graph_point(Arena *arena, GraphData *gd, float percentage)
 {
 	assert(arena && gd);
 

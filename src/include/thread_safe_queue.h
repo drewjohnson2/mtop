@@ -13,7 +13,7 @@ typedef struct _queue_node
 typedef struct _shared_queue
 {
 	QueueNode *head, *tail;
-	int size;
+	size_t size;
 } ThreadSafeQueue;
 
 void enqueue(

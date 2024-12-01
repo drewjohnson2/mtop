@@ -25,10 +25,10 @@ static void _fetch_proc_pid_stat(
 
 	while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
 	{
-	  	int fuid = 0;
+	  	u32 fuid = 0;
 
 		if (sscanf(statusBuffer, "Uid:\t%d", &fuid) <= 0) continue;
-		else if (fuid != (int)uid)
+		else if (fuid != (u32)uid)
 		{
 			fclose(statusFile);
 
@@ -63,7 +63,7 @@ static void _fetch_proc_pid_stat(
 	char name[99];
 
 	sscanf(statBuffer,
-		"%d %98s %*c %*d %*d "
+		"%hu %98s %*c %*d %*d "
 		"%*d %*d %*d %*u %*lu "
 		"%*lu %*lu %*lu %lu %lu ",
 		&(*item)->pid, name,
@@ -111,7 +111,7 @@ ProcessStats * get_processes(
 
 		char statPath[32];
 		char statusPath[32];
-		int skip = atoi(dp->d_name) == 0;
+		u8 skip = atoi(dp->d_name) == 0;
 
 		if (skip || dp->d_type != DT_DIR) continue;
 

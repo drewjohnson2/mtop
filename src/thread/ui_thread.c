@@ -1,6 +1,7 @@
 #include <bits/time.h>
 #include <ncurses.h>
 #include <pthread.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -13,6 +14,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/ui_utils.h"
+#include "../include/mt_colors.h"
 
 typedef struct _stats_view_data 
 {
@@ -36,7 +38,6 @@ void run_ui(
 )
 {
 	float cpuPercentage, memoryPercentage;
-
 	CpuStats *prevStats = NULL;
 	CpuStats *curStats = NULL;
 	MemoryStats *memStats = NULL;
@@ -45,7 +46,7 @@ void run_ui(
 	WindowData *procWin = di->windows[PRC_WIN];
 	WindowData *container = di->windows[CONTAINER_WIN];
 	GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
-
+	
 	Arena cpuPointArena = a_new(sizeof(GraphPoint));
 	Arena memPointArena = a_new(sizeof(GraphPoint));
 
@@ -67,6 +68,9 @@ void run_ui(
 	dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
 	curPrcs = prevPrcs;
+
+	import_colors();
+	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
 	
 	while (!SHUTDOWN_FLAG)
 	{
@@ -106,7 +110,7 @@ void run_ui(
 			__alignof(StatsViewData *)
 		); 
 		
-		for (int i = 0; i < curPrcs->count; i++)
+		for (size_t i = 0; i < curPrcs->count; i++)
 		{
 			float cpuPct = 0.0;
 			float memPct = 0.0;
@@ -180,15 +184,22 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 
 	qsort(vd, count, sizeof(StatsViewData *), vd_name_compare_func);
 
-	char *commandTitle = "Command";
-	char *pidTitle = "PID";
-	char *cpuTitle = "CPU %";
-	char *memTitle = "Memory %";
+	const char *commandTitle = "Command";
+	const char *pidTitle = "PID";
+	const char *cpuTitle = "CPU %";
+	const char *memTitle = "Memory %";
+	const u16 dataStartX = 2;
+	const u16 prcTblHeaderY = 2;
+	const u16 windowTitleX = 3;
+	const u16 windowTitleY = 0;
+
 	u16 pidPosX = wd->wWidth * .60;
 	u16 cpuPosX = pidPosX + (wd->wWidth * .14);
-	u16 memPosX = cpuPosX + (wd->wWidth * .14);
+	const u16 memPosX = cpuPosX + (wd->wWidth * .14);
 
-	int fitMem = wd->wWidth >= memPosX + strlen(memTitle);
+	WINDOW *win = wd->window;
+
+	u8 fitMem = wd->wWidth >= memPosX + strlen(memTitle);
 
 	if (!fitMem) 
 	{
@@ -196,49 +207,61 @@ static void _print_stats(WindowData *wd, StatsViewData **vd, int count, Arena *p
 		cpuPosX = pidPosX + (wd->wWidth * .17);
 	}
 
-	int fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
+	u8 fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
 	
-	WINDOW *win = wd->window;
-
-	wattron(win, COLOR_PAIR(2));
-
+	SET_COLOR(win, MT_PAIR_BOX);
+	
 	werase(win);
 	box(win, 0, 0);
 
+	SET_COLOR(win, MT_PAIR_PRC_HEADER);
 #ifdef DEBUG
-	mvwprintw(win, 0, 3, " Arena Regions Alloc'd = %zu ", procArena->regionsAllocated);
+	mvwprintw(win, windowTitleY, windowTitleX, 
+		   " Arena Regions Alloc'd = %zu ", procArena->regionsAllocated);
 #else
-	mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
+	mvwprintw(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle);
 #endif
 
+	SET_COLOR(win, MT_PAIR_PRC_TBL_HEADER);
 	wattron(win, A_BOLD);
 
-	mvwprintw(win, 2, 2, "%s", commandTitle);
-	mvwprintw(win, 2, pidPosX, "%s", pidTitle);
+	mvwprintw(win, prcTblHeaderY, dataStartX, "%s", commandTitle);
+	mvwprintw(win, prcTblHeaderY, pidPosX, "%s", pidTitle);
 
-	if (fitCpu) mvwprintw(win, 2, cpuPosX, "%s", cpuTitle);
-	if (fitMem) mvwprintw(win, 2, memPosX, "%s", memTitle);
+	if (fitCpu) mvwprintw(win, prcTblHeaderY, cpuPosX, "%s", cpuTitle);
+	if (fitMem) mvwprintw(win, prcTblHeaderY, memPosX, "%s", memTitle);
 
-	int x = 2;
-
-	while (x < wd->wWidth - 3)
+	for (size_t x = 2; x < (size_t)wd->wWidth - 3; x++)
 	{
-		mvwprintw(win, 3, x++, "%c", '-');
+		mvwprintw(win, prcTblHeaderY + 1, x, "%c", '-');
 	}
 
 	wattroff(win, A_BOLD);
 
-	int i = 0;
-	int posY = 4;
+	u8 i = 0;
+	u8 posY = 4;
 
 	while (i < wd->wHeight - 5 && i < count)
 	{
-		mvwprintw(win, posY, 2, "%s", vd[i]->command);
+		SET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
+
+		mvwprintw(win, posY, dataStartX, "%s", vd[i]->command);
 		mvwprintw(win, posY, pidPosX, "%d", vd[i]->pid);
 
-		if (fitCpu) mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
+		if (fitCpu)
+		{
+			if (vd[i]->cpuPercentage < 0.01) 
+				SET_COLOR(win, MT_PAIR_PRC_PCT_ZERO);
+
+			mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
+		}
+
+		SET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
+
 		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", vd[i]->memPercentage);
 
 		i++;
 	}
+
+	UNSET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
 }
