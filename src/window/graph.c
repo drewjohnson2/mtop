@@ -34,13 +34,13 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 		s8 pctLabel = (s8)(current->percent * 100);
 
-		SET_COLOR(wd->window, MT_PAIR_CPU_HEADER);
-
 #ifdef DEBUG
-		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
-		mvwprintw(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated);
+		PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
+		  MT_PAIR_CPU_HEADER);
+		PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
+		  MT_PAIR_CPU_HEADER);
 #else 
-		mvwprintw(win, 0, 3, " %s ", wd->windowTitle);
+		PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
 #endif
 		s16 lineHeight = (wd->wHeight - 1) * current->percent;
 		
@@ -51,9 +51,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 			wd->wWidth - 5 :
 			wd->wWidth - 6;
 
-		mvwprintw(win, 1, pctPadLeft, " %d%% ", pctLabel);
-
-		SET_COLOR(wd->window, MT_PAIR_CPU_GP);
+		PRINTFC(win, 1, pctPadLeft, " %d%% ", pctLabel, MT_PAIR_CPU_HEADER);
 
 		while (lineHeight--)
 		{
@@ -64,8 +62,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 			// wmove(win, posY--, posX);
 			// waddnwstr(win, &bullet, -1);
 			
-			wmove(win, posY--, posX);
-			wprintw(win, "%c", dataChar);
+			PRINTFC(win, posY--, posX, "%c", dataChar, MT_PAIR_CPU_GP);
 		}
 
 		posY = wd->wHeight - 2;

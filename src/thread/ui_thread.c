@@ -37,17 +37,7 @@ void run_ui(
 	WindowData *container = di->windows[CONTAINER_WIN];
 	GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
 	Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
-
-	ProcessListState *prcListState = a_alloc(
-		&stateArena,
-		sizeof(ProcessListState),
-		__alignof(ProcessListState)
-	);
-
-	prcListState->cmdBuffer = '\0';
-	prcListState->timeoutCurrent.tv_nsec = 0;
-	prcListState->timeoutStart.tv_nsec = 0;
-
+	
 	ProcessStats *prevPrcs = NULL;
 	ProcessStats *curPrcs = NULL;
 
@@ -69,6 +59,19 @@ void run_ui(
 	dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
 	curPrcs = prevPrcs;
+
+	ProcessListState *prcListState = a_alloc(
+		&stateArena,
+		sizeof(ProcessListState),
+		__alignof(ProcessListState)
+	);
+
+	prcListState->cmdBuffer = '\0';
+	prcListState->timeoutActive = 0;
+	prcListState->timeoutCurrent.tv_nsec = 0;
+	prcListState->timeoutStart.tv_nsec = 0;
+	prcListState->selectedIndex = 0;
+	prcListState->maxIndex = curPrcs->count - 1;
 
 	import_colors();
 	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
@@ -97,6 +100,12 @@ void run_ui(
 			prevPrcs = curPrcs;
 			curPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
 			dequeue(prcQueue, &procDataLock, &procQueueCondition);
+
+			prcListState->maxIndex = curPrcs->count - 1;
+			prcListState->selectedIndex = 
+				prcListState->selectedIndex > prcListState->maxIndex ?
+					prcListState->maxIndex :
+					prcListState->selectedIndex;
 		}
 
 		Arena scratch = a_new(
@@ -124,7 +133,13 @@ void run_ui(
 		// There was once a two second 
 		// timer check here, if things
 		// get wonky put it back
-		print_stats(procWin, vd, curPrcs->count, prcArena);
+		print_stats(
+			prcListState,
+			procWin,
+			vd,
+			curPrcs->count,
+			prcArena
+		);
 
 		a_free(&scratch);
 

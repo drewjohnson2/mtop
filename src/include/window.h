@@ -69,7 +69,10 @@ typedef struct _stats_view_data
 
 typedef struct _process_list_state
 {
+	u16 selectedIndex;
+	u16 maxIndex;
 	char cmdBuffer;
+	u8 timeoutActive;
 	struct timespec timeoutStart;
 	struct timespec timeoutCurrent;
 } ProcessListState;
@@ -77,6 +80,13 @@ typedef struct _process_list_state
 
 #define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
 #define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
+
+#define PRINTFC(win, y, x, fmt, str, pair) \
+	do { \
+		SET_COLOR(win, pair); \
+		mvwprintw(win, y, x, fmt, str); \
+		UNSET_COLOR(win, pair); \
+	} while (0)
 
 //
 //		window_setup.c
@@ -98,7 +108,13 @@ s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 //		prc_list.c
 //
 //
-void print_stats(WindowData *wd, ProcessStatsViewData **vd, int count, Arena *procArena);
+void print_stats(
+	ProcessListState *state,
+	WindowData *wd,
+	ProcessStatsViewData **vd,
+	int count,
+	Arena *procArena
+);
 void set_prc_view_data(
 	Arena *scratch,
 	ProcessStatsViewData **vd,

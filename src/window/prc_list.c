@@ -1,4 +1,5 @@
 #include <bits/time.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
@@ -12,33 +13,38 @@
 void read_input(WINDOW *win, ProcessListState *state)
 {
 	char ch = wgetch(win);
-	u8 executeCmd;
+	u8 executeCmd = 0;
+	u16 timeElapsedSec;
+	u64 timeElapsedMs;
+
+	if (state->timeoutActive)
+	{
+		clock_gettime(CLOCK_REALTIME, &state->timeoutCurrent);
+	
+		timeElapsedSec = state->timeoutCurrent.tv_sec - state->timeoutStart.tv_sec;
+		timeElapsedMs = (state->timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
+			/ 1000000;
+	
+		executeCmd = (ch == state->cmdBuffer) && 
+			(timeElapsedSec <= 0) &&
+			(timeElapsedMs < INPUT_TIMEOUT_MS);
+
+		if (!executeCmd) 
+		{
+			state->cmdBuffer = '\0';
+			state->timeoutActive = 0;
+
+			return;
+		}
+	}
 
 	if (ch == -1) return;
 
 	if (!state->cmdBuffer)
 	{
 		state->cmdBuffer = ch;
+		state->timeoutActive = 1;
 		clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
-
-		return;
-	}
-
-	clock_gettime(CLOCK_REALTIME, &state->timeoutCurrent);
-
-	u16 timeElapsedSec = state->timeoutCurrent.tv_sec - state->timeoutStart.tv_sec;
-	u64 timeElapsedMs = (state->timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
-		/ 1000000;
-
-	executeCmd = (ch == state->cmdBuffer) && 
-		(timeElapsedSec <= 0) &&
-		(timeElapsedMs < INPUT_TIMEOUT_MS);
-
-	if (!executeCmd) 
-	{
-		state->cmdBuffer = '\0';
-		state->timeoutStart.tv_nsec = 0;
-		state->timeoutCurrent.tv_nsec = 0;
 
 		return;
 	}
@@ -63,7 +69,12 @@ int _vd_name_compare_func(const void *a, const void *b)
 	return strcmp(x->command, y->command);
 }
 
-void print_stats(WindowData *wd, ProcessStatsViewData **vd, int count, Arena *procArena)
+void print_stats(
+	ProcessListState *state,
+	WindowData *wd,
+	ProcessStatsViewData **vd,
+	int count,
+	Arena *procArena)
 {
 	if (vd == NULL) return;
 
@@ -99,26 +110,27 @@ void print_stats(WindowData *wd, ProcessStatsViewData **vd, int count, Arena *pr
 	werase(win);
 	box(win, 0, 0);
 
-	SET_COLOR(win, MT_PAIR_PRC_HEADER);
 #ifdef DEBUG
-	mvwprintw(win, windowTitleY, windowTitleX, 
-		   " Arena Regions Alloc'd = %zu ", procArena->regionsAllocated);
+	PRINTFC(win, 
+		 windowTitleY, windowTitleX, 
+		 " Arena Regions Alloc'd = %zu ",
+		 procArena->regionsAllocated,
+		 MT_PAIR_PRC_HEADER);
 #else
-	mvwprintw(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle);
+	PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
 #endif
 
-	SET_COLOR(win, MT_PAIR_PRC_TBL_HEADER);
 	wattron(win, A_BOLD);
 
-	mvwprintw(win, prcTblHeaderY, dataStartX, "%s", commandTitle);
-	mvwprintw(win, prcTblHeaderY, pidPosX, "%s", pidTitle);
+	PRINTFC(win, prcTblHeaderY, dataStartX, "%s", commandTitle, MT_PAIR_PRC_TBL_HEADER);
+	PRINTFC(win, prcTblHeaderY, pidPosX, "%s", pidTitle, MT_PAIR_PRC_TBL_HEADER);
 
-	if (fitCpu) mvwprintw(win, prcTblHeaderY, cpuPosX, "%s", cpuTitle);
-	if (fitMem) mvwprintw(win, prcTblHeaderY, memPosX, "%s", memTitle);
+	if (fitCpu) PRINTFC(win, prcTblHeaderY, cpuPosX, "%s", cpuTitle, MT_PAIR_PRC_TBL_HEADER);
+	if (fitMem) PRINTFC(win, prcTblHeaderY, memPosX, "%s", memTitle, MT_PAIR_PRC_TBL_HEADER);
 
-	for (size_t x = 2; x < (size_t)wd->wWidth - 3; x++)
+	for (size_t x = 2; x < (size_t)wd->wWidth - 2; x++)
 	{
-		mvwprintw(win, prcTblHeaderY + 1, x, "%c", '-');
+		PRINTFC(win, prcTblHeaderY + 1, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
 	}
 
 	wattroff(win, A_BOLD);
@@ -128,27 +140,30 @@ void print_stats(WindowData *wd, ProcessStatsViewData **vd, int count, Arena *pr
 
 	while (i < wd->wHeight - 5 && i < count)
 	{
-		SET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
+		MT_Color_Pairs pair = (state->selectedIndex + 4 == posY) ?
+			MT_PAIR_PRC_SEL_TEXT :
+			MT_PAIR_PRC_UNSEL_TEXT;
 
-		mvwprintw(win, posY, dataStartX, "%s", vd[i]->command);
-		mvwprintw(win, posY, pidPosX, "%d", vd[i]->pid);
+		for (size_t y = dataStartX; y < wd->wWidth - 2; y++)
+			PRINTFC(win, posY, y, "%c", ' ', pair);
+
+		SET_COLOR(win, pair);
+
+		PRINTFC(win, posY, dataStartX, "%s", vd[i]->command, pair);
+		PRINTFC(win, posY, pidPosX, "%d", vd[i]->pid, pair);
 
 		if (fitCpu)
 		{
-			if (vd[i]->cpuPercentage < 0.01) 
-				SET_COLOR(win, MT_PAIR_PRC_PCT_ZERO);
+			MT_Color_Pairs pctPair = vd[i]->cpuPercentage < 0.01 && 
+				pair != MT_PAIR_PRC_SEL_TEXT ? MT_PAIR_PRC_PCT_ZERO : pair;
 
-			mvwprintw(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage);
+			PRINTFC(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage, pctPair);
 		}
 
-		SET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
-
-		if (fitMem) mvwprintw(win, posY++, memPosX, "%.2f", vd[i]->memPercentage);
+		if (fitMem) PRINTFC(win, posY++, memPosX, "%.2f", vd[i]->memPercentage, pair);
 
 		i++;
 	}
-
-	UNSET_COLOR(win, MT_PAIR_PRC_UNSEL_TEXT);
 }
 
 void set_prc_view_data(
