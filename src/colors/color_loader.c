@@ -36,7 +36,7 @@ void import_colors()
 	}
 #undef DEF_COLORS
 
-	init_pair(MT_PAIR_BACKGROUND, MT_CLR_BOX, MT_CLR_BACKGROUND);
+	init_pair(MT_PAIR_BACKGROUND, MT_CLR_BACKGROUND, MT_CLR_BACKGROUND);
 
 #define DEF_PAIRS(pair, fg, bg) init_pair(pair, fg, bg);
 #include "../include/tables/pair_table.h"
