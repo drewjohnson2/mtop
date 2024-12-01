@@ -32,7 +32,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	{
 		if (posX > wd->wWidth - 3) break;
 
-		s8 pctLabel = (int)(current->percent * 100);
+		s8 pctLabel = (s8)(current->percent * 100);
 
 		SET_COLOR(wd->window, MT_PAIR_CPU_HEADER);
 
