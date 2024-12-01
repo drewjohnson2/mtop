@@ -7,7 +7,7 @@
 #include "thread_safe_queue.h"
 #include "window.h"
 
-#define DISPLAY_SLEEP_TIME 1000 * 200
+#define DISPLAY_SLEEP_TIME 1000 * 200 
 #define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
 #define READ_SLEEP_TIME 1000 * 100 

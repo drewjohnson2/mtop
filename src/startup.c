@@ -121,7 +121,7 @@ void run()
 
 	// wait for input to quit. Replace
 	// with controls for process list later.
-	_get_input(di);
+	//_get_input(di);
 
 	pthread_join(ioThread, NULL);
 	pthread_join(ui_thread, NULL);

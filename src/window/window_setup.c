@@ -112,6 +112,8 @@ void init_windows(DisplayItems *di)
 		container->windowX
 	);
 
+	nodelay(container->window, TRUE);
+
 #define DEFINE_WINDOWS(winName, enumName) \
 	WindowData *winName##Win = di->windows[enumName]; \
 	\
