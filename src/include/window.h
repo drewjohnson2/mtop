@@ -55,6 +55,9 @@ typedef struct _graph_data
 	GraphPoint *head;
 } GraphData;
 
+#define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
+#define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
+
 //
 //		window_setup.c
 //

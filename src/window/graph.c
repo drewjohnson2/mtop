@@ -23,10 +23,10 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 	if (posX < 2) posX = 2;
 
-	wattron(wd->window, COLOR_PAIR(MT_PAIR_BOX));
+	SET_COLOR(wd->window, MT_PAIR_BOX);
 	werase(win);	
 	box(win, 0, 0);
-	wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
+	SET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 	while (current)
 	{
@@ -34,7 +34,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 		s8 pctLabel = (int)(current->percent * 100);
 
-		wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_HEADER));
+		SET_COLOR(wd->window, MT_PAIR_CPU_HEADER);
 
 #ifdef DEBUG
 		mvwprintw(win, 0, 3, " Percentage  = %.4f ", current->percent * 100);
@@ -53,7 +53,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 
 		mvwprintw(win, 1, pctPadLeft, " %d%% ", pctLabel);
 
-		wattron(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
+		SET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 		while (lineHeight--)
 		{
@@ -95,7 +95,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 		r_free_head(arena);
 	}
 
-	wattroff(wd->window, COLOR_PAIR(MT_PAIR_CPU_GP));
+	UNSET_COLOR(wd->window, MT_PAIR_CPU_GP);
 
 	return 0;
 }
