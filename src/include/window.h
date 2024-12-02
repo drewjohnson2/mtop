@@ -8,7 +8,7 @@
 #include "mt_type_defs.h"
 #include "monitor.h"
 
-#define INPUT_TIMEOUT_MS 600
+#define INPUT_TIMEOUT_MS 575
 
 #define REFRESH_WIN(win) \
 	do { \
@@ -74,7 +74,6 @@ typedef struct _process_list_state
 	char cmdBuffer;
 	u8 timeoutActive;
 	struct timespec timeoutStart;
-	struct timespec timeoutCurrent;
 } ProcessListState;
 
 

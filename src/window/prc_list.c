@@ -14,31 +14,43 @@ void read_input(WINDOW *win, ProcessListState *state)
 {
 	char ch = wgetch(win);
 	u8 executeCmd = 0;
-	u16 timeElapsedSec;
 	u64 timeElapsedMs;
+	struct timespec timeoutCurrent;
 
 	if (state->timeoutActive)
 	{
-		clock_gettime(CLOCK_REALTIME, &state->timeoutCurrent);
-	
-		timeElapsedSec = state->timeoutCurrent.tv_sec - state->timeoutStart.tv_sec;
-		timeElapsedMs = (state->timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
-			/ 1000000;
-	
-		executeCmd = (ch == state->cmdBuffer) && 
-			(timeElapsedSec <= 0) &&
-			(timeElapsedMs < INPUT_TIMEOUT_MS);
+		clock_gettime(CLOCK_REALTIME, &timeoutCurrent);
 
-		if (!executeCmd) 
+		timeElapsedMs = (timeoutCurrent.tv_sec - state->timeoutStart.tv_sec) * 1000
+		 + (timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
+			/ 1000000;
+
+		if (timeElapsedMs > INPUT_TIMEOUT_MS)
 		{
 			state->cmdBuffer = '\0';
 			state->timeoutActive = 0;
-
-			return;
 		}
 	}
 
 	if (ch == -1) return;
+
+	switch (ch)
+	{
+		case 'j':
+			state->selectedIndex++;
+			return;
+		case 'k':
+			state->selectedIndex = state->selectedIndex == 0 ?
+				state->selectedIndex :
+				state->selectedIndex - 1;
+
+			return;
+		case 'q':
+			SHUTDOWN_FLAG = 1;
+			return;
+		default:
+			break;
+	}
 
 	if (!state->cmdBuffer)
 	{
@@ -48,14 +60,13 @@ void read_input(WINDOW *win, ProcessListState *state)
 
 		return;
 	}
-	
-	switch (ch)
+
+	if (ch != state->cmdBuffer) 
 	{
-		case 'q':
-			SHUTDOWN_FLAG = 1;
-			return;
-		default:
-			return;
+		state->cmdBuffer = '\0';
+		state->timeoutActive = 0;
+
+		return;
 	}
 }
 
@@ -74,7 +85,8 @@ void print_stats(
 	WindowData *wd,
 	ProcessStatsViewData **vd,
 	int count,
-	Arena *procArena)
+	Arena *procArena
+)
 {
 	if (vd == NULL) return;
 
@@ -111,11 +123,13 @@ void print_stats(
 	box(win, 0, 0);
 
 #ifdef DEBUG
-	PRINTFC(win, 
+	char cmd = state->cmdBuffer ? state->cmdBuffer : '0';
+	wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
+	mvwprintw(win, 
 		 windowTitleY, windowTitleX, 
-		 " Arena Regions Alloc'd = %zu ",
-		 procArena->regionsAllocated,
-		 MT_PAIR_PRC_HEADER);
+		 " Arena Regions Alloc'd = %zu, cmdBuffer = %c, timeoutActive = %u",
+		 procArena->regionsAllocated, cmd, state->timeoutActive);
+	wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
 	PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
 #endif

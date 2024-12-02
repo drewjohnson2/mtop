@@ -68,8 +68,6 @@ void run_ui(
 
 	prcListState->cmdBuffer = '\0';
 	prcListState->timeoutActive = 0;
-	prcListState->timeoutCurrent.tv_nsec = 0;
-	prcListState->timeoutStart.tv_nsec = 0;
 	prcListState->selectedIndex = 0;
 	prcListState->maxIndex = curPrcs->count - 1;
 
