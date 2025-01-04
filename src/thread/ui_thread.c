@@ -60,16 +60,20 @@ void run_ui(
 
 	curPrcs = prevPrcs;
 
-	ProcessListState *prcListState = a_alloc(
+	ProcessListState *listState = a_alloc(
 		&stateArena,
 		sizeof(ProcessListState),
 		__alignof(ProcessListState)
 	);
 
-	prcListState->cmdBuffer = '\0';
-	prcListState->timeoutActive = 0;
-	prcListState->selectedIndex = 0;
-	prcListState->maxIndex = curPrcs->count - 1;
+	listState->cmdBuffer = '\0';
+	listState->timeoutActive = 0;
+	listState->selectedIndex = 0;
+	listState->firstIndexDisplayed = 0;
+	listState->lastIndexDisplayed = listState->numOptsVisible;
+	listState->maxIndex = curPrcs->count - 1;
+	listState->numOptsVisible = procWin->wHeight - 5;
+	listState->lastIndexDisplayed = listState->numOptsVisible - 1;
 
 	import_colors();
 	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
@@ -99,11 +103,11 @@ void run_ui(
 			curPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
 			dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
-			prcListState->maxIndex = curPrcs->count - 1;
-			prcListState->selectedIndex = 
-				prcListState->selectedIndex > prcListState->maxIndex ?
-					prcListState->maxIndex :
-					prcListState->selectedIndex;
+			listState->maxIndex = curPrcs->count - 1;
+			listState->selectedIndex = 
+				listState->selectedIndex > listState->maxIndex ?
+					listState->maxIndex :
+					listState->selectedIndex;
 		}
 
 		Arena scratch = a_new(
@@ -118,7 +122,7 @@ void run_ui(
 			__alignof(ProcessStatsViewData *)
 		); 
 
-		read_input(container->window, prcListState);
+		read_input(container->window, listState);
 		
 		set_prc_view_data(
 			&scratch,
@@ -132,7 +136,7 @@ void run_ui(
 		// timer check here, if things
 		// get wonky put it back
 		print_stats(
-			prcListState,
+			listState,
 			procWin,
 			vd,
 			curPrcs->count,

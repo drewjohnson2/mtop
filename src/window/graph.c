@@ -42,7 +42,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 #else 
 		PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
 #endif
-		s16 lineHeight = (wd->wHeight - 1) * current->percent;
+		s16 lineHeight = (wd->wHeight - 3) * current->percent;
 		
 		lineHeight = lineHeight == 0 ? 1 : lineHeight;
 

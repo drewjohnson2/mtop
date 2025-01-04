@@ -37,12 +37,29 @@ void read_input(WINDOW *win, ProcessListState *state)
 	switch (ch)
 	{
 		case 'j':
-			state->selectedIndex++;
+			state->selectedIndex = state->selectedIndex < state->maxIndex ?
+				state->selectedIndex + 1 : 
+				state->selectedIndex;
+
+			if (state->selectedIndex > state->lastIndexDisplayed &&
+				state->selectedIndex <= state->maxIndex)
+			{
+				state->firstIndexDisplayed++;
+				state->lastIndexDisplayed++;
+			}
+
 			return;
 		case 'k':
-			state->selectedIndex = state->selectedIndex == 0 ?
-				state->selectedIndex :
-				state->selectedIndex - 1;
+			state->selectedIndex = state->selectedIndex > 0 ?
+				state->selectedIndex - 1 :
+				state->selectedIndex;
+
+			if (state->selectedIndex >= 0 &&
+				state->selectedIndex < state->firstIndexDisplayed)
+			{
+				state->firstIndexDisplayed--;
+				state->lastIndexDisplayed--;
+			}
 
 			return;
 		case 'q':
@@ -96,7 +113,8 @@ void print_stats(
 	const char *pidTitle = "PID";
 	const char *cpuTitle = "CPU %";
 	const char *memTitle = "Memory %";
-	const u16 dataStartX = 2;
+	const u8 dataOffsetY = 4;
+	const u16 dataOffsetX = 2;
 	const u16 prcTblHeaderY = 2;
 	const u16 windowTitleX = 3;
 	const u16 windowTitleY = 0;
@@ -127,8 +145,8 @@ void print_stats(
 	wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 	mvwprintw(win, 
 		 windowTitleY, windowTitleX, 
-		 " Arena Regions Alloc'd = %zu, cmdBuffer = %c, timeoutActive = %u",
-		 procArena->regionsAllocated, cmd, state->timeoutActive);
+		 " 1st idx = %u, last = %u, selectedIndex = %u, maxIndex = %u",
+		 state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex, state->maxIndex);
 	wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
 	PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
@@ -136,47 +154,52 @@ void print_stats(
 
 	wattron(win, A_BOLD);
 
-	PRINTFC(win, prcTblHeaderY, dataStartX, "%s", commandTitle, MT_PAIR_PRC_TBL_HEADER);
+	PRINTFC(win, prcTblHeaderY, dataOffsetX, "%s", commandTitle, MT_PAIR_PRC_TBL_HEADER);
 	PRINTFC(win, prcTblHeaderY, pidPosX, "%s", pidTitle, MT_PAIR_PRC_TBL_HEADER);
 
 	if (fitCpu) PRINTFC(win, prcTblHeaderY, cpuPosX, "%s", cpuTitle, MT_PAIR_PRC_TBL_HEADER);
 	if (fitMem) PRINTFC(win, prcTblHeaderY, memPosX, "%s", memTitle, MT_PAIR_PRC_TBL_HEADER);
 
-	for (size_t x = 2; x < (size_t)wd->wWidth - 2; x++)
+	for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
 	{
 		PRINTFC(win, prcTblHeaderY + 1, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
 	}
 
 	wattroff(win, A_BOLD);
 
-	u8 i = 0;
-	u8 posY = 4;
+	u8 posY = dataOffsetY;
+	const u8 winDataOffset = 5;
 
-	while (i < wd->wHeight - 5 && i < count)
+	for (u8 i = 0; i < wd->wHeight - winDataOffset && i < count; i++)
 	{
-		MT_Color_Pairs pair = (state->selectedIndex + 4 == posY) ?
+		u16 idx = i + state->firstIndexDisplayed;
+		u8 isSelectedIndex = 
+			(state->selectedIndex - state->firstIndexDisplayed) + dataOffsetY == posY;
+
+		MT_Color_Pairs pair = isSelectedIndex ?
 			MT_PAIR_PRC_SEL_TEXT :
 			MT_PAIR_PRC_UNSEL_TEXT;
 
-		for (size_t y = dataStartX; y < wd->wWidth - 2; y++)
-			PRINTFC(win, posY, y, "%c", ' ', pair);
+		if (pair == MT_PAIR_PRC_SEL_TEXT)
+		{
+			for (size_t y = dataOffsetX; y < wd->wWidth - dataOffsetX; y++)
+				PRINTFC(win, posY, y, "%c", ' ', pair);
+		}
 
 		SET_COLOR(win, pair);
 
-		PRINTFC(win, posY, dataStartX, "%s", vd[i]->command, pair);
-		PRINTFC(win, posY, pidPosX, "%d", vd[i]->pid, pair);
+		PRINTFC(win, posY, dataOffsetX, "%s", vd[idx]->command, pair);
+		PRINTFC(win, posY, pidPosX, "%d", vd[idx]->pid, pair);
 
 		if (fitCpu)
 		{
-			MT_Color_Pairs pctPair = vd[i]->cpuPercentage < 0.01 && 
+			MT_Color_Pairs pctPair = vd[idx]->cpuPercentage < 0.01 && 
 				pair != MT_PAIR_PRC_SEL_TEXT ? MT_PAIR_PRC_PCT_ZERO : pair;
 
-			PRINTFC(win, posY, cpuPosX, "%.2f", vd[i]->cpuPercentage, pctPair);
+			PRINTFC(win, posY, cpuPosX, "%.2f", vd[idx]->cpuPercentage, pctPair);
 		}
 
-		if (fitMem) PRINTFC(win, posY++, memPosX, "%.2f", vd[i]->memPercentage, pair);
-
-		i++;
+		if (fitMem) PRINTFC(win, posY++, memPosX, "%.2f", vd[idx]->memPercentage, pair);
 	}
 }
 

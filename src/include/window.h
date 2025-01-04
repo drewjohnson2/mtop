@@ -69,10 +69,13 @@ typedef struct _stats_view_data
 
 typedef struct _process_list_state
 {
-	u16 selectedIndex;
-	u16 maxIndex;
-	char cmdBuffer;
+	u8 selectedIndex;
+	u8 firstIndexDisplayed;
+	u8 lastIndexDisplayed;
+	u8 maxIndex;
+	u8 numOptsVisible;
 	u8 timeoutActive;
+	char cmdBuffer;
 	struct timespec timeoutStart;
 } ProcessListState;
 

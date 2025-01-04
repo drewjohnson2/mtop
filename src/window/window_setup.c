@@ -59,7 +59,6 @@ void init_window_dimens(DisplayItems *di)
 	WindowData *memoryWin = di->windows[MEMORY_WIN];
 	WindowData *prcWin = di->windows[PRC_WIN];
 
-
 	container->windowX = 0;
 	container->windowY = 0;
 
