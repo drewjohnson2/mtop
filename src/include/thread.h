@@ -13,18 +13,18 @@
 #define READ_SLEEP_TIME 1000 * 100 
 
 
-#define SHOULD_MERGE(mutex, cont) \
-    do { \
-	switch (pthread_mutex_trylock(mutex)) \
-    	{ \
-	    case 0: \
-	        pthread_mutex_unlock(mutex); \
-	        cont = 0; \
-	        break; \
-    	    case EBUSY: \
-	       break; \
-    	} \
-    } while(0) \
+#define SHOULD_MERGE(mutex, cont) 		\
+    do { 					\
+	switch (pthread_mutex_trylock(mutex)) 	\
+    	{ 					\
+	    case 0: 				\
+	        pthread_mutex_unlock(mutex); 	\
+	        cont = 0; 			\
+	        break; 				\
+    	    case EBUSY: 			\
+	       break; 				\
+    	} 					\
+    } while(0) 					\
 
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;

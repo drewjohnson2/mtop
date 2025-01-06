@@ -10,11 +10,11 @@
 
 #define INPUT_TIMEOUT_MS 575
 
-#define REFRESH_WIN(win) \
-    do { \
-	touchwin(win); \
-	wrefresh(win); \
-    } while (0) \
+#define REFRESH_WIN(win) 	\
+    do { 			\
+	touchwin(win); 		\
+	wrefresh(win); 		\
+    } while (0) 		\
 
 
 typedef enum _mt_window 
@@ -83,11 +83,11 @@ typedef struct _process_list_state
 #define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
 #define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
 
-#define PRINTFC(win, y, x, fmt, str, pair) \
-    do { \
-	SET_COLOR(win, pair); \
-	mvwprintw(win, y, x, fmt, str); \
-	UNSET_COLOR(win, pair); \
+#define PRINTFC(win, y, x, fmt, str, pair) 	\
+    do { 					\
+	SET_COLOR(win, pair); 			\
+	mvwprintw(win, y, x, fmt, str); 	\
+	UNSET_COLOR(win, pair); 		\
     } while (0)
 
 //
