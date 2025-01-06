@@ -145,8 +145,9 @@ void print_stats(
 	wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 	mvwprintw(win, 
 		 windowTitleY, windowTitleX, 
-		 " 1st idx = %u, last = %u, selectedIndex = %u, maxIndex = %u",
-		 state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex, state->maxIndex);
+		 " 1st idx = %u, last = %u, selectedIndex = %u, maxIndex = %u, numVisible = %u",
+		 state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex,
+		   state->maxIndex, state->numOptsVisible);
 	wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
 	PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
@@ -251,4 +252,20 @@ void set_prc_view_data(
 		vd[i]->cpuPercentage = cpuPct;
 		vd[i]->memPercentage = memPct;	
 	}
+}
+
+void adjust_state(ProcessListState *state, ProcessStats *stats)
+{
+	if (state->maxIndex == (s8)stats->count - 1) return;
+
+	state->maxIndex = stats->count - 1;
+	
+	state->selectedIndex = state->selectedIndex > state->maxIndex ?
+		state->maxIndex :
+		state->selectedIndex;
+
+	state->firstIndexDisplayed = state->selectedIndex > state->numOptsVisible - 1 ?
+		state->maxIndex - state->numOptsVisible - 1 :
+		0;
+	state->lastIndexDisplayed = state->firstIndexDisplayed + state->numOptsVisible - 1;
 }

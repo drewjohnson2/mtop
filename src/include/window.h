@@ -69,12 +69,12 @@ typedef struct _stats_view_data
 
 typedef struct _process_list_state
 {
-	u8 selectedIndex;
-	u8 firstIndexDisplayed;
-	u8 lastIndexDisplayed;
-	u8 maxIndex;
-	u8 numOptsVisible;
-	u8 timeoutActive;
+	s8 selectedIndex;
+	s8 firstIndexDisplayed;
+	s8 lastIndexDisplayed;
+	s8 maxIndex;
+	s8 numOptsVisible;
+	s8 timeoutActive;
 	char cmdBuffer;
 	struct timespec timeoutStart;
 } ProcessListState;
@@ -125,5 +125,6 @@ void set_prc_view_data(
 	u64 memTotal
 );
 void read_input(WINDOW *win, ProcessListState *state);
+void adjust_state(ProcessListState *state, ProcessStats *stats);
 
 #endif

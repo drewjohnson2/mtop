@@ -103,11 +103,8 @@ void run_ui(
 			curPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
 			dequeue(prcQueue, &procDataLock, &procQueueCondition);
 
-			listState->maxIndex = curPrcs->count - 1;
-			listState->selectedIndex = 
-				listState->selectedIndex > listState->maxIndex ?
-					listState->maxIndex :
-					listState->selectedIndex;
+			adjust_state(listState, curPrcs);
+
 		}
 
 		Arena scratch = a_new(
