@@ -5,8 +5,8 @@
 
 int main() 
 {
-	atexit(cleanup);
-	run();
-
-	return 0;
+    atexit(cleanup);
+    run();
+    
+    return 0;
 }
