@@ -7,24 +7,24 @@
 #include "thread_safe_queue.h"
 #include "window.h"
 
-#define DISPLAY_SLEEP_TIME 1000 * 200
+#define DISPLAY_SLEEP_TIME 1000 * 200 
 #define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
 #define READ_SLEEP_TIME 1000 * 100 
 
 
-#define SHOULD_MERGE(mutex, cont) \
-	do { \
-		switch (pthread_mutex_trylock(mutex)) \
-		{ \
-			case 0: \
-				pthread_mutex_unlock(mutex); \
-				cont = 0; \
-				break; \
-			case EBUSY: \
-				break; \
-		} \
-	} while(0) \
+#define SHOULD_MERGE(mutex, cont) 		\
+    do { 					\
+	switch (pthread_mutex_trylock(mutex)) 	\
+    	{ 					\
+	    case 0: 				\
+	        pthread_mutex_unlock(mutex); 	\
+	        cont = 0; 			\
+	        break; 				\
+    	    case EBUSY: 			\
+	       break; 				\
+    	} 					\
+    } while(0) 					\
 
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
@@ -50,13 +50,13 @@ void condition_destroy();
 //
 //
 void run_ui(
-	Arena *graphArena,
-	Arena *memGraphArena,
-	Arena *procArena,
-	DisplayItems *di,
-	ThreadSafeQueue *cpuQueue,
-	ThreadSafeQueue *memoryQueue,
-	ThreadSafeQueue *procQueue
+    Arena *graphArena,
+    Arena *memGraphArena,
+    Arena *procArena,
+    DisplayItems *di,
+    ThreadSafeQueue *cpuQueue,
+    ThreadSafeQueue *memoryQueue,
+    ThreadSafeQueue *procQueue
 );
 
 //
@@ -64,11 +64,11 @@ void run_ui(
 //
 //
 void run_io(
-	Arena *cpuArena,
-	Arena *memArena,
-	Arena *procArena,
-	ThreadSafeQueue *cpuQueue,
-	ThreadSafeQueue *memQueue,
-	ThreadSafeQueue *procQueue
+    Arena *cpuArena,
+    Arena *memArena,
+    Arena *procArena,
+    ThreadSafeQueue *cpuQueue,
+    ThreadSafeQueue *memQueue,
+    ThreadSafeQueue *procQueue
 );
 #endif

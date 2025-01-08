@@ -2,6 +2,7 @@
 
 #include "../include/ui_utils.h"
 #include "../include/monitor.h"
+#include "../include/window.h"
 
 typedef enum _sort_order 
 {
@@ -26,4 +27,14 @@ int prc_pid_compare(const void *a, const void *b)
 	const ProcessList *y = *(ProcessList **)b;
 
 	return x->pid - y->pid;
+}
+
+int vd_name_compare_func(const void *a, const void *b)
+{
+    assert(a && b);
+    
+    const ProcessStatsViewData *x = *(ProcessStatsViewData **)a;
+    const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
+    
+    return strcmp(x->command, y->command);
 }
