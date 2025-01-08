@@ -84,8 +84,8 @@ typedef struct _cpu_stats
 		percentage = totalDiff != 0 ? 						\
 			(totalDiff - idleDiff) / (float)totalDiff : 			\
 			0; 								\
-		\
-	} while(0)\
+											\
+	} while(0)									\
 
 #define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) 			\
 	do { 											\

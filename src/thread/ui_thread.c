@@ -15,7 +15,7 @@
 #include "../include/thread_safe_queue.h"
 #include "../include/mt_colors.h"
 
-ProcessStats * _create_stats_copy(Arena *arena);
+static int _vd_name_compare_func(const void *a, const void *b);
 
 void run_ui(
     Arena *graphArena,
@@ -117,8 +117,6 @@ void run_ui(
 	    sizeof(ProcessStatsViewData *) * curPrcs->count,
 	    __alignof(ProcessStatsViewData *)
     	); 
-    
-    	read_input(container->window, listState);
     	
     	set_prc_view_data(
 	    &scratch,
@@ -127,7 +125,16 @@ void run_ui(
 	    prevPrcs,
 	    memStats->memTotal
     	);		
-    
+
+	qsort(
+	    vd,
+	    curPrcs->count,
+	    sizeof(ProcessStatsViewData *),
+	    _vd_name_compare_func
+	);
+
+	read_input(container->window, listState, vd);
+
     	// There was once a two second 
     	// timer check here, if things
     	// get wonky put it back
@@ -149,4 +156,14 @@ void run_ui(
     a_free(&cpuPointArena);
     a_free(&memPointArena);
     a_free(&stateArena);
+}
+
+static int _vd_name_compare_func(const void *a, const void *b)
+{
+    assert(a && b);
+    
+    const ProcessStatsViewData *x = *(ProcessStatsViewData **)a;
+    const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
+    
+    return strcmp(x->command, y->command);
 }

@@ -17,16 +17,16 @@ void import_colors()
     MT_UI_Theme *theme = _alloc_theme(&arena);
 
 #define DEF_COLORS(color, colEnumVal, memberName) \
-    if (sscanf(buffer, #memberName " = [%hu, %hu, %hu]\n", &theme->memberName->red, \
-    	&theme->memberName->green, &theme->memberName->blue) > 0) \
-    { \
-    	TO_NC_COLOR(theme->memberName->red); \
-    	TO_NC_COLOR(theme->memberName->green); \
-    	TO_NC_COLOR(theme->memberName->blue); \
-    	\
-    	init_color(color, theme->memberName->red, \
-    		theme->memberName->green, \
-    		theme->memberName->blue); \
+    if (sscanf(buffer, #memberName " = [%hu, %hu, %hu]\n", &theme->memberName->red, 	\
+    	&theme->memberName->green, &theme->memberName->blue) > 0) 			\
+    { 											\
+    	TO_NC_COLOR(theme->memberName->red); 						\
+    	TO_NC_COLOR(theme->memberName->green); 						\
+    	TO_NC_COLOR(theme->memberName->blue); 						\
+											\
+    	init_color(color, theme->memberName->red, 					\
+    		theme->memberName->green, 						\
+    		theme->memberName->blue); 						\
     }
     
     

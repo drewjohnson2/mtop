@@ -27,13 +27,13 @@ DisplayItems * init_display_items(Arena *arena)
     	__alignof(WindowData)
     );
 
-#define DEFINE_WINDOWS(winName, enumName) \
-    di->windows[enumName] = a_alloc( \
-	arena, \
-    	sizeof(WindowData), \
-    	__alignof(WindowData) \
-    ); \
-    \
+#define DEFINE_WINDOWS(winName, enumName) 	\
+    di->windows[enumName] = a_alloc( 		\
+	arena, 					\
+    	sizeof(WindowData), 			\
+    	__alignof(WindowData) 			\
+    ); 						\
+						\
     assert(di->windows[enumName]);		
 #include "../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
@@ -112,15 +112,15 @@ void init_windows(DisplayItems *di)
     
     nodelay(container->window, TRUE);
 
-#define DEFINE_WINDOWS(winName, enumName) \
-    WindowData *winName##Win = di->windows[enumName]; \
-    \
-    winName##Win->window = subwin(	\
-    	container->window,	\
-    	winName##Win->wHeight,	\
-    	winName##Win->wWidth,	\
-    	winName##Win->windowY,	\
-    	winName##Win->windowX	\
+#define DEFINE_WINDOWS(winName, enumName) 		\
+    WindowData *winName##Win = di->windows[enumName]; 	\
+							\
+    winName##Win->window = subwin(			\
+    	container->window,				\
+    	winName##Win->wHeight,				\
+    	winName##Win->wWidth,				\
+    	winName##Win->windowY,				\
+    	winName##Win->windowX				\
     );
 #include "../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS

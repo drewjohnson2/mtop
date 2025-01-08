@@ -37,6 +37,9 @@ static void _fetch_proc_pid_stat(
     	else break;
     }
     
+    // add something else in here that checks for a system processs
+    
+    // I need this for calculating the process memory percentage
     while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
     {
     	if (sscanf(statusBuffer, "VmRSS:\t%lu kB\n", &vmRss) <= 0) continue;

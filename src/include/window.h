@@ -124,7 +124,7 @@ void set_prc_view_data(
     ProcessStats *prevPrcs,
     u64 memTotal
 );
-void read_input(WINDOW *win, ProcessListState *state);
+void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd);
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 
 #endif
