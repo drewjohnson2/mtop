@@ -8,7 +8,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/thread.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 
 void run_io(
     Arena *cpuArena,

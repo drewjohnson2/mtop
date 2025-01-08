@@ -14,7 +14,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/mt_colors.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 
 void run_ui(
     Arena *graphArena,

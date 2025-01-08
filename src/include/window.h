@@ -84,6 +84,8 @@ typedef struct _process_list_state
     s8 timeoutActive;
     char cmdBuffer;
     struct timespec timeoutStart;
+
+    int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
 //

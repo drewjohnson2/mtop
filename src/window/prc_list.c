@@ -8,7 +8,7 @@
 #include "../include/window.h"
 #include "../include/mt_colors.h"
 #include "../include/monitor.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 #include "../include/thread.h"
 
 void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd)
