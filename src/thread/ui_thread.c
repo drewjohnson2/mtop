@@ -14,8 +14,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/mt_colors.h"
-
-static int _vd_name_compare_func(const void *a, const void *b);
+#include "../include/ui_utils.h"
 
 void run_ui(
     Arena *graphArena,
@@ -130,7 +129,7 @@ void run_ui(
 	    vd,
 	    curPrcs->count,
 	    sizeof(ProcessStatsViewData *),
-	    _vd_name_compare_func
+	    vd_name_compare_func
 	);
 
 	read_input(container->window, listState, vd);
@@ -156,14 +155,4 @@ void run_ui(
     a_free(&cpuPointArena);
     a_free(&memPointArena);
     a_free(&stateArena);
-}
-
-static int _vd_name_compare_func(const void *a, const void *b)
-{
-    assert(a && b);
-    
-    const ProcessStatsViewData *x = *(ProcessStatsViewData **)a;
-    const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
-    
-    return strcmp(x->command, y->command);
 }

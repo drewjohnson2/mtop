@@ -3,5 +3,6 @@
 
 int prc_name_compare(const void *a, const void *b);
 int prc_pid_compare(const void *a, const void *b);
+int vd_name_compare_func(const void *a, const void *b);
 
 #endif

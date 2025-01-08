@@ -16,6 +16,15 @@
 	wrefresh(win); 		\
     } while (0) 		\
 
+#define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
+#define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
+
+#define PRINTFC(win, y, x, fmt, str, pair) 	\
+    do { 					\
+	SET_COLOR(win, pair); 			\
+	mvwprintw(win, y, x, fmt, str); 	\
+	UNSET_COLOR(win, pair); 		\
+    } while (0)
 
 typedef enum _mt_window 
 {
@@ -53,8 +62,6 @@ typedef struct _graph_point
 
 typedef struct _graph_data 
 {
-    u16 graphHeight; // as far as I'm aware 
-    u16 graphWidth; // these values are unused.
     size_t graphPointCount;
     GraphPoint *head;
 } GraphData;
@@ -78,17 +85,6 @@ typedef struct _process_list_state
     char cmdBuffer;
     struct timespec timeoutStart;
 } ProcessListState;
-
-
-#define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
-#define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
-
-#define PRINTFC(win, y, x, fmt, str, pair) 	\
-    do { 					\
-	SET_COLOR(win, pair); 			\
-	mvwprintw(win, y, x, fmt, str); 	\
-	UNSET_COLOR(win, pair); 		\
-    } while (0)
 
 //
 //		window_setup.c
