@@ -96,6 +96,9 @@ DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
 void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
+void print_header(WindowData *wd);
+void print_time(WindowData *wd);
+void print_footer(WindowData *wd);
 
 //
 //		graph.c

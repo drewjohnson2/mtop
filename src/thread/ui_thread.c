@@ -76,9 +76,13 @@ void run_ui(
     
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+
+    print_header(container);
+    print_footer(container);
     
     while (!SHUTDOWN_FLAG)
     {
+	print_time(container);
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
