@@ -163,16 +163,16 @@ void print_footer(WindowData *wd)
 {
     PRINTFC(wd->window, wd->wHeight - 1, 2, "%s", "dd", MT_PAIR_PRC_SEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 4, "%s", " Kill Process", MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", "nn", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 21, "%s", " Sort By Process", MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 39, "%s", "pp", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 41, "%s", " Sort By PID", 
+    PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", "n", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 20, "%s", " Sort By Process", MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 38, "%s", "p", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 39, "%s", " Sort By PID", 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 55, "%s", "cc", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 57, "%s", " Sort By CPU Usage", 
+    PRINTFC(wd->window, wd->wHeight - 1, 53, "%s", "c", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 54, "%s", " Sort By CPU Usage", 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 77, "%s", "mm", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 79, "%s", " Sort By Memory Usage", 
+    PRINTFC(wd->window, wd->wHeight - 1, 74, "%s", "m", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 75, "%s", " Sort By Memory Usage", 
 	    MT_PAIR_PRC_UNSEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
 	"github.com/drewjohnson2/mtop", 

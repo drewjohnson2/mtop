@@ -73,7 +73,8 @@ void run_ui(
     listState->maxIndex = curPrcs->count - 1;
     listState->numOptsVisible = procWin->wHeight - 5;
     listState->lastIndexDisplayed = listState->numOptsVisible - 1;
-    
+    listState->sortFunc = vd_name_compare_func;   
+
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
 
@@ -133,7 +134,7 @@ void run_ui(
 	    vd,
 	    curPrcs->count,
 	    sizeof(ProcessStatsViewData *),
-	    vd_name_compare_func
+	    listState->sortFunc
 	);
 
 	read_input(container->window, listState, vd);
