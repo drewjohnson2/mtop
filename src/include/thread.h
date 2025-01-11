@@ -34,7 +34,7 @@ extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;
 extern pthread_cond_t procQueueCondition;
 
-extern volatile int SHUTDOWN_FLAG;
+extern volatile s8 SHUTDOWN_FLAG;
 
 //
 // 		thread.c

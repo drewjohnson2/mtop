@@ -40,7 +40,7 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
     pthread_mutex_unlock(queueLock);
 }
 
-int dequeue(
+u8 dequeue(
     ThreadSafeQueue *q,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition

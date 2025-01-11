@@ -51,6 +51,7 @@ typedef struct _window_data
 typedef struct _display_items
 {
     size_t windowCount;
+    u8 optionsVisible;
     WindowData **windows;
 } DisplayItems;
 
@@ -84,6 +85,8 @@ typedef struct _process_list_state
     s8 timeoutActive;
     char cmdBuffer;
     struct timespec timeoutStart;
+
+    int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
 //
@@ -94,6 +97,10 @@ DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
 void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
+void print_header(WindowData *wd);
+void print_time(WindowData *wd);
+void print_footer(WindowData *wd);
+void display_options(DisplayItems *di);
 
 //
 //		graph.c
@@ -110,8 +117,7 @@ void print_stats(
     ProcessListState *state,
     WindowData *wd,
     ProcessStatsViewData **vd,
-    int count,
-    Arena *procArena
+    s16 count
 );
 void set_prc_view_data(
     Arena *scratch,
@@ -120,7 +126,12 @@ void set_prc_view_data(
     ProcessStats *prevPrcs,
     u64 memTotal
 );
-void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd);
+void read_input(
+    WINDOW *win,
+    ProcessListState *state,
+    DisplayItems *di,
+    ProcessStatsViewData **vd
+);
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 
 #endif

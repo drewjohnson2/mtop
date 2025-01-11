@@ -8,13 +8,17 @@
 #include "../include/window.h"
 #include "../include/mt_colors.h"
 #include "../include/monitor.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 #include "../include/thread.h"
 
-void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd)
+void read_input(
+    WINDOW *win,
+    ProcessListState *state,
+    DisplayItems *di,
+    ProcessStatsViewData **vd
+)
 {
     char ch = wgetch(win);
-    u8 executeCmd = 0;
     u64 timeElapsedMs;
     struct timespec timeoutCurrent;
     
@@ -63,6 +67,22 @@ void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd)
 	    }
 	    
 	    return;
+	case 'n':
+	    state->sortFunc = vd_name_compare_func;
+	    return;
+	case 'p':
+	    state->sortFunc = vd_pid_compare_func;
+	    return;
+	case 'c':
+	    state->sortFunc = vd_cpu_compare_func;
+	    return;
+	case 'm':
+	    state->sortFunc = vd_mem_compare_func;
+	    return;
+	case 'o':
+	    di->optionsVisible = !di->optionsVisible;
+	    
+	    return;
     	case 'q':
 	    SHUTDOWN_FLAG = 1;
 	    return;
@@ -104,8 +124,7 @@ void print_stats(
     ProcessListState *state,
     WindowData *wd,
     ProcessStatsViewData **vd,
-    int count,
-    Arena *procArena
+    s16 count
 )
 {
     if (vd == NULL) return;

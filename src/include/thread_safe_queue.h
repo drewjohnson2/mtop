@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <arena.h>
 
+#include "mt_type_defs.h"
+
 typedef struct _queue_node
 {
 	void *data;
@@ -22,7 +24,7 @@ void enqueue(
 	pthread_mutex_t *queueLock,
 	pthread_cond_t *condition
 );
-int dequeue(
+u8 dequeue(
 	ThreadSafeQueue *q,
 	pthread_mutex_t *queueLock,
 	pthread_cond_t *condition

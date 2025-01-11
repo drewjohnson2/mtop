@@ -14,7 +14,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/mt_colors.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 
 void run_ui(
     Arena *graphArena,
@@ -33,6 +33,7 @@ void run_ui(
     WindowData *cpuWin = di->windows[CPU_WIN];
     WindowData *memWin = di->windows[MEMORY_WIN];
     WindowData *procWin = di->windows[PRC_WIN];
+    WindowData *optWin = di->windows[OPT_WIN];
     WindowData *container = di->windows[CONTAINER_WIN];
     GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
     Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
@@ -73,12 +74,17 @@ void run_ui(
     listState->maxIndex = curPrcs->count - 1;
     listState->numOptsVisible = procWin->wHeight - 5;
     listState->lastIndexDisplayed = listState->numOptsVisible - 1;
-    
+    listState->sortFunc = vd_name_compare_func;   
+
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+
+    print_header(container);
+    print_footer(container);
     
     while (!SHUTDOWN_FLAG)
     {
+	print_time(container);
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
@@ -129,10 +135,10 @@ void run_ui(
 	    vd,
 	    curPrcs->count,
 	    sizeof(ProcessStatsViewData *),
-	    vd_name_compare_func
+	    listState->sortFunc
 	);
 
-	read_input(container->window, listState, vd);
+	read_input(container->window, listState, di, vd);
 
     	// There was once a two second 
     	// timer check here, if things
@@ -141,13 +147,18 @@ void run_ui(
 	    listState,
 	    procWin,
 	    vd,
-	    curPrcs->count,
-	    prcArena
+	    curPrcs->count
     	);
     
     	a_free(&scratch);
     
     	REFRESH_WIN(container->window);
+
+	if (di->optionsVisible)
+	{
+	    display_options(di);	    
+	    REFRESH_WIN(optWin->window);
+	}
     
     	usleep(DISPLAY_SLEEP_TIME);
     }

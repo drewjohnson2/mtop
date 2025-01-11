@@ -8,7 +8,7 @@
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
 #include "../include/thread.h"
-#include "../include/ui_utils.h"
+#include "../include/sorting.h"
 
 void run_io(
     Arena *cpuArena,
@@ -38,7 +38,7 @@ void run_io(
     {
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
-    	int minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
+    	u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
     
     	if (minimumMet) 
     	{
@@ -54,7 +54,7 @@ void run_io(
     
     	clock_gettime(CLOCK_REALTIME, &current);
     
-    	int totalTimeSec = current.tv_sec - start.tv_sec;
+    	s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if (totalTimeSec > PROC_WAIT_TIME_SEC)
     	{
