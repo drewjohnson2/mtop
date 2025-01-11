@@ -89,6 +89,38 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
+static const char *_text[28] = 
+{
+    "dd",				// 0				
+    "Kill Process",			// 1
+    "github.com/drewjohnson2/mtop",	// 2
+    "j",				// 3
+    "Down",				// 4
+    "k",				// 5
+    "Up",				// 6
+    "o",				// 7
+    "List Sorting Options",		// 8
+    " Sorting Options ",		// 9
+    "n",				// 10
+    "Sort By Process",			// 11
+    "p",				// 12
+    "Sort By PID",			// 13
+    "c",				// 14
+    "Sort By CPU Usage",		// 15
+    "m",				// 16
+    "Sort By Memory Usage",		// 17
+    "o",				// 18
+    "Close This Window",		// 19
+    "mtop",				// 20
+    "CPU Usage",			// 21
+    "Memory Usage",			// 22
+    "Process List",			// 23
+    "Command",				// 24
+    "PID",				// 25
+    "CPU %",				// 26
+    "Memory %"				// 27
+};
+
 //
 //		window_setup.c
 //

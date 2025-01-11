@@ -129,10 +129,10 @@ void print_stats(
 {
     if (vd == NULL) return;
         
-    const char *commandTitle = "Command";
-    const char *pidTitle = "PID";
-    const char *cpuTitle = "CPU %";
-    const char *memTitle = "Memory %";
+    const char *commandTitle = _text[24];
+    const char *pidTitle = _text[25];
+    const char *cpuTitle = _text[26];
+    const char *memTitle = _text[27];
     const u8 dataOffsetY = 4;
     const u16 dataOffsetX = 2;
     const u16 prcTblHeaderY = 2;
