@@ -11,7 +11,12 @@
 #include "../include/sorting.h"
 #include "../include/thread.h"
 
-void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd)
+void read_input(
+    WINDOW *win,
+    ProcessListState *state,
+    DisplayItems *di,
+    ProcessStatsViewData **vd
+)
 {
     char ch = wgetch(win);
     u64 timeElapsedMs;
@@ -73,6 +78,10 @@ void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd)
 	    return;
 	case 'm':
 	    state->sortFunc = vd_mem_compare_func;
+	    return;
+	case 'o':
+	    di->optionsVisible = !di->optionsVisible;
+	    
 	    return;
     	case 'q':
 	    SHUTDOWN_FLAG = 1;

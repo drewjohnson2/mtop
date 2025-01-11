@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <arena.h>
 #include <assert.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -14,7 +15,8 @@ DisplayItems * init_display_items(Arena *arena)
     
     assert(di);
     
-    di->windowCount = 4;
+    di->windowCount = 5;
+    di->optionsVisible = 0;
     
     di->windows = a_alloc(
     	arena,
@@ -61,6 +63,7 @@ void init_window_dimens(DisplayItems *di)
     WindowData *cpuWin = di->windows[CPU_WIN];
     WindowData *memoryWin = di->windows[MEMORY_WIN];
     WindowData *prcWin = di->windows[PRC_WIN];
+    WindowData *optWin = di->windows[OPT_WIN];
     
     container->windowX = 0;
     container->windowY = 0;
@@ -100,6 +103,11 @@ void init_window_dimens(DisplayItems *di)
     prcWin->wHeight = (container->wHeight / 2) - 2; 
     prcWin->windowX = memoryWin->wWidth + prcWin->paddingLeft;
     prcWin->windowY = cpuWin->wHeight + prcWin->paddingTop;
+
+    optWin->wWidth = container->wWidth / 4;
+    optWin->wHeight = container->wHeight / 4;
+    optWin->windowX = (container->wWidth / 2) - (container->wWidth / 8);
+    optWin->windowY = (container->wHeight / 2) - (container->wHeight / 8);
 }
 
 void init_windows(DisplayItems *di) 
@@ -132,7 +140,8 @@ void init_windows(DisplayItems *di)
     	container->window &&
     	cpuWin->window &&
     	memoryWin->window &&
-    	prcWin->window
+    	prcWin->window &&
+	optWin->window
     );
 }
 
@@ -163,18 +172,46 @@ void print_footer(WindowData *wd)
 {
     PRINTFC(wd->window, wd->wHeight - 1, 2, "%s", "dd", MT_PAIR_PRC_SEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 4, "%s", " Kill Process", MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", "n", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 20, "%s", " Sort By Process", MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 38, "%s", "p", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 39, "%s", " Sort By PID", 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 53, "%s", "c", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 54, "%s", " Sort By CPU Usage", 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 74, "%s", "m", MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 75, "%s", " Sort By Memory Usage", 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
+        PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
 	"github.com/drewjohnson2/mtop", 
 	MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", "j", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 21, "%s", "Down", MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 27, "%s", "k", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 29, "%s", "Up", MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 33, "%s", "o", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 35, "%s", "List Sorting Options",
+	MT_PAIR_PRC_UNSEL_TEXT);
+}
+
+void display_options(DisplayItems *di)
+{
+    WindowData *optWin = di->windows[OPT_WIN];
+    const char *windowTitle = " Sorting Options ";
+    const u8 titlePos = (optWin->wWidth / 2) - (strlen(windowTitle) / 2);
+    const u8 ctrlStartX = optWin->wWidth / 4;
+    const u8 infoStartX = ctrlStartX + 2;
+
+    werase(di->windows[OPT_WIN]->window);
+    SET_COLOR(optWin->window, MT_PAIR_BOX);
+    box(optWin->window, 0, 0);
+
+    PRINTFC(optWin->window, 0, titlePos, "%s", windowTitle, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, 3, ctrlStartX, "%s", "n", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 3, infoStartX, "%s", " Sort By Process",
+	    MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, 5, ctrlStartX, "%s", "p", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 5, infoStartX, "%s", " Sort By PID", 
+	    MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, 7, ctrlStartX, "%s", "c", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 7, infoStartX, "%s", " Sort By CPU Usage", 
+	    MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, 9, ctrlStartX, "%s", "m", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 9, infoStartX, "%s", " Sort By Memory Usage", 
+	    MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, 11, ctrlStartX, "%s", "o", MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 11, infoStartX, "%s", " Close This Window", 
+	    MT_PAIR_PRC_UNSEL_TEXT);
+
+
 }

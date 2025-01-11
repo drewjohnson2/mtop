@@ -38,7 +38,7 @@ void run_io(
     {
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
-    	int minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
+    	u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
     
     	if (minimumMet) 
     	{

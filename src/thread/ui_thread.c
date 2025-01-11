@@ -33,6 +33,7 @@ void run_ui(
     WindowData *cpuWin = di->windows[CPU_WIN];
     WindowData *memWin = di->windows[MEMORY_WIN];
     WindowData *procWin = di->windows[PRC_WIN];
+    WindowData *optWin = di->windows[OPT_WIN];
     WindowData *container = di->windows[CONTAINER_WIN];
     GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
     Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
@@ -137,7 +138,7 @@ void run_ui(
 	    listState->sortFunc
 	);
 
-	read_input(container->window, listState, vd);
+	read_input(container->window, listState, di, vd);
 
     	// There was once a two second 
     	// timer check here, if things
@@ -153,6 +154,12 @@ void run_ui(
     	a_free(&scratch);
     
     	REFRESH_WIN(container->window);
+
+	if (di->optionsVisible)
+	{
+	    display_options(di);	    
+	    REFRESH_WIN(optWin->window);
+	}
     
     	usleep(DISPLAY_SLEEP_TIME);
     }

@@ -51,6 +51,7 @@ typedef struct _window_data
 typedef struct _display_items
 {
     size_t windowCount;
+    u8 optionsVisible;
     WindowData **windows;
 } DisplayItems;
 
@@ -99,6 +100,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(WindowData *wd);
 void print_time(WindowData *wd);
 void print_footer(WindowData *wd);
+void display_options(DisplayItems *di);
 
 //
 //		graph.c
@@ -125,7 +127,12 @@ void set_prc_view_data(
     ProcessStats *prevPrcs,
     u64 memTotal
 );
-void read_input(WINDOW *win, ProcessListState *state, ProcessStatsViewData **vd);
+void read_input(
+    WINDOW *win,
+    ProcessListState *state,
+    DisplayItems *di,
+    ProcessStatsViewData **vd
+);
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 
 #endif
