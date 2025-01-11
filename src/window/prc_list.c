@@ -124,8 +124,7 @@ void print_stats(
     ProcessListState *state,
     WindowData *wd,
     ProcessStatsViewData **vd,
-    int count,
-    Arena *procArena
+    s16 count
 )
 {
     if (vd == NULL) return;

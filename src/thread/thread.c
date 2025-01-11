@@ -10,7 +10,7 @@ pthread_cond_t cpuQueueCondition;
 pthread_cond_t memQueueCondition;
 pthread_cond_t procQueueCondition;
 
-volatile int SHUTDOWN_FLAG = 0;
+volatile s8 SHUTDOWN_FLAG = 0;
 
 void mutex_init()
 {

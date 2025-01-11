@@ -85,8 +85,8 @@ typedef struct _cpu_stats
 	    0; 								\
     } while(0)								\
 
-#define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) 			\
-    do { 											\
+#define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) 		\
+    do { 										\
 	u8 cpuCount = sysconf(_SC_NPROCESSORS_ONLN); 					\
 	float elapsedCpuTime = curCpuTime - prevCpuTime; 				\
 	float procCpuTime = (cur->stime + cur->utime) - (prev->stime + prev->utime);	\

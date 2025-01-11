@@ -147,8 +147,7 @@ void run_ui(
 	    listState,
 	    procWin,
 	    vd,
-	    curPrcs->count,
-	    prcArena
+	    curPrcs->count
     	);
     
     	a_free(&scratch);

@@ -5,11 +5,6 @@
 #include "../include/monitor.h"
 #include "../include/window.h"
 
-typedef enum _sort_order 
-{
-    COMMAND
-} SORT_ORDER;
-
 int prc_name_compare(const void *a, const void *b)
 {
     assert(a && b);

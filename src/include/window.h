@@ -117,8 +117,7 @@ void print_stats(
     ProcessListState *state,
     WindowData *wd,
     ProcessStatsViewData **vd,
-    int count,
-    Arena *procArena
+    s16 count
 );
 void set_prc_view_data(
     Arena *scratch,

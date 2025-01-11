@@ -54,7 +54,7 @@ void run_io(
     
     	clock_gettime(CLOCK_REALTIME, &current);
     
-    	int totalTimeSec = current.tv_sec - start.tv_sec;
+    	s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if (totalTimeSec > PROC_WAIT_TIME_SEC)
     	{
