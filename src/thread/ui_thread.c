@@ -75,6 +75,7 @@ void run_ui(
     listState->numOptsVisible = procWin->wHeight - 5;
     listState->lastIndexDisplayed = listState->numOptsVisible - 1;
     listState->sortFunc = vd_name_compare_func;   
+    listState->sortOrder = PRC_NAME;
 
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));

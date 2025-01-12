@@ -188,7 +188,7 @@ void display_options(DisplayItems *di)
 {
     WindowData *optWin = di->windows[OPT_WIN];
     const u8 titlePos = (optWin->wWidth / 2) - (strlen(_text[9]) / 2);
-    const u8 ctrlStartX = optWin->wWidth / 4;
+    const u8 ctrlStartX = optWin->wWidth / 3;
     const u8 infoStartX = ctrlStartX + 2;
 
     werase(di->windows[OPT_WIN]->window);

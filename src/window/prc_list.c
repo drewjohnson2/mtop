@@ -68,16 +68,36 @@ void read_input(
 	    
 	    return;
 	case 'n':
+	    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
+	    else sortDirection = ASC;
+
+	    state->sortOrder = PRC_NAME;
 	    state->sortFunc = vd_name_compare_func;
+
 	    return;
 	case 'p':
+	    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
+	    else sortDirection = ASC;
+
+	    state->sortOrder = PID;
 	    state->sortFunc = vd_pid_compare_func;
+
 	    return;
 	case 'c':
+	    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
+	    else sortDirection = DESC;
+
+	    state->sortOrder = CPU;
 	    state->sortFunc = vd_cpu_compare_func;
+
 	    return;
 	case 'm':
+	    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
+	    else sortDirection = DESC;
+
+	    state->sortOrder = MEM;
 	    state->sortFunc = vd_mem_compare_func;
+
 	    return;
 	case 'o':
 	    di->optionsVisible = !di->optionsVisible;

@@ -5,6 +5,8 @@
 #include "../include/monitor.h"
 #include "../include/window.h"
 
+SortDirection sortDirection;
+
 int prc_name_compare(const void *a, const void *b)
 {
     assert(a && b);
@@ -32,7 +34,11 @@ int vd_name_compare_func(const void *a, const void *b)
     const ProcessStatsViewData *x = *(ProcessStatsViewData **)a;
     const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
     
-    return strcmp(x->command, y->command);
+    int cmp = sortDirection == ASC ?
+	strcmp(x->command, y->command) :
+	strcmp(y->command, x->command);
+
+    return cmp;
 }
 
 int vd_pid_compare_func(const void *a, const void *b)
@@ -42,7 +48,11 @@ int vd_pid_compare_func(const void *a, const void *b)
     const ProcessStatsViewData *x = *(ProcessStatsViewData **)a;
     const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
 
-    return x->pid - y->pid;
+    int cmp = sortDirection == ASC ?
+	x->pid - y->pid :
+	y->pid - x->pid;
+
+    return cmp;
 }
 
 int vd_cpu_compare_func(const void *a, const void *b)
@@ -53,10 +63,12 @@ int vd_cpu_compare_func(const void *a, const void *b)
     const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
 
     float diff = y->cpuPercentage - x->cpuPercentage;
+    s8 descRet = (diff > 0) ? 1 : -1;
+    s8 ascRet = (diff > 0) ? -1 : 1;
 
     if (fabs(diff) < EPSILON) return 0;
 
-    return (diff > 0) ? 1 : -1;
+    return sortDirection == DESC ? descRet : ascRet;
 }
 
 int vd_mem_compare_func(const void *a, const void *b)
@@ -67,8 +79,10 @@ int vd_mem_compare_func(const void *a, const void *b)
     const ProcessStatsViewData *y = *(ProcessStatsViewData **)b;
 
     float diff = y->memPercentage - x->memPercentage;
+    s8 descRet = (diff > 0) ? 1 : -1;
+    s8 ascRet = (diff > 0) ? -1 : 1;
 
     if (fabs(diff) < EPSILON) return 0;
 
-    return (diff > 0) ? 1 : -1;
+    return sortDirection == DESC ? descRet : ascRet;
 }

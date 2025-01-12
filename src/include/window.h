@@ -7,6 +7,7 @@
 
 #include "mt_type_defs.h"
 #include "monitor.h"
+#include "sorting.h"
 
 #define INPUT_TIMEOUT_MS 575
 
@@ -84,6 +85,7 @@ typedef struct _process_list_state
     s8 numOptsVisible;
     s8 timeoutActive;
     char cmdBuffer;
+    SortOrder sortOrder;
     struct timespec timeoutStart;
 
     int (*sortFunc)(const void *a, const void *b);
