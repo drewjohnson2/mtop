@@ -23,9 +23,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
     
     if (posX < 2) posX = 2;
     
-    SET_COLOR(wd->window, MT_PAIR_BOX);
     werase(win);	
-    box(win, 0, 0);
     SET_COLOR(wd->window, MT_PAIR_CPU_GP);
     
     while (current)
@@ -69,6 +67,9 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	posX++;
 	
 	current = current->next;
+
+	SET_COLOR(wd->window, MT_PAIR_BOX);
+	box(win, 0, 0);
     }
 
     // I've created an arena specifically for 
