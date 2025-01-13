@@ -19,6 +19,9 @@ void read_input(
 )
 {
     char ch = wgetch(win);
+
+    flushinp();
+
     u64 timeElapsedMs;
     struct timespec timeoutCurrent;
     
@@ -186,9 +189,9 @@ void print_stats(
     wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
     mvwprintw(win, 
 	windowTitleY, windowTitleX, 
-	" 1st idx = %u, last = %u, selectedIndex = %u, toActive = %u, cmdBuf = %c ",
+	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, cmdBuf = %c ",
 	state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex,
-	state->timeoutActive, state->cmdBuffer);
+	state->maxIndex, state->timeoutActive, state->cmdBuffer);
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);

@@ -68,19 +68,19 @@ void init_window_dimens(DisplayItems *di)
     container->windowX = 0;
     container->windowY = 0;
     
-    cpuWin->paddingTop = 2;
+    cpuWin->paddingTop = 1;
     cpuWin->paddingBottom = 0;
     cpuWin->paddingLeft = 1;
     cpuWin->paddingRight = 1;
     cpuWin->windowTitle = _text[21];
     
-    memoryWin->paddingTop = 2;
+    memoryWin->paddingTop = 1;
     memoryWin->paddingBottom = 0;
     memoryWin->paddingLeft = 1;
     memoryWin->paddingRight = 0;
     memoryWin->windowTitle = _text[22];
     
-    prcWin->paddingTop = 2;
+    prcWin->paddingTop = 1;
     prcWin->paddingBottom = 0;
     prcWin->paddingLeft = 1;
     prcWin->paddingRight = 0;
@@ -94,13 +94,13 @@ void init_window_dimens(DisplayItems *di)
     
     // Memory win
     memoryWin->wWidth = (container->wWidth / 2) - (memoryWin->paddingLeft + memoryWin->paddingRight);
-    memoryWin->wHeight = (container->wHeight / 2) - 2;
+    memoryWin->wHeight = (container->wHeight / 2) - 1;
     memoryWin->windowX = memoryWin->paddingLeft;
     memoryWin->windowY = cpuWin->wHeight + memoryWin->paddingTop;
     
     //Process Win
     prcWin->wWidth = (container->wWidth / 2) - (prcWin->paddingLeft + prcWin->paddingRight);
-    prcWin->wHeight = (container->wHeight / 2) - 2; 
+    prcWin->wHeight = (container->wHeight / 2) - 1; 
     prcWin->windowX = memoryWin->wWidth + prcWin->paddingLeft;
     prcWin->windowY = cpuWin->wHeight + prcWin->paddingTop;
 
@@ -150,9 +150,9 @@ void print_header(WindowData *wd)
     char *user = getlogin();
     
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, 1, 2, "%s", _text[20], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 0, 2, "%s", _text[20], MT_PAIR_PRC_UNSEL_TEXT);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, 1, 7, "for %s", user, MT_PAIR_BOX);
+    PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_BOX);
 }
 
 void print_time(WindowData *wd)
@@ -165,14 +165,14 @@ void print_time(WindowData *wd)
 
     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &tmNow);
 
-    PRINTFC(wd->window, 1, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
+    PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
 }
 
 void print_footer(WindowData *wd)
 {
     PRINTFC(wd->window, wd->wHeight - 1, 2, "%s", _text[0], MT_PAIR_PRC_SEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 4, " %s ", _text[1], MT_PAIR_PRC_UNSEL_TEXT);
-        PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
+    PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
 	_text[2], 
 	MT_PAIR_PRC_UNSEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", _text[3], MT_PAIR_PRC_SEL_TEXT);

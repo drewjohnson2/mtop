@@ -7,7 +7,7 @@
 
 #include "mt_type_defs.h"
 
-#define MAX_PROCS 50 
+#define MAX_PROCS 100 
 
 typedef struct _proc_list
 {

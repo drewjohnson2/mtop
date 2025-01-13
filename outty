@@ -1,0 +1,221 @@
+diff --git a/src/include/monitor.h b/src/include/monitor.h
+index 7ad2f61..8bfc209 100644
+--- a/src/include/monitor.h
++++ b/src/include/monitor.h
+@@ -7,7 +7,7 @@
+ 
+ #include "mt_type_defs.h"
+ 
+-#define MAX_PROCS 50 
++#define MAX_PROCS 100 
+ 
+ typedef struct _proc_list
+ {
+diff --git a/src/include/thread_safe_queue.h b/src/include/thread_safe_queue.h
+index fd2a60b..3e2c15b 100644
+--- a/src/include/thread_safe_queue.h
++++ b/src/include/thread_safe_queue.h
+@@ -8,31 +8,31 @@
+ 
+ typedef struct _queue_node
+ {
+-	void *data;
+-	struct _queue_node *next;
++    void *data;
++    struct _queue_node *next;
+ } QueueNode;
+ 
+ typedef struct _shared_queue
+ {
+-	QueueNode *head, *tail;
+-	size_t size;
++    QueueNode *head, *tail;
++    size_t size;
+ } ThreadSafeQueue;
+ 
+ void enqueue(
+-	ThreadSafeQueue *q,
+-	void *stats,
+-	pthread_mutex_t *queueLock,
+-	pthread_cond_t *condition
++    ThreadSafeQueue *q,
++    void *stats,
++    pthread_mutex_t *queueLock,
++    pthread_cond_t *condition
+ );
+ u8 dequeue(
+-	ThreadSafeQueue *q,
+-	pthread_mutex_t *queueLock,
+-	pthread_cond_t *condition
++    ThreadSafeQueue *q,
++    pthread_mutex_t *queueLock,
++    pthread_cond_t *condition
+ );
+ void * peek(
+-	ThreadSafeQueue *q,
+-	pthread_mutex_t *queueLock,
+-	pthread_cond_t *condition
++    ThreadSafeQueue *q,
++    pthread_mutex_t *queueLock,
++    pthread_cond_t *condition
+ );
+ 
+ #endif
+diff --git a/src/monitor/prc_monitor.c b/src/monitor/prc_monitor.c
+index 6737dab..be225bb 100644
+--- a/src/monitor/prc_monitor.c
++++ b/src/monitor/prc_monitor.c
+@@ -8,10 +8,10 @@
+ #include "../include/monitor.h"
+ 
+ static void _fetch_proc_pid_stat(
+-	Arena *prcArena,
+-	ProcessList **item,
+-	char *statPath,
+-	char *statusPath
++    Arena *prcArena,
++    ProcessList **item,
++    char *statPath,
++    char *statusPath
+ )
+ {
+     char statBuffer[1024];
+diff --git a/src/window/graph.c b/src/window/graph.c
+index b8f1971..c6d3f93 100644
+--- a/src/window/graph.c
++++ b/src/window/graph.c
+@@ -32,14 +32,6 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+     
+ 	s8 pctLabel = (s8)(current->percent * 100);
+ 
+-#ifdef DEBUG
+-	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
+-	    MT_PAIR_CPU_HEADER);
+-	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
+-	    MT_PAIR_CPU_HEADER);
+-#else 
+-	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
+-#endif
+ 	s16 lineHeight = (wd->wHeight - 3) * current->percent;
+ 		
+ 	lineHeight = lineHeight == 0 ? 1 : lineHeight;
+@@ -65,11 +57,20 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+ 	
+ 	posY = wd->wHeight - 2;
+ 	posX++;
+-	
+-	current = current->next;
+ 
+-	SET_COLOR(wd->window, MT_PAIR_BOX);
++SET_COLOR(wd->window, MT_PAIR_BOX);
+ 	box(win, 0, 0);
++
++#ifdef DEBUG
++	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
++	    MT_PAIR_CPU_HEADER);
++	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
++	    MT_PAIR_CPU_HEADER);
++#else 
++	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
++#endif
++	
++	current = current->next;
+     }
+ 
+     // I've created an arena specifically for 
+diff --git a/src/window/prc_list.c b/src/window/prc_list.c
+index 1a8562c..e514f75 100644
+--- a/src/window/prc_list.c
++++ b/src/window/prc_list.c
+@@ -19,6 +19,7 @@ void read_input(
+ )
+ {
+     char ch = wgetch(win);
++    flushinp();
+     u64 timeElapsedMs;
+     struct timespec timeoutCurrent;
+     
+@@ -186,9 +187,9 @@ void print_stats(
+     wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
+     mvwprintw(win, 
+ 	windowTitleY, windowTitleX, 
+-	" 1st idx = %u, last = %u, selectedIndex = %u, toActive = %u, cmdBuf = %c ",
++	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, cmdBuf = %c ",
+ 	state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex,
+-	state->timeoutActive, state->cmdBuffer);
++	state->maxIndex, state->timeoutActive, state->cmdBuffer);
+     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
+ #else
+     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
+diff --git a/src/window/window_setup.c b/src/window/window_setup.c
+index 2d82fa6..28b567d 100644
+--- a/src/window/window_setup.c
++++ b/src/window/window_setup.c
+@@ -68,19 +68,19 @@ void init_window_dimens(DisplayItems *di)
+     container->windowX = 0;
+     container->windowY = 0;
+     
+-    cpuWin->paddingTop = 2;
++    cpuWin->paddingTop = 1;
+     cpuWin->paddingBottom = 0;
+     cpuWin->paddingLeft = 1;
+     cpuWin->paddingRight = 1;
+     cpuWin->windowTitle = _text[21];
+     
+-    memoryWin->paddingTop = 2;
++    memoryWin->paddingTop = 1;
+     memoryWin->paddingBottom = 0;
+     memoryWin->paddingLeft = 1;
+     memoryWin->paddingRight = 0;
+     memoryWin->windowTitle = _text[22];
+     
+-    prcWin->paddingTop = 2;
++    prcWin->paddingTop = 1;
+     prcWin->paddingBottom = 0;
+     prcWin->paddingLeft = 1;
+     prcWin->paddingRight = 0;
+@@ -94,13 +94,13 @@ void init_window_dimens(DisplayItems *di)
+     
+     // Memory win
+     memoryWin->wWidth = (container->wWidth / 2) - (memoryWin->paddingLeft + memoryWin->paddingRight);
+-    memoryWin->wHeight = (container->wHeight / 2) - 2;
++    memoryWin->wHeight = (container->wHeight / 2) - 1;
+     memoryWin->windowX = memoryWin->paddingLeft;
+     memoryWin->windowY = cpuWin->wHeight + memoryWin->paddingTop;
+     
+     //Process Win
+     prcWin->wWidth = (container->wWidth / 2) - (prcWin->paddingLeft + prcWin->paddingRight);
+-    prcWin->wHeight = (container->wHeight / 2) - 2; 
++    prcWin->wHeight = (container->wHeight / 2) - 1; 
+     prcWin->windowX = memoryWin->wWidth + prcWin->paddingLeft;
+     prcWin->windowY = cpuWin->wHeight + prcWin->paddingTop;
+ 
+@@ -150,9 +150,9 @@ void print_header(WindowData *wd)
+     char *user = getlogin();
+     
+     wattron(wd->window, A_BOLD);
+-    PRINTFC(wd->window, 1, 2, "%s", _text[20], MT_PAIR_PRC_UNSEL_TEXT);
++    PRINTFC(wd->window, 0, 2, "%s", _text[20], MT_PAIR_PRC_UNSEL_TEXT);
+     wattroff(wd->window, A_BOLD);
+-    PRINTFC(wd->window, 1, 7, "for %s", user, MT_PAIR_BOX);
++    PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_BOX);
+ }
+ 
+ void print_time(WindowData *wd)
+@@ -165,14 +165,14 @@ void print_time(WindowData *wd)
+ 
+     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &tmNow);
+ 
+-    PRINTFC(wd->window, 1, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
++    PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
+ }
+ 
+ void print_footer(WindowData *wd)
+ {
+     PRINTFC(wd->window, wd->wHeight - 1, 2, "%s", _text[0], MT_PAIR_PRC_SEL_TEXT);
+     PRINTFC(wd->window, wd->wHeight - 1, 4, " %s ", _text[1], MT_PAIR_PRC_UNSEL_TEXT);
+-        PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
++    PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
+ 	_text[2], 
+ 	MT_PAIR_PRC_UNSEL_TEXT);
+     PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", _text[3], MT_PAIR_PRC_SEL_TEXT);

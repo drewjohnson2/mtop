@@ -8,10 +8,10 @@
 #include "../include/monitor.h"
 
 static void _fetch_proc_pid_stat(
-	Arena *prcArena,
-	ProcessList **item,
-	char *statPath,
-	char *statusPath
+    Arena *prcArena,
+    ProcessList **item,
+    char *statPath,
+    char *statusPath
 )
 {
     char statBuffer[1024];

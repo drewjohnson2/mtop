@@ -32,14 +32,6 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
     
 	s8 pctLabel = (s8)(current->percent * 100);
 
-#ifdef DEBUG
-	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
-	    MT_PAIR_CPU_HEADER);
-	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
-	    MT_PAIR_CPU_HEADER);
-#else 
-	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
-#endif
 	s16 lineHeight = (wd->wHeight - 3) * current->percent;
 		
 	lineHeight = lineHeight == 0 ? 1 : lineHeight;
@@ -65,11 +57,20 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 	
 	posY = wd->wHeight - 2;
 	posX++;
-	
-	current = current->next;
 
 	SET_COLOR(wd->window, MT_PAIR_BOX);
 	box(win, 0, 0);
+
+#ifdef DEBUG
+	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
+	    MT_PAIR_CPU_HEADER);
+	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
+	    MT_PAIR_CPU_HEADER);
+#else 
+	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
+#endif
+	
+	current = current->next;
     }
 
     // I've created an arena specifically for 
