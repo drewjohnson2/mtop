@@ -11,6 +11,67 @@
 #include "../include/sorting.h"
 #include "../include/thread.h"
 
+typedef enum _nav_direction
+{
+    UP,
+    DOWN,
+    JUMP_DOWN,
+    JUMP_UP
+} NavDirection;
+
+void _adjust_menu_index(NavDirection dir, ProcessListState *state)
+{
+    if (dir == UP)
+    {
+	state->selectedIndex = state->selectedIndex > 0 ?
+	    state->selectedIndex - 1 :
+	    state->selectedIndex;
+	    
+	if (state->selectedIndex >= 0 &&
+    		state->selectedIndex < state->firstIndexDisplayed)
+    	{
+	   state->firstIndexDisplayed--;
+	   state->lastIndexDisplayed--;
+    	}
+    }
+    else if (dir == DOWN)
+    {
+	state->selectedIndex = state->selectedIndex < state->maxIndex ?
+	    state->selectedIndex + 1 : 
+	    state->selectedIndex;
+
+	if (state->selectedIndex > state->lastIndexDisplayed &&
+	    state->selectedIndex <= state->maxIndex)
+	{
+	    state->firstIndexDisplayed++;
+	    state->lastIndexDisplayed++;
+	}
+
+    }
+    else if (dir == JUMP_DOWN)
+    {
+	s16 jumpValue = (state->pageSize  / 2);
+	s16 diffValue = state->maxIndex - (state->selectedIndex + jumpValue);
+
+	if (diffValue < 0) return;
+
+	// This doesn't quite work.
+	// Need to address the case where state->selectedIndex
+	// is equal to the max index.
+	state->selectedIndex = diffValue >= 0 && diffValue < jumpValue ?
+	    state->selectedIndex + diffValue :
+	    state->selectedIndex + jumpValue;
+
+	if (state->selectedIndex > state->pageSize)
+	{
+	    s16 begEndAdj = diffValue < jumpValue ? diffValue : jumpValue;
+
+	    state->firstIndexDisplayed += begEndAdj;
+	    state->lastIndexDisplayed += begEndAdj;
+	}
+    }
+}
+
 void read_input(
     WINDOW *win,
     ProcessListState *state,
@@ -45,30 +106,16 @@ void read_input(
     switch (ch)
     {
 	case 'j':
-	    state->selectedIndex = state->selectedIndex < state->maxIndex ?
-	    	state->selectedIndex + 1 : 
-	    	state->selectedIndex;
-	    
-	    if (state->selectedIndex > state->lastIndexDisplayed &&
-	    	state->selectedIndex <= state->maxIndex)
-	    {
-	    	state->firstIndexDisplayed++;
-	    	state->lastIndexDisplayed++;
-	    }
-    
+	    _adjust_menu_index(DOWN, state);
+
 	    return;
     	case 'k':
-	    state->selectedIndex = state->selectedIndex > 0 ?
-		state->selectedIndex - 1 :
-	    	state->selectedIndex;
-	    
-	    if (state->selectedIndex >= 0 &&
-	    	state->selectedIndex < state->firstIndexDisplayed)
-	    {
-	    	state->firstIndexDisplayed--;
-	    	state->lastIndexDisplayed--;
-	    }
-	    
+	    _adjust_menu_index(UP, state);    
+
+	    return;
+	case 4: // CTRL + D
+	    _adjust_menu_index(JUMP_DOWN, state);
+	
 	    return;
 	case 'n':
 	    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
@@ -308,8 +355,8 @@ void adjust_state(ProcessListState *state, ProcessStats *stats)
 	state->maxIndex :
 	state->selectedIndex;
     
-    state->firstIndexDisplayed = state->selectedIndex > state->numOptsVisible - 1 ?
-	state->maxIndex - state->numOptsVisible - 1 :
+    state->firstIndexDisplayed = state->selectedIndex > state->pageSize - 1 ?
+	state->maxIndex - state->pageSize - 1 :
 	0;
-    state->lastIndexDisplayed = state->firstIndexDisplayed + state->numOptsVisible - 1;
+    state->lastIndexDisplayed = state->firstIndexDisplayed + state->pageSize - 1;
 }

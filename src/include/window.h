@@ -82,7 +82,7 @@ typedef struct _process_list_state
     s8 firstIndexDisplayed;
     s8 lastIndexDisplayed;
     s8 maxIndex;
-    s8 numOptsVisible;
+    s8 pageSize;
     s8 timeoutActive;
     char cmdBuffer;
     SortOrder sortOrder;

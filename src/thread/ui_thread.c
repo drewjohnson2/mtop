@@ -70,10 +70,10 @@ void run_ui(
     listState->timeoutActive = 0;
     listState->selectedIndex = 0;
     listState->firstIndexDisplayed = 0;
-    listState->lastIndexDisplayed = listState->numOptsVisible;
+    listState->lastIndexDisplayed = listState->pageSize;
     listState->maxIndex = curPrcs->count - 1;
-    listState->numOptsVisible = procWin->wHeight - 5;
-    listState->lastIndexDisplayed = listState->numOptsVisible - 1;
+    listState->pageSize = procWin->wHeight - 5;
+    listState->lastIndexDisplayed = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
 
@@ -141,9 +141,6 @@ void run_ui(
 
 	read_input(container->window, listState, di, vd);
 
-    	// There was once a two second 
-    	// timer check here, if things
-    	// get wonky put it back
     	print_stats(
 	    listState,
 	    procWin,
@@ -153,12 +150,21 @@ void run_ui(
     
     	a_free(&scratch);
     
-    	REFRESH_WIN(container->window);
-
+	// Normally I'd remove the else case and put the
+	// REFRESH_WIN(container->window) above the if statement.
+	// For whatever reason that setup causes bad flickering
+	// on some machines. I guess on faster machines display_options
+	// takes enough time between the calls to REFRESH_WIN for ncurses
+	// to repaint the screen.
 	if (di->optionsVisible)
 	{
 	    display_options(di);	    
+	    REFRESH_WIN(container->window);
 	    REFRESH_WIN(optWin->window);
+	}
+	else 
+	{
+	    REFRESH_WIN(container->window);
 	}
     
     	usleep(DISPLAY_SLEEP_TIME);

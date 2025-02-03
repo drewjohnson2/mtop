@@ -211,6 +211,4 @@ void display_options(DisplayItems *di)
     PRINTFC(optWin->window, 12, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
     PRINTFC(optWin->window, 12, infoStartX, "%s ", _text[19], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-
-
 }
