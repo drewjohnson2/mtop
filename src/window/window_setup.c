@@ -179,9 +179,12 @@ void print_footer(WindowData *wd)
     PRINTFC(wd->window, wd->wHeight - 1, 21, "%s", _text[4], MT_PAIR_PRC_UNSEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 27, "%s", _text[5], MT_PAIR_PRC_SEL_TEXT);
     PRINTFC(wd->window, wd->wHeight - 1, 29, "%s", _text[6], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 33, "%s", _text[7], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 35, "%s", _text[8],
-	MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 33, "%s", _text[29], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 35, "%s", _text[28], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 46, "%s", _text[31], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 48, "%s", _text[30], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 60, "%s", _text[7], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, 62, "%s", _text[8], MT_PAIR_PRC_UNSEL_TEXT);
 }
 
 void display_options(DisplayItems *di)

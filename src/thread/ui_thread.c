@@ -69,11 +69,13 @@ void run_ui(
     listState->cmdBuffer = '\0';
     listState->timeoutActive = 0;
     listState->selectedIndex = 0;
-    listState->firstIndexDisplayed = 0;
-    listState->lastIndexDisplayed = listState->pageSize;
+    listState->pageStartIdx = 0;
+    listState->pageEndIdx = listState->pageSize;
     listState->maxIndex = curPrcs->count - 1;
     listState->pageSize = procWin->wHeight - 5;
-    listState->lastIndexDisplayed = listState->pageSize - 1;
+    listState->totalPages = 
+	(listState->maxIndex + listState->pageSize - 1) / listState->pageSize;
+    listState->pageEndIdx = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
 

@@ -79,10 +79,12 @@ typedef struct _stats_view_data
 typedef struct _process_list_state
 {
     s8 selectedIndex;
-    s8 firstIndexDisplayed;
-    s8 lastIndexDisplayed;
+    s8 pageStartIdx;
+    s8 pageEndIdx;
     s8 maxIndex;
-    s8 pageSize;
+    u8 totalPages;
+    u8 activePage;
+    u8 pageSize;
     s8 timeoutActive;
     char cmdBuffer;
     SortOrder sortOrder;
@@ -91,7 +93,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[28] = 
+static const char *_text[32] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -120,7 +122,11 @@ static const char *_text[28] =
     "Command",				// 24
     "PID",				// 25
     "CPU %",				// 26
-    "Memory %"				// 27
+    "Memory %",				// 27
+    "Page Left",			// 28
+    "h",				// 29
+    "Page Right",			// 30
+    "l"					// 31
 };
 
 //
@@ -167,5 +173,6 @@ void read_input(
     ProcessStatsViewData **vd
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
+void set_start_end_idx(ProcessListState *state);
 
 #endif
