@@ -191,27 +191,34 @@ void display_options(DisplayItems *di)
 {
     WindowData *optWin = di->windows[OPT_WIN];
     const u8 titlePos = (optWin->wWidth / 2) - (strlen(_text[9]) / 2);
-    const u8 ctrlStartX = optWin->wWidth / 3;
-    const u8 infoStartX = ctrlStartX + 2;
+    const u8 ctrlStartX = optWin->wWidth / 4;
+    const u8 ctrlBtnStartX = ctrlStartX - 2;
+    const u8 infoStartX = ctrlStartX + 8;
 
     werase(di->windows[OPT_WIN]->window);
     SET_COLOR(optWin->window, MT_PAIR_BOX);
     box(optWin->window, 0, 0);
 
     PRINTFC(optWin->window, 0, titlePos, "%s", _text[9], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 4, ctrlStartX, "%s", _text[10], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 4, infoStartX, "%s ", _text[11],
+    PRINTFC(optWin->window, 2, ctrlBtnStartX, "%s", _text[32], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 2, infoStartX, "%s", _text[33], MT_PAIR_PRC_UNSEL_TEXT);
+
+    PRINTFC(optWin->window, 4, ctrlBtnStartX, "%s", _text[34], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 4, infoStartX, "%s", _text[35], MT_PAIR_PRC_UNSEL_TEXT);
+
+    PRINTFC(optWin->window, 6, ctrlStartX, "%s", _text[10], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 6, infoStartX, "%s ", _text[11],
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 6, ctrlStartX, "%s", _text[12], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 6, infoStartX, "%s ", _text[13], 
+    PRINTFC(optWin->window, 8, ctrlStartX, "%s", _text[12], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 8, infoStartX, "%s ", _text[13], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 8, ctrlStartX, "%s", _text[14], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 8, infoStartX, "%s ", _text[15], 
+    PRINTFC(optWin->window, 10, ctrlStartX, "%s", _text[14], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 10, infoStartX, "%s ", _text[15], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 10, ctrlStartX, "%s", _text[16], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 10, infoStartX, "%s ", _text[17], 
+    PRINTFC(optWin->window, 12, ctrlStartX, "%s", _text[16], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 12, infoStartX, "%s ", _text[17], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 12, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 12, infoStartX, "%s ", _text[19], 
+    PRINTFC(optWin->window, 14, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, 14, infoStartX, "%s ", _text[19], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
 }

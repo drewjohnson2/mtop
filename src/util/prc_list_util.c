@@ -21,7 +21,7 @@ void set_start_end_idx(ProcessListState *state)
 {
     s8 isLastPage = state->activePage == state->totalPages - 1;
     size_t lastPageEnd = state->maxIndex;
-    size_t pageEndIdx = (state->activePage * state->pageSize) + state->pageSize;
+    size_t pageEndIdx = (state->activePage * state->pageSize - 1) + state->pageSize;
 
     state->pageStartIdx = state->pageSize * state->activePage;
     state->pageEndIdx = isLastPage ?
@@ -107,6 +107,10 @@ void read_input(
 	    _adjust_menu_index(JUMP_DOWN, state);
 	
 	    return;
+	case 21: // CTRL + U
+	    _adjust_menu_index(JUMP_UP, state);
+
+	    return;
 	case 'n':
 	    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
 	    else sortDirection = ASC;
@@ -183,7 +187,6 @@ void read_input(
 void _adjust_menu_index(NavDirection dir, ProcessListState *state)
 {
     s16 jumpValue;
-    s16 diffValue;
 
     switch (dir) 
     {
@@ -220,27 +223,22 @@ void _adjust_menu_index(NavDirection dir, ProcessListState *state)
 
 	    break;
 	case JUMP_DOWN:
-    	    jumpValue = (state->pageSize  / 2);
-    	    diffValue = state->maxIndex - (state->selectedIndex + jumpValue);
+    	    jumpValue = (state->pageSize / 2);
 
-    	    if (diffValue < 0) return;
-
-    	    // This doesn't quite work.
-    	    // Need to address the case where state->selectedIndex
-    	    // is equal to the max index.
-    	    state->selectedIndex = diffValue >= 0 && diffValue < jumpValue ?
-    	        state->selectedIndex + diffValue :
-    	        state->selectedIndex + jumpValue;
-
-    	    if (state->selectedIndex > state->pageSize)
-    	    {
-    	        s16 begEndAdj = diffValue < jumpValue ? diffValue : jumpValue;
-
-    	        state->pageStartIdx += begEndAdj;
-    	        state->pageEndIdx += begEndAdj;
-    	    }
+    	    state->selectedIndex = (state->selectedIndex + jumpValue) <= state->pageEndIdx ?
+    	        state->selectedIndex + jumpValue :
+    	        state->pageEndIdx;
 
 	    break;
+	case JUMP_UP:
+	    jumpValue = (state->pageSize / 2);
+
+	    state->selectedIndex = (state->selectedIndex - jumpValue) >= state->pageStartIdx ?
+		state->selectedIndex - jumpValue :
+		state->pageStartIdx;
+
+	    break;
+	
 	default:
 	    return;
     }

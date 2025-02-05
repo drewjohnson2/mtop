@@ -93,7 +93,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[32] = 
+static const char *_text[36] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -103,8 +103,8 @@ static const char *_text[32] =
     "k",				// 5
     "Up",				// 6
     "o",				// 7
-    "List Sorting Options",		// 8
-    " Sorting Options ",		// 9
+    "List Additional Options",		// 8
+    " Additional Options ",		// 9
     "n",				// 10
     "Sort By Process",			// 11
     "p",				// 12
@@ -114,7 +114,7 @@ static const char *_text[32] =
     "m",				// 16
     "Sort By Memory Usage",		// 17
     "o",				// 18
-    "Close This Window",		// 19
+    "Close Additional Options",		// 19
     "mtop",				// 20
     "CPU Usage",			// 21
     "Memory Usage",			// 22
@@ -126,7 +126,11 @@ static const char *_text[32] =
     "Page Left",			// 28
     "h",				// 29
     "Page Right",			// 30
-    "l"					// 31
+    "l",				// 31
+    "<C-u>",				// 32
+    "Jump Up",				// 33
+    "<C-d>",				// 34
+    "Jump Down"				// 35
 };
 
 //
