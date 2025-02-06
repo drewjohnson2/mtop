@@ -15,7 +15,6 @@ typedef struct _ui_thread_args
 {
     Arena *graphArena;
     Arena *memGraphArena;
-    Arena *prcArena;
     DisplayItems *di;
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *memQueue;
@@ -35,8 +34,8 @@ typedef struct _io_thread_args
 Arena windowArena;
 Arena cpuArena;
 Arena memArena; 
-Arena cpuGraphArena;     // At some point come back and see
-Arena memoryGraphArena;  // if I can just use one graph arean
+Arena cpuGraphArena;     
+Arena memoryGraphArena;  
 Arena prcArena;
 Arena queueArena;
 
@@ -46,7 +45,6 @@ ThreadSafeQueue *prcQueue;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
-static void _get_input(DisplayItems *di);
 
 void run() 
 {
@@ -56,12 +54,12 @@ void run()
     windowArena = a_new(2048);
     cpuArena = a_new(sizeof(CpuStats) + 8);
     memArena = a_new(2048);
-    cpuGraphArena = a_new(2048);     // At some point come back and see
-    memoryGraphArena = a_new(2048);  // if I can just use one graph arean
+    cpuGraphArena = a_new(2048);     
+    memoryGraphArena = a_new(2048);  
     prcArena = a_new(
-	(MAX_PROCS * sizeof(ProcessList *)) +
-    	sizeof(ProcessStats) +
-    	(MAX_PROCS * sizeof(ProcessList))
+	(MAX_PROCS * sizeof(ProcessList *)) + 	// I need to do some closer
+    	sizeof(ProcessStats) +			// looking and see if this is retarded
+    	(MAX_PROCS * sizeof(ProcessList))	// or not
     );
     queueArena = a_new(2048);
     
@@ -93,7 +91,6 @@ void run()
     {
     	.graphArena = &cpuGraphArena,
     	.di = di,
-    	.prcArena = &prcArena,
     	.cpuQueue = cpuQueue,
     	.memGraphArena = &memoryGraphArena,
     	.memQueue = memoryQueue,
@@ -113,16 +110,13 @@ void run()
     pthread_t ioThread;
     pthread_t ui_thread;
     
+    // setup
     mutex_init();
     condition_init();
-    
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
     pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
-    
-    // wait for input to quit. Replace
-    // with controls for process list later.
-    //_get_input(di);
-    
+
+    // tear down
     pthread_join(ioThread, NULL);
     pthread_join(ui_thread, NULL);
     mutex_destroy();
@@ -156,6 +150,17 @@ void cleanup()
     	free(tmp);
     }
     
+    head = prcQueue->head;
+
+    while (head)
+    {
+	tmp = head;
+    	head = head->next;
+    
+    	free(tmp);
+
+    }
+    
     a_free(&windowArena);
     a_free(&cpuArena);
     a_free(&memArena);
@@ -165,24 +170,6 @@ void cleanup()
     a_free(&queueArena);
 }
 
-void _get_input(DisplayItems *di)
-{
-    char ch;
-    WINDOW *win = di->windows[CONTAINER_WIN]->window;
-    
-    while ((ch = wgetch(win)))
-    {
-	switch (ch)
-    	{
-	    case 'q':
-		SHUTDOWN_FLAG = 1;
-    		return;
-	    default:
-		continue;
-    	}
-    }
-}
-
 static void * _ui_thread_run(void *arg)
 {
     UIThreadArgs *args = (UIThreadArgs *)arg;
@@ -190,7 +177,6 @@ static void * _ui_thread_run(void *arg)
     run_ui(
 	args->graphArena,
     	args->memGraphArena,
-    	args->prcArena,
     	args->di,
     	args->cpuQueue,
     	args->memQueue,

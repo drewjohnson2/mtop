@@ -52,7 +52,6 @@ void condition_destroy();
 void run_ui(
     Arena *graphArena,
     Arena *memGraphArena,
-    Arena *procArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,

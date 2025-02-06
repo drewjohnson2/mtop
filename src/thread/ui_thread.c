@@ -19,7 +19,6 @@
 void run_ui(
     Arena *graphArena,
     Arena *memGraphArena,
-    Arena *prcArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,

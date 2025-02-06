@@ -15,7 +15,7 @@ typedef enum _nav_direction
 } NavDirection;
 
 
-void _adjust_menu_index(NavDirection dir, ProcessListState *state);
+static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 
 void set_start_end_idx(ProcessListState *state) 
 {
@@ -184,7 +184,7 @@ void read_input(
     }
 }
 
-void _adjust_menu_index(NavDirection dir, ProcessListState *state)
+static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
 {
     s16 jumpValue;
 
