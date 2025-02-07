@@ -51,9 +51,9 @@ void run()
     FILE *tty = fopen("/dev/tty", "r+");
     SCREEN *screen = newterm(NULL, tty, tty);
     
-    windowArena = a_new(2048);
+    windowArena = a_new(256);
     cpuArena = a_new(sizeof(CpuStats) + 8);
-    memArena = a_new(2048);
+    memArena = a_new(sizeof(MemoryStats) + 8);
     cpuGraphArena = a_new(2048);     
     memoryGraphArena = a_new(2048);  
     prcArena = a_new(

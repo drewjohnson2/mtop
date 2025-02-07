@@ -44,7 +44,14 @@ void run_io(
     	{
 	    // I think this head free is causing an intermittent segfault. 
 	    // only happned once though.
-	    if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE) r_free_head(cpuArena);
+	    // UPDATE
+	    // This free is fine as far as I can tell. Maybe if I run it long enough it'll fail.
+	    // But adding this same check and freeing the head of the memory arena causes a crash 
+	    // usually in five minutes. I need a way to clean up that arena.
+	    // TODO: clean up the memory arena
+	    // NOTE: this could be tough
+	    if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE && cpuArena->regionsAllocated > 1) r_free_head(cpuArena);
+
 	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
 	    MemoryStats *memStats = fetch_memory_stats(memArena);
 	    
