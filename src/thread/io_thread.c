@@ -38,20 +38,11 @@ void run_io(
     {
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
-    	u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
+    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || 
+	    memQueue->size < MIN_QUEUE_SIZE;
     
     	if (minimumMet) 
     	{
-	    // I think this head free is causing an intermittent segfault. 
-	    // only happned once though.
-	    // UPDATE
-	    // This free is fine as far as I can tell. Maybe if I run it long enough it'll fail.
-	    // But adding this same check and freeing the head of the memory arena causes a crash 
-	    // usually in five minutes. I need a way to clean up that arena.
-	    // TODO: clean up the memory arena
-	    // NOTE: this could be tough
-	    if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE && cpuArena->regionsAllocated > 1) r_free_head(cpuArena);
-
 	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
 	    MemoryStats *memStats = fetch_memory_stats(memArena);
 	    
@@ -61,7 +52,7 @@ void run_io(
     
     	clock_gettime(CLOCK_REALTIME, &current);
     
-    	s32 totalTimeSec = current.tv_sec - start.tv_sec;
+    	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if (totalTimeSec > PROC_WAIT_TIME_SEC)
     	{

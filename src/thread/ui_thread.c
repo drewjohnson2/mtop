@@ -17,7 +17,7 @@
 #include "../include/sorting.h"
 
 void run_ui(
-    Arena *graphArena,
+    Arena *cpuGraphArena,
     Arena *memGraphArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
@@ -34,8 +34,7 @@ void run_ui(
     WindowData *procWin = di->windows[PRC_WIN];
     WindowData *optWin = di->windows[OPT_WIN];
     WindowData *container = di->windows[CONTAINER_WIN];
-    GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
-    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
+    GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
     
     ProcessStats *prevPrcs = NULL;
     ProcessStats *curPrcs = NULL;
@@ -46,6 +45,7 @@ void run_ui(
     	__alignof(GraphData)
     );
     
+    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
     Arena cpuPointArena = a_new(sizeof(GraphPoint));
     Arena memPointArena = a_new(sizeof(GraphPoint));
     

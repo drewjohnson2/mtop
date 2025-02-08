@@ -7,6 +7,8 @@
 
 #include "../include/monitor.h"
 
+#define MAX_PROC_REGIONS_ALLOCD 3
+
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
     ProcessList **item,
@@ -92,7 +94,7 @@ ProcessStats * get_processes(
     
     if ((directory = opendir("/proc")) == NULL) exit(1);
     
-    if (procArena->regionsAllocated > 3)
+    if (procArena->regionsAllocated > MAX_PROC_REGIONS_ALLOCD)
     {
 	r_free_head(procArena);
     }

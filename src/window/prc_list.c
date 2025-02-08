@@ -87,11 +87,11 @@ void print_stats(
     
     for (u8 i = 0; i < wd->wHeight - winDataOffset && i < count; i++)
     {
-    	u16 idx = i + state->pageStartIdx;
+    	const u16 idx = i + state->pageStartIdx;
 
 	if (idx > state->maxIndex) break;
 
-    	u8 isSelectedIndex = 
+    	const u8 isSelectedIndex = 
     		(state->selectedIndex - state->pageStartIdx) + dataOffsetY == posY;
     
     	MT_Color_Pairs pair = isSelectedIndex ?

@@ -1,5 +1,5 @@
-#ifndef UI_UTILS_
-#define UI_UTILS_
+#ifndef SORTING_H
+#define SORTING_H
 
 #define EPSILON 1e-9
 

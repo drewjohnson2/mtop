@@ -18,6 +18,7 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
     
     WINDOW *win = wd->window;
     GraphPoint *current = gd->head;
+    GraphPoint *last = current;
     s16 posX = wd->wWidth - gd->graphPointCount - 2;
     s16 posY = wd->wHeight - 2;
     
@@ -30,29 +31,23 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
     {
 	if (posX > wd->wWidth - 3) break;
     
-	s8 pctLabel = (s8)(current->percent * 100);
-
+	// what happens if I pull pctLabel outside of the loop?
 	s16 lineHeight = (wd->wHeight - 3) * current->percent;
-		
+	const char dataChar = current->percent * 100 == 0 ? '.' : '|';
+			
 	lineHeight = lineHeight == 0 ? 1 : lineHeight;
-
-	char dataChar = current->percent * 100 == 0 ? '.' : '|';
-	s16 pctPadLeft = pctLabel < 10 ?
-		wd->wWidth - 5 :
-		wd->wWidth - 6;
-	
-	PRINTFC(win, 1, pctPadLeft, " %d%% ", pctLabel, MT_PAIR_CPU_HEADER);
+		
 	
 	while (lineHeight--)
 	{
-		if (posY <= 0) break;
+	    if (posY <= 0) break;
 		
-		// Extended ascii not playing nice
-		// const wchar_t bullet = L'•';
-		// wmove(win, posY--, posX);
-		// waddnwstr(win, &bullet, -1);
+	    // Extended ascii not playing nice
+	    // const wchar_t bullet = L'•';
+	    // wmove(win, posY--, posX);
+	    // waddnwstr(win, &bullet, -1);
 		
-		PRINTFC(win, posY--, posX, "%c", dataChar, MT_PAIR_CPU_GP);
+	    PRINTFC(win, posY--, posX, "%c", dataChar, MT_PAIR_CPU_GP);
 	}
 	
 	posY = wd->wHeight - 2;
@@ -69,11 +64,18 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 #else 
 	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
 #endif
-	
+	last = current;	
 	current = current->next;
     }
 
-    // I've created an arena specifically for 
+    const s8 pctLabel = (s8)(last->percent * 100);
+    const s16 pctPadLeft = pctLabel < 10 ?
+	wd->wWidth - 5 :
+	wd->wWidth - 6;
+
+    PRINTFC(win, 1, pctPadLeft, " %d%% ", pctLabel, MT_PAIR_CPU_HEADER);
+
+    // NOTE: I've created an arena specifically for 
     // graph points. If I let the graph points
     // linked list grow without bounds we'll
     // eventually run out of memory. So I make 
@@ -99,6 +101,13 @@ s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
     return 0;
 }
 
+// NOTE: I'm allocating graph points in a different arena
+// than the graph data. Even though GraphPoint is a member of
+// GraphData it's important that I allocate those items in a different
+// struct so that the GraphPoint linked list can be freed and doesn't grow without
+// bounds.You could imagine the issues with trying to allocate both of these
+// types on the same arena. This is probably a really dumb way to do it,
+// but idgaf.
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage)
 {
     assert(arena && gd);
