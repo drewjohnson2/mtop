@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../include/monitor.h"
+#include "../../include/monitor.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 

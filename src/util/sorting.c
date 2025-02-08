@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <math.h>
 
-#include "../include/sorting.h"
-#include "../include/monitor.h"
-#include "../include/window.h"
+#include "../../include/sorting.h"
+#include "../../include/monitor.h"
+#include "../../include/window.h"
 
 SortDirection sortDirection;
 

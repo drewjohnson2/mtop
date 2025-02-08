@@ -3,8 +3,6 @@
 
 #include <pthread.h>
 
-#include "monitor.h"
-
 void run();
 void cleanup();
 

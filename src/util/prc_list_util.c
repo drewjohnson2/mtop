@@ -1,8 +1,8 @@
 
 #include <signal.h>
 
-#include "../include/prc_list_util.h"
-#include "../include/thread.h"
+#include "../../include/prc_list_util.h"
+#include "../../include/thread.h"
 
 typedef enum _nav_direction
 {

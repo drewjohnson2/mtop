@@ -3,7 +3,7 @@
 #include <time.h>
 #include <assert.h>
 
-#include "../include/thread_safe_queue.h"
+#include "../../include/thread_safe_queue.h"
 
 void enqueue(
     ThreadSafeQueue *queue,

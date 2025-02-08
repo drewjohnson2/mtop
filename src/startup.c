@@ -5,11 +5,11 @@
 #include <arena.h>
 #include <unistd.h>
 
-#include "include/startup.h"
-#include "include/monitor.h"
-#include "include/thread_safe_queue.h"
-#include "include/window.h"
-#include "include/thread.h"
+#include "../include/startup.h"
+#include "../include/monitor.h"
+#include "../include/thread_safe_queue.h"
+#include "../include/window.h"
+#include "../include/thread.h"
 
 typedef struct _ui_thread_args
 {

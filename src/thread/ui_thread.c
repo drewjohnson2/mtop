@@ -9,12 +9,12 @@
 #include <arena.h>
 #include <assert.h>
 
-#include "../include/thread.h"
-#include "../include/window.h"
-#include "../include/monitor.h"
-#include "../include/thread_safe_queue.h"
-#include "../include/mt_colors.h"
-#include "../include/sorting.h"
+#include "../../include/thread.h"
+#include "../../include/window.h"
+#include "../../include/monitor.h"
+#include "../../include/thread_safe_queue.h"
+#include "../../include/mt_colors.h"
+#include "../../include/sorting.h"
 
 void run_ui(
     Arena *cpuGraphArena,

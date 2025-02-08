@@ -4,10 +4,10 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "../include/window.h"
-#include "../include/mt_colors.h"
-#include "../include/monitor.h"
-#include "../include/sorting.h"
+#include "../../include/window.h"
+#include "../../include/mt_colors.h"
+#include "../../include/monitor.h"
+#include "../../include/sorting.h"
 
 void print_stats(
     ProcessListState *state,

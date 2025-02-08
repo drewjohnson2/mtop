@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "../include/window.h"
-#include "../include/mt_colors.h"
+#include "../../include/window.h"
+#include "../../include/mt_colors.h"
 
 s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
 {

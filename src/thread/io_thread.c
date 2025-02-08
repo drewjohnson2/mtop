@@ -4,11 +4,11 @@
 #include <arena.h>
 #include <time.h>
 
-#include "../include/thread.h"
-#include "../include/monitor.h"
-#include "../include/thread_safe_queue.h"
-#include "../include/thread.h"
-#include "../include/sorting.h"
+#include "../../include/thread.h"
+#include "../../include/monitor.h"
+#include "../../include/thread_safe_queue.h"
+#include "../../include/thread.h"
+#include "../../include/sorting.h"
 
 void run_io(
     Arena *cpuArena,

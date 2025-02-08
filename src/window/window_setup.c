@@ -6,8 +6,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../include/window.h"
-#include "../include/mt_colors.h"
+#include "../../include/window.h"
+#include "../../include/mt_colors.h"
 
 DisplayItems * init_display_items(Arena *arena) 
 {
@@ -40,7 +40,7 @@ DisplayItems * init_display_items(Arena *arena)
     ); 						\
 						\
     assert(di->windows[enumName]);		
-#include "../include/tables/window_def_table.h"
+#include "../../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
 
     return di;
@@ -133,7 +133,7 @@ void init_windows(DisplayItems *di)
     	winName##Win->windowY,				\
     	winName##Win->windowX				\
     );
-#include "../include/tables/window_def_table.h"
+#include "../../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
 
     assert(
