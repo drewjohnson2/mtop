@@ -41,7 +41,8 @@ void import_colors()
 #define DEF_PAIRS(pair, fg, bg) init_pair(pair, fg, bg);
 #include "../../include/tables/pair_table.h"
 #undef DEF_PAIRS
-
+    
+    fclose(f);
     a_free(&arena);
 }
 

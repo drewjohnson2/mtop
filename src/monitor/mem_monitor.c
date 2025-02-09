@@ -3,7 +3,7 @@
 
 #include "../../include/monitor.h"
 
-#define MAX_MEM_REGIONS_ALLOCD 5
+#define MAX_MEM_REGIONS_ALLOCD 9
 
 static void _parse_stat(MemoryStats *stat, char *buffer);
 

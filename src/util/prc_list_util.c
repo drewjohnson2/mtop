@@ -20,7 +20,7 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 void set_start_end_idx(ProcessListState *state) 
 {
     s8 isLastPage = state->activePage == state->totalPages - 1;
-    size_t lastPageEnd = state->maxIndex;
+    size_t lastPageEnd = state->count - 1;
     size_t pageEndIdx = (state->activePage * state->pageSize - 1) + state->pageSize;
 
     state->pageStartIdx = state->pageSize * state->activePage;
@@ -37,20 +37,23 @@ void set_start_end_idx(ProcessListState *state)
 void adjust_state(ProcessListState *state, ProcessStats *stats)
 {
     // this or set_start_end_idx is messed up
-    if (state->maxIndex == (s8)stats->count - 1) return;
+    if (state->count == (s8)stats->count) return;
     
-    state->maxIndex = stats->count - 1;
+    state->count = stats->count;
 
-    u8 updatedPageCount = (state->maxIndex + state->pageSize - 1) / state->pageSize;
+    u8 updatedPageCount = state->count / state->pageSize;
 
-    state->totalPages = updatedPageCount < state->totalPages ?
-	updatedPageCount :
-	state->totalPages;
+    if (state->count % state->pageSize > 0) 
+	updatedPageCount++;
+
+    state->totalPages = updatedPageCount; 
+
+    if (state->activePage > state->totalPages - 1) state->activePage = state->totalPages - 1;
 
     set_start_end_idx(state);
 
-    state->selectedIndex = state->selectedIndex > state->maxIndex ?
-	state->maxIndex :
+    state->selectedIndex = state->selectedIndex > state->count - 1 ?
+	state->count - 1 :
 	state->selectedIndex;
 }
 

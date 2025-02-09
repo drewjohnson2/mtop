@@ -11,7 +11,7 @@
 
 void print_stats(
     ProcessListState *state,
-    WindowData *wd,
+    const WindowData *wd,
     ProcessStatsViewData **vd,
     s16 count
 )
@@ -46,6 +46,11 @@ void print_stats(
     
     u8 fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
     
+    //
+    //
+    //			Render Box and Header
+    //
+    //
     SET_COLOR(win, MT_PAIR_BOX);
     
     werase(win);
@@ -59,7 +64,7 @@ void print_stats(
 	windowTitleY, windowTitleX, 
 	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, pc = %u, ap = %u",
 	state->pageStartIdx, state->pageEndIdx, state->selectedIndex,
-	state->maxIndex, state->timeoutActive, state->totalPages, state->activePage);
+	state->count, state->timeoutActive, state->totalPages, state->activePage);
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
@@ -84,12 +89,17 @@ void print_stats(
     
     u8 posY = dataOffsetY;
     const u8 winDataOffset = 5;
-    
+
+    //
+    //
+    //			Render Process List
+    //
+    //
     for (u8 i = 0; i < wd->wHeight - winDataOffset && i < count; i++)
     {
     	const u16 idx = i + state->pageStartIdx;
 
-	if (idx > state->maxIndex) break;
+	if (idx > state->count - 1) break;
 
     	const u8 isSelectedIndex = 
     		(state->selectedIndex - state->pageStartIdx) + dataOffsetY == posY;

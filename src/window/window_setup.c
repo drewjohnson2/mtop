@@ -145,7 +145,7 @@ void init_windows(DisplayItems *di)
     );
 }
 
-void print_header(WindowData *wd)
+void print_header(const WindowData *wd)
 {
     char *user = getlogin();
     
@@ -155,10 +155,10 @@ void print_header(WindowData *wd)
     PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_BOX);
 }
 
-void print_time(WindowData *wd)
+void print_time(const WindowData *wd)
 {
     char timeBuf[10];
-    time_t now = time(0);
+     time_t now = time(0);
     struct tm tmNow;
 
     localtime_r(&now, &tmNow);
@@ -168,57 +168,82 @@ void print_time(WindowData *wd)
     PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
 }
 
-void print_footer(WindowData *wd)
+void print_footer(const WindowData *wd)
 {
-    PRINTFC(wd->window, wd->wHeight - 1, 2, "%s", _text[0], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 4, " %s ", _text[1], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, wd->wWidth - 29, "%s", 
+    const u8 killPrcCtrlX = 2;
+    const u8 killPrcLabelX = killPrcCtrlX + 2;
+    const u8 githubText = wd->wWidth - 29;
+    const u8 downCtrlX = 19;
+    const u8 downLableX = downCtrlX + 2;
+    const u8 upCtrlX = 27;
+    const u8 upLabelX = upCtrlX + 2;
+    const u8 pLeftCtrlX = 33;
+    const u8 pLeftLabelX = pLeftCtrlX + 2;
+    const u8 pRightCtrlX = 46;
+    const u8 pRightLabelX = pRightCtrlX + 2;
+    const u8 optionsCtrlX = 60;
+    const u8 optionsLabelX = optionsCtrlX + 2;
+
+    PRINTFC(wd->window, wd->wHeight - 1, killPrcCtrlX, "%s", _text[0], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, killPrcLabelX, " %s ",
+	    _text[1], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
 	_text[2], 
 	MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 19, "%s", _text[3], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 21, "%s", _text[4], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 27, "%s", _text[5], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 29, "%s", _text[6], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 33, "%s", _text[29], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 35, "%s", _text[28], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 46, "%s", _text[31], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 48, "%s", _text[30], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 60, "%s", _text[7], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, 62, "%s", _text[8], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, downCtrlX, "%s", _text[3], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, downLableX, "%s", _text[4], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, upCtrlX, "%s", _text[5], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, upLabelX, "%s", _text[6], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pLeftCtrlX, "%s", _text[29], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pLeftLabelX, "%s",
+	    _text[28], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pRightCtrlX, "%s", _text[31], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pRightLabelX, "%s",
+	    _text[30], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, optionsCtrlX, "%s", _text[7], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, optionsLabelX, "%s", _text[8], MT_PAIR_PRC_UNSEL_TEXT);
 }
 
 void display_options(DisplayItems *di)
 {
-    WindowData *optWin = di->windows[OPT_WIN];
-    const u8 titlePos = (optWin->wWidth / 2) - (strlen(_text[9]) / 2);
+    const WindowData *optWin = di->windows[OPT_WIN];
+    const u8 titlePosX = (optWin->wWidth / 2) - (strlen(_text[9]) / 2);
+    const u8 titlePosY = 0;
     const u8 ctrlStartX = optWin->wWidth / 4;
     const u8 ctrlBtnStartX = ctrlStartX - 2;
     const u8 infoStartX = ctrlStartX + 8;
+    const u8 jUpCtrlY = 2;
+    const u8 jDownCtrlY = jUpCtrlY + 2;
+    const u8 sProcNmY = jDownCtrlY + 2;
+    const u8 sPidY = sProcNmY + 2;
+    const u8 sCpuY = sPidY + 2;
+    const u8 sMemY = sCpuY + 2;
+    const u8 sCloseOpts = sMemY + 2;
 
     werase(di->windows[OPT_WIN]->window);
     SET_COLOR(optWin->window, MT_PAIR_BOX);
     box(optWin->window, 0, 0);
 
-    PRINTFC(optWin->window, 0, titlePos, "%s", _text[9], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 2, ctrlBtnStartX, "%s", _text[32], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 2, infoStartX, "%s", _text[33], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, titlePosY, titlePosX, "%s", _text[9], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, jUpCtrlY, ctrlBtnStartX, "%s", _text[32], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, jUpCtrlY, infoStartX, "%s", _text[33], MT_PAIR_PRC_UNSEL_TEXT);
 
-    PRINTFC(optWin->window, 4, ctrlBtnStartX, "%s", _text[34], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 4, infoStartX, "%s", _text[35], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, jDownCtrlY, ctrlBtnStartX, "%s", _text[34], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, jDownCtrlY, infoStartX, "%s", _text[35], MT_PAIR_PRC_UNSEL_TEXT);
 
-    PRINTFC(optWin->window, 6, ctrlStartX, "%s", _text[10], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 6, infoStartX, "%s ", _text[11],
+    PRINTFC(optWin->window, sProcNmY, ctrlStartX, "%s", _text[10], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sProcNmY, infoStartX, "%s ", _text[11],
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 8, ctrlStartX, "%s", _text[12], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 8, infoStartX, "%s ", _text[13], 
+    PRINTFC(optWin->window, sPidY, ctrlStartX, "%s", _text[12], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sPidY, infoStartX, "%s ", _text[13], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 10, ctrlStartX, "%s", _text[14], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 10, infoStartX, "%s ", _text[15], 
+    PRINTFC(optWin->window, sCpuY, ctrlStartX, "%s", _text[14], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sCpuY, infoStartX, "%s ", _text[15], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 12, ctrlStartX, "%s", _text[16], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 12, infoStartX, "%s ", _text[17], 
+    PRINTFC(optWin->window, sMemY, ctrlStartX, "%s", _text[16], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sMemY, infoStartX, "%s ", _text[17], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, 14, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, 14, infoStartX, "%s ", _text[19], 
+    PRINTFC(optWin->window, sCloseOpts, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sCloseOpts, infoStartX, "%s ", _text[19], 
 	    MT_PAIR_PRC_UNSEL_TEXT);
 }

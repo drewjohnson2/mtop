@@ -10,7 +10,7 @@
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
 
-s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd)
+s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
 {
     if (!gd->head) return 1;
     

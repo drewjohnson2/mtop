@@ -46,7 +46,7 @@ typedef struct _window_data
     u16 paddingBottom;
     u16 paddingRight;
     u16 paddingLeft;
-    char *windowTitle;
+    const char *windowTitle;
 } WindowData;
 
 typedef struct _display_items
@@ -81,7 +81,7 @@ typedef struct _process_list_state
     s8 selectedIndex;
     s8 pageStartIdx;
     s8 pageEndIdx;
-    s8 maxIndex;
+    s8 count;
     u8 totalPages;
     u8 activePage;
     u8 pageSize;
@@ -141,16 +141,16 @@ DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
 void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
-void print_header(WindowData *wd);
-void print_time(WindowData *wd);
-void print_footer(WindowData *wd);
+void print_header(const WindowData *wd);
+void print_time(const WindowData *wd);
+void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
 
 //
 //		graph.c
 //
 //
-s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd);
+s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd);
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 //
@@ -159,7 +159,7 @@ s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 //
 void print_stats(
     ProcessListState *state,
-    WindowData *wd,
+    const WindowData *wd,
     ProcessStatsViewData **vd,
     s16 count
 );

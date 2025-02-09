@@ -29,11 +29,11 @@ void run_ui(
     CpuStats *prevStats = NULL;
     CpuStats *curStats = NULL;
     MemoryStats *memStats = NULL;
-    WindowData *cpuWin = di->windows[CPU_WIN];
-    WindowData *memWin = di->windows[MEMORY_WIN];
-    WindowData *procWin = di->windows[PRC_WIN];
-    WindowData *optWin = di->windows[OPT_WIN];
-    WindowData *container = di->windows[CONTAINER_WIN];
+    const WindowData *cpuWin = di->windows[CPU_WIN];
+    const WindowData *memWin = di->windows[MEMORY_WIN];
+    const WindowData *procWin = di->windows[PRC_WIN];
+    const WindowData *optWin = di->windows[OPT_WIN];
+    const WindowData *container = di->windows[CONTAINER_WIN];
     GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
     
     ProcessStats *prevPrcs = NULL;
@@ -70,10 +70,13 @@ void run_ui(
     listState->selectedIndex = 0;
     listState->pageStartIdx = 0;
     listState->pageEndIdx = listState->pageSize;
-    listState->maxIndex = curPrcs->count - 1;
+    listState->count = curPrcs->count;
     listState->pageSize = procWin->wHeight - 5;
-    listState->totalPages = 
-	(listState->maxIndex + listState->pageSize - 1) / listState->pageSize;
+    listState->totalPages = listState->count / listState->pageSize;
+
+    if (listState->count % listState->pageSize > 0)
+	listState->totalPages++;
+
     listState->pageEndIdx = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
