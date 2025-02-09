@@ -31,12 +31,10 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
     {
 	if (posX > wd->wWidth - 3) break;
     
-	// what happens if I pull pctLabel outside of the loop?
 	s16 lineHeight = (wd->wHeight - 3) * current->percent;
 	const char dataChar = current->percent * 100 == 0 ? '.' : '|';
 			
 	lineHeight = lineHeight == 0 ? 1 : lineHeight;
-		
 	
 	while (lineHeight--)
 	{

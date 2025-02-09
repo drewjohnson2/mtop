@@ -14,7 +14,6 @@ typedef enum _nav_direction
     JUMP_UP
 } NavDirection;
 
-
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 
 void set_start_end_idx(ProcessListState *state) 
@@ -36,15 +35,13 @@ void set_start_end_idx(ProcessListState *state)
 
 void adjust_state(ProcessListState *state, ProcessStats *stats)
 {
-    // this or set_start_end_idx is messed up
     if (state->count == (s8)stats->count) return;
     
     state->count = stats->count;
 
     u8 updatedPageCount = state->count / state->pageSize;
 
-    if (state->count % state->pageSize > 0) 
-	updatedPageCount++;
+    if (state->count % state->pageSize > 0) updatedPageCount++;
 
     state->totalPages = updatedPageCount; 
 

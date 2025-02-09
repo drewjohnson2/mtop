@@ -69,7 +69,6 @@ void run_ui(
     listState->timeoutActive = 0;
     listState->selectedIndex = 0;
     listState->pageStartIdx = 0;
-    listState->pageEndIdx = listState->pageSize;
     listState->count = curPrcs->count;
     listState->pageSize = procWin->wHeight - 5;
     listState->totalPages = listState->count / listState->pageSize;
