@@ -3,9 +3,14 @@
 #include <time.h>
 #include <assert.h>
 
-#include "../include/thread_safe_queue.h"
+#include "../../include/thread_safe_queue.h"
 
-void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthread_cond_t *condition)
+void enqueue(
+    ThreadSafeQueue *queue,
+    void *data,
+    pthread_mutex_t *queueLock,
+    pthread_cond_t *condition
+)
 {
     pthread_mutex_lock(queueLock);
     
@@ -13,14 +18,14 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
     
     assert(newNode);
     
-    if(q->head == NULL)
+    if(queue->head == NULL)
     {
-	q->head = newNode;
-    	q->tail = q->head;
-    	q->head->next = NULL;
-    	q->head->data = stats;
+	queue->head = newNode;
+    	queue->tail = queue->head;
+    	queue->head->next = NULL;
+    	queue->head->data = data;
     	
-    	q->size++;
+    	queue->size++;
     	
     	pthread_cond_signal(condition);
     	pthread_mutex_unlock(queueLock);
@@ -28,40 +33,40 @@ void enqueue(ThreadSafeQueue *q, void *stats, pthread_mutex_t *queueLock, pthrea
     	return;
     }
     
-    newNode->data = stats;
+    newNode->data = data;
     
-    q->tail->next = newNode;
-    q->tail = q->tail->next;
-    q->tail->next = NULL;
+    queue->tail->next = newNode;
+    queue->tail = queue->tail->next;
+    queue->tail->next = NULL;
     
-    q->size++;
+    queue->size++;
     
     pthread_cond_signal(condition);
     pthread_mutex_unlock(queueLock);
 }
 
 u8 dequeue(
-    ThreadSafeQueue *q,
+    ThreadSafeQueue *queue,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition
 )
 {
     pthread_mutex_lock(queueLock);
     
-    while (q->head == NULL)
+    while (queue->head == NULL)
     {
 	pthread_cond_wait(condition, queueLock);
     }
     
-    QueueNode *tmp = q->head;
+    QueueNode *tmp = queue->head;
     
-    q->head = q->head->next;
+    queue->head = queue->head->next;
     
     free(tmp);
     
     tmp = NULL;
     
-    q->size--;
+    queue->size--;
     
     pthread_mutex_unlock(queueLock);
     
@@ -69,19 +74,19 @@ u8 dequeue(
 }
 
 void * peek(
-    ThreadSafeQueue *q,
+    ThreadSafeQueue *queue,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition
 )
 {
     pthread_mutex_lock(queueLock);
     
-    while (q->head == NULL)
+    while (queue->head == NULL)
     {
 	pthread_cond_wait(condition, queueLock);
     }
     
-    void *val = q->head->data;
+    void *val = queue->head->data;
     
     pthread_mutex_unlock(queueLock);
     

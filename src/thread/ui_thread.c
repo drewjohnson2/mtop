@@ -9,17 +9,16 @@
 #include <arena.h>
 #include <assert.h>
 
-#include "../include/thread.h"
-#include "../include/window.h"
-#include "../include/monitor.h"
-#include "../include/thread_safe_queue.h"
-#include "../include/mt_colors.h"
-#include "../include/sorting.h"
+#include "../../include/thread.h"
+#include "../../include/window.h"
+#include "../../include/monitor.h"
+#include "../../include/thread_safe_queue.h"
+#include "../../include/mt_colors.h"
+#include "../../include/sorting.h"
 
 void run_ui(
-    Arena *graphArena,
+    Arena *cpuGraphArena,
     Arena *memGraphArena,
-    Arena *prcArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,
@@ -30,13 +29,12 @@ void run_ui(
     CpuStats *prevStats = NULL;
     CpuStats *curStats = NULL;
     MemoryStats *memStats = NULL;
-    WindowData *cpuWin = di->windows[CPU_WIN];
-    WindowData *memWin = di->windows[MEMORY_WIN];
-    WindowData *procWin = di->windows[PRC_WIN];
-    WindowData *optWin = di->windows[OPT_WIN];
-    WindowData *container = di->windows[CONTAINER_WIN];
-    GraphData *cpuGraphData = a_alloc(graphArena, sizeof(GraphData), __alignof(GraphData));
-    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
+    const WindowData *cpuWin = di->windows[CPU_WIN];
+    const WindowData *memWin = di->windows[MEMORY_WIN];
+    const WindowData *procWin = di->windows[PRC_WIN];
+    const WindowData *optWin = di->windows[OPT_WIN];
+    const WindowData *container = di->windows[CONTAINER_WIN];
+    GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
     
     ProcessStats *prevPrcs = NULL;
     ProcessStats *curPrcs = NULL;
@@ -47,6 +45,7 @@ void run_ui(
     	__alignof(GraphData)
     );
     
+    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
     Arena cpuPointArena = a_new(sizeof(GraphPoint));
     Arena memPointArena = a_new(sizeof(GraphPoint));
     
@@ -69,11 +68,15 @@ void run_ui(
     listState->cmdBuffer = '\0';
     listState->timeoutActive = 0;
     listState->selectedIndex = 0;
-    listState->firstIndexDisplayed = 0;
-    listState->lastIndexDisplayed = listState->numOptsVisible;
-    listState->maxIndex = curPrcs->count - 1;
-    listState->numOptsVisible = procWin->wHeight - 5;
-    listState->lastIndexDisplayed = listState->numOptsVisible - 1;
+    listState->pageStartIdx = 0;
+    listState->count = curPrcs->count;
+    listState->pageSize = procWin->wHeight - 5;
+    listState->totalPages = listState->count / listState->pageSize;
+
+    if (listState->count % listState->pageSize > 0)
+	listState->totalPages++;
+
+    listState->pageEndIdx = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
 
@@ -141,9 +144,6 @@ void run_ui(
 
 	read_input(container->window, listState, di, vd);
 
-    	// There was once a two second 
-    	// timer check here, if things
-    	// get wonky put it back
     	print_stats(
 	    listState,
 	    procWin,
@@ -153,12 +153,21 @@ void run_ui(
     
     	a_free(&scratch);
     
-    	REFRESH_WIN(container->window);
-
+	// Normally I'd remove the else case and put the
+	// REFRESH_WIN(container->window) above the if statement.
+	// For whatever reason that setup causes bad flickering
+	// on some machines. I guess on faster machines display_options
+	// takes enough time between the calls to REFRESH_WIN for ncurses
+	// to repaint the screen.
 	if (di->optionsVisible)
 	{
 	    display_options(di);	    
+	    REFRESH_WIN(container->window);
 	    REFRESH_WIN(optWin->window);
+	}
+	else 
+	{
+	    REFRESH_WIN(container->window);
 	}
     
     	usleep(DISPLAY_SLEEP_TIME);

@@ -1,6 +1,9 @@
+#include <arena.h>
 #include <stdio.h>
 
-#include "../include/monitor.h"
+#include "../../include/monitor.h"
+
+#define MAX_MEM_REGIONS_ALLOCD 9
 
 static void _parse_stat(MemoryStats *stat, char *buffer);
 
@@ -8,6 +11,8 @@ MemoryStats * fetch_memory_stats(Arena *arena)
 {
     FILE *f = fopen("/proc/meminfo", "r");
     char buffer[256];
+
+    if (arena->regionsAllocated > MAX_MEM_REGIONS_ALLOCD) r_free_head(arena);
     
     MemoryStats *stat = a_alloc(
 	arena,

@@ -1,12 +1,16 @@
 #include <arena.h>
 #include <stdio.h>
 
-#include "../include/monitor.h"
+#include "../../include/monitor.h"
+
+#define MAX_CPU_REGIONS_ALLOCD 5
 
 CpuStats * fetch_cpu_stats(Arena *arena) 
 {
     FILE *f = fopen("/proc/stat", "r");
     char buffer[512];
+
+    if (arena->regionsAllocated > MAX_CPU_REGIONS_ALLOCD) r_free_head(arena);
     
     CpuStats *stat = a_alloc(
 	arena,

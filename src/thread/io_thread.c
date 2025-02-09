@@ -4,11 +4,11 @@
 #include <arena.h>
 #include <time.h>
 
-#include "../include/thread.h"
-#include "../include/monitor.h"
-#include "../include/thread_safe_queue.h"
-#include "../include/thread.h"
-#include "../include/sorting.h"
+#include "../../include/thread.h"
+#include "../../include/monitor.h"
+#include "../../include/thread_safe_queue.h"
+#include "../../include/thread.h"
+#include "../../include/sorting.h"
 
 void run_io(
     Arena *cpuArena,
@@ -38,13 +38,11 @@ void run_io(
     {
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
-    	u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || memQueue->size < MIN_QUEUE_SIZE;
+    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || 
+	    memQueue->size < MIN_QUEUE_SIZE;
     
     	if (minimumMet) 
     	{
-	    // I think this head free is causing an intermittent segfault. 
-	    // only happned once though.
-	    if (cpuArena->regionsAllocated > MIN_QUEUE_SIZE) r_free_head(cpuArena);
 	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
 	    MemoryStats *memStats = fetch_memory_stats(memArena);
 	    
@@ -54,7 +52,7 @@ void run_io(
     
     	clock_gettime(CLOCK_REALTIME, &current);
     
-    	s32 totalTimeSec = current.tv_sec - start.tv_sec;
+    	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if (totalTimeSec > PROC_WAIT_TIME_SEC)
     	{

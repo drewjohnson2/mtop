@@ -5,7 +5,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../include/monitor.h"
+#include "../../include/monitor.h"
+
+#define MAX_PROC_REGIONS_ALLOCD 3
 
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
@@ -40,6 +42,7 @@ static void _fetch_proc_pid_stat(
     // add something else in here that checks for a system processs
     
     // I need this for calculating the process memory percentage
+    // possibly move fclose() out of the loop
     while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
     {
     	if (sscanf(statusBuffer, "VmRSS:\t%lu kB\n", &vmRss) <= 0) continue;
@@ -92,7 +95,7 @@ ProcessStats * get_processes(
     
     if ((directory = opendir("/proc")) == NULL) exit(1);
     
-    if (procArena->regionsAllocated > 3)
+    if (procArena->regionsAllocated > MAX_PROC_REGIONS_ALLOCD)
     {
 	r_free_head(procArena);
     }

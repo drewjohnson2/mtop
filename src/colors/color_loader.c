@@ -2,7 +2,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#include "../include/mt_colors.h"
+#include "../../include/mt_colors.h"
 
 static MT_UI_Theme * _alloc_theme(Arena *arena);
 
@@ -32,16 +32,17 @@ void import_colors()
     
     while (fgets(buffer, sizeof(buffer), f))
     {
-#include "../include/tables/color_table.h"
+#include "../../include/tables/color_table.h"
     }
 #undef DEF_COLORS
 
     init_pair(MT_PAIR_BACKGROUND, MT_CLR_BACKGROUND, MT_CLR_BACKGROUND);
 
 #define DEF_PAIRS(pair, fg, bg) init_pair(pair, fg, bg);
-#include "../include/tables/pair_table.h"
+#include "../../include/tables/pair_table.h"
 #undef DEF_PAIRS
-
+    
+    fclose(f);
     a_free(&arena);
 }
 
@@ -51,7 +52,7 @@ static MT_UI_Theme * _alloc_theme(Arena *arena)
 
 #define DEF_COLORS(color, colEnumVal, memberName) \
     theme->memberName = a_alloc(arena, sizeof(MT_Color), __alignof(MT_Color));
-#include "../include/tables/color_table.h"
+#include "../../include/tables/color_table.h"
 #undef DEF_COLORS
 
     return theme;

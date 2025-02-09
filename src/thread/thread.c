@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "../include/thread.h"
+#include "../../include/thread.h"
 
 pthread_mutex_t cpuQueueLock;
 pthread_mutex_t memQueueLock;

@@ -1,151 +1,17 @@
 #include <bits/time.h>
-#include <signal.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
 
-#include "../include/window.h"
-#include "../include/mt_colors.h"
-#include "../include/monitor.h"
-#include "../include/sorting.h"
-#include "../include/thread.h"
-
-void read_input(
-    WINDOW *win,
-    ProcessListState *state,
-    DisplayItems *di,
-    ProcessStatsViewData **vd
-)
-{
-    char ch = wgetch(win);
-
-    flushinp();
-
-    u64 timeElapsedMs;
-    struct timespec timeoutCurrent;
-    
-    if (state->timeoutActive)
-    {
-	clock_gettime(CLOCK_REALTIME, &timeoutCurrent);
-    
-    	timeElapsedMs = (timeoutCurrent.tv_sec - state->timeoutStart.tv_sec) * 1000
-    	 + (timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
-    		/ 1000000;
-    
-    	if (timeElapsedMs > INPUT_TIMEOUT_MS)
-    	{
-	    state->cmdBuffer = '\0';
-	    state->timeoutActive = 0;
-    	}
-    }
-    
-    if (ch == -1) return;
-    
-    switch (ch)
-    {
-	case 'j':
-	    state->selectedIndex = state->selectedIndex < state->maxIndex ?
-	    	state->selectedIndex + 1 : 
-	    	state->selectedIndex;
-	    
-	    if (state->selectedIndex > state->lastIndexDisplayed &&
-	    	state->selectedIndex <= state->maxIndex)
-	    {
-	    	state->firstIndexDisplayed++;
-	    	state->lastIndexDisplayed++;
-	    }
-    
-	    return;
-    	case 'k':
-	    state->selectedIndex = state->selectedIndex > 0 ?
-		state->selectedIndex - 1 :
-	    	state->selectedIndex;
-	    
-	    if (state->selectedIndex >= 0 &&
-	    	state->selectedIndex < state->firstIndexDisplayed)
-	    {
-	    	state->firstIndexDisplayed--;
-	    	state->lastIndexDisplayed--;
-	    }
-	    
-	    return;
-	case 'n':
-	    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
-	    else sortDirection = ASC;
-
-	    state->sortOrder = PRC_NAME;
-	    state->sortFunc = vd_name_compare_func;
-
-	    return;
-	case 'p':
-	    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
-	    else sortDirection = ASC;
-
-	    state->sortOrder = PID;
-	    state->sortFunc = vd_pid_compare_func;
-
-	    return;
-	case 'c':
-	    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
-	    else sortDirection = DESC;
-
-	    state->sortOrder = CPU;
-	    state->sortFunc = vd_cpu_compare_func;
-
-	    return;
-	case 'm':
-	    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
-	    else sortDirection = DESC;
-
-	    state->sortOrder = MEM;
-	    state->sortFunc = vd_mem_compare_func;
-
-	    return;
-	case 'o':
-	    di->optionsVisible = !di->optionsVisible;
-	    
-	    return;
-    	case 'q':
-	    SHUTDOWN_FLAG = 1;
-	    return;
-    	default:
-	    break;
-    }
-    
-    if (!state->cmdBuffer)
-    {
-	state->cmdBuffer = ch;
-	state->timeoutActive = 1;
-	clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
-	    
-	return;
-    }
-    else if (ch != state->cmdBuffer) 
-    {
-	state->cmdBuffer = '\0';
-	state->timeoutActive = 0;
-    
-	return;
-    }
-
-    switch (ch)
-    {
-	case 'd':
-	    state->cmdBuffer = '\0';
-	    state->timeoutActive = 0;
-
-	    kill(vd[state->selectedIndex]->pid, SIGTERM);
-
-	    return;
-	default:
-	    break;
-    }
-}
+#include "../../include/window.h"
+#include "../../include/mt_colors.h"
+#include "../../include/monitor.h"
+#include "../../include/sorting.h"
 
 void print_stats(
     ProcessListState *state,
-    WindowData *wd,
+    const WindowData *wd,
     ProcessStatsViewData **vd,
     s16 count
 )
@@ -161,6 +27,8 @@ void print_stats(
     const u16 prcTblHeaderY = 2;
     const u16 windowTitleX = 3;
     const u16 windowTitleY = 0;
+    const u16 pageX = 3;
+    const u16 pageY = wd->wHeight - 1;
     
     u16 pidPosX = wd->wWidth * .60;
     u16 cpuPosX = pidPosX + (wd->wWidth * .14);
@@ -178,6 +46,11 @@ void print_stats(
     
     u8 fitCpu = wd->wWidth >= cpuPosX + strlen(cpuTitle);
     
+    //
+    //
+    //			Render Box and Header
+    //
+    //
     SET_COLOR(win, MT_PAIR_BOX);
     
     werase(win);
@@ -189,12 +62,14 @@ void print_stats(
     wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
     mvwprintw(win, 
 	windowTitleY, windowTitleX, 
-	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, cmdBuf = %c ",
-	state->firstIndexDisplayed, state->lastIndexDisplayed, state->selectedIndex,
-	state->maxIndex, state->timeoutActive, state->cmdBuffer);
+	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, pc = %u, ap = %u",
+	state->pageStartIdx, state->pageEndIdx, state->selectedIndex,
+	state->count, state->timeoutActive, state->totalPages, state->activePage);
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
+    SET_COLOR(win, MT_PAIR_PRC_HEADER);
+    mvwprintw(win, pageY, pageX, " Page %u/%u ", state->activePage + 1, state->totalPages); 
 #endif
 
     wattron(win, A_BOLD);
@@ -214,12 +89,20 @@ void print_stats(
     
     u8 posY = dataOffsetY;
     const u8 winDataOffset = 5;
-    
+
+    //
+    //
+    //			Render Process List
+    //
+    //
     for (u8 i = 0; i < wd->wHeight - winDataOffset && i < count; i++)
     {
-    	u16 idx = i + state->firstIndexDisplayed;
-    	u8 isSelectedIndex = 
-    		(state->selectedIndex - state->firstIndexDisplayed) + dataOffsetY == posY;
+    	const u16 idx = i + state->pageStartIdx;
+
+	if (idx > state->count - 1) break;
+
+    	const u8 isSelectedIndex = 
+    		(state->selectedIndex - state->pageStartIdx) + dataOffsetY == posY;
     
     	MT_Color_Pairs pair = isSelectedIndex ?
 	    MT_PAIR_PRC_SEL_TEXT :
@@ -232,7 +115,6 @@ void print_stats(
     	}
     
     	SET_COLOR(win, pair);
-    
     	PRINTFC(win, posY, dataOffsetX, "%s", vd[idx]->command, pair);
     	PRINTFC(win, posY, pidPosX, "%d", vd[idx]->pid, pair);
     
@@ -296,20 +178,4 @@ void set_prc_view_data(
 	vd[i]->cpuPercentage = cpuPct;
 	vd[i]->memPercentage = memPct;	
     }
-}
-
-void adjust_state(ProcessListState *state, ProcessStats *stats)
-{
-    if (state->maxIndex == (s8)stats->count - 1) return;
-    
-    state->maxIndex = stats->count - 1;
-    
-    state->selectedIndex = state->selectedIndex > state->maxIndex ?
-	state->maxIndex :
-	state->selectedIndex;
-    
-    state->firstIndexDisplayed = state->selectedIndex > state->numOptsVisible - 1 ?
-	state->maxIndex - state->numOptsVisible - 1 :
-	0;
-    state->lastIndexDisplayed = state->firstIndexDisplayed + state->numOptsVisible - 1;
 }

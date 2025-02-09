@@ -19,18 +19,18 @@ typedef struct _shared_queue
 } ThreadSafeQueue;
 
 void enqueue(
-    ThreadSafeQueue *q,
+    ThreadSafeQueue *queue,
     void *stats,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition
 );
 u8 dequeue(
-    ThreadSafeQueue *q,
+    ThreadSafeQueue *queue,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition
 );
 void * peek(
-    ThreadSafeQueue *q,
+    ThreadSafeQueue *queue,
     pthread_mutex_t *queueLock,
     pthread_cond_t *condition
 );

@@ -46,7 +46,7 @@ typedef struct _window_data
     u16 paddingBottom;
     u16 paddingRight;
     u16 paddingLeft;
-    char *windowTitle;
+    const char *windowTitle;
 } WindowData;
 
 typedef struct _display_items
@@ -79,10 +79,12 @@ typedef struct _stats_view_data
 typedef struct _process_list_state
 {
     s8 selectedIndex;
-    s8 firstIndexDisplayed;
-    s8 lastIndexDisplayed;
-    s8 maxIndex;
-    s8 numOptsVisible;
+    s8 pageStartIdx;
+    s8 pageEndIdx;
+    s8 count;
+    u8 totalPages;
+    u8 activePage;
+    u8 pageSize;
     s8 timeoutActive;
     char cmdBuffer;
     SortOrder sortOrder;
@@ -91,7 +93,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[28] = 
+static const char *_text[36] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -101,8 +103,8 @@ static const char *_text[28] =
     "k",				// 5
     "Up",				// 6
     "o",				// 7
-    "List Sorting Options",		// 8
-    " Sorting Options ",		// 9
+    "List Additional Options",		// 8
+    " Additional Options ",		// 9
     "n",				// 10
     "Sort By Process",			// 11
     "p",				// 12
@@ -112,7 +114,7 @@ static const char *_text[28] =
     "m",				// 16
     "Sort By Memory Usage",		// 17
     "o",				// 18
-    "Close This Window",		// 19
+    "Close Additional Options",		// 19
     "mtop",				// 20
     "CPU Usage",			// 21
     "Memory Usage",			// 22
@@ -120,7 +122,15 @@ static const char *_text[28] =
     "Command",				// 24
     "PID",				// 25
     "CPU %",				// 26
-    "Memory %"				// 27
+    "Memory %",				// 27
+    "Page Left",			// 28
+    "h",				// 29
+    "Page Right",			// 30
+    "l",				// 31
+    "<C-u>",				// 32
+    "Jump Up",				// 33
+    "<C-d>",				// 34
+    "Jump Down"				// 35
 };
 
 //
@@ -131,16 +141,16 @@ DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
 void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
-void print_header(WindowData *wd);
-void print_time(WindowData *wd);
-void print_footer(WindowData *wd);
+void print_header(const WindowData *wd);
+void print_time(const WindowData *wd);
+void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
 
 //
 //		graph.c
 //
 //
-s8 graph_render(Arena *arena, GraphData *gd, WindowData *wd);
+s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd);
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 //
@@ -149,7 +159,7 @@ s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 //
 void print_stats(
     ProcessListState *state,
-    WindowData *wd,
+    const WindowData *wd,
     ProcessStatsViewData **vd,
     s16 count
 );
@@ -167,5 +177,6 @@ void read_input(
     ProcessStatsViewData **vd
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
+void set_start_end_idx(ProcessListState *state);
 
 #endif
