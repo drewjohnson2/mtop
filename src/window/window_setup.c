@@ -5,6 +5,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <linux/kernel.h>
+#include <sys/sysinfo.h>
 
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
@@ -166,6 +168,44 @@ void print_time(const WindowData *wd)
     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &tmNow);
 
     PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_TM);
+}
+
+// Need to move the data calls from this function
+// and ^ that function to the IO thread if possible.
+// I know it's not a big deal, but that's something
+// that I should probably be doing just to be consistent.
+void print_uptime(const WindowData *wd)
+{
+    struct sysinfo info;
+
+    s8 error = sysinfo(&info);
+
+    if (error) return;
+
+    char uptimeStr[35];
+    u64 uptime = info.uptime;
+    s16 days = uptime / 86400;
+    uptime %= 86400;
+
+    s16 hours = uptime / 3600;
+    uptime %= 3600;
+
+    s16 minutes = uptime / 60;
+    s16 seconds = uptime %= 60;
+
+    snprintf(
+	uptimeStr,
+	sizeof(uptimeStr),
+	"Uptime: %u days, %02u:%02u:%02u",
+	days,
+	hours,
+	minutes,
+	seconds
+    );
+
+    const u8 uptimeX = (wd->wWidth / 2) - (strlen(uptimeStr) / 2);
+
+    PRINTFC(wd->window, 0, uptimeX, "%s", uptimeStr, MT_PAIR_TM);
 }
 
 void print_footer(const WindowData *wd)

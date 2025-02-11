@@ -143,6 +143,7 @@ void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
+void print_uptime(const WindowData *wd);
 void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
 

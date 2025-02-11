@@ -88,6 +88,7 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
+	print_uptime(container);
 	print_time(container);
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
