@@ -2,6 +2,8 @@
 #include <ncurses.h>
 #include <arena.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -174,38 +176,49 @@ void print_time(const WindowData *wd)
 // and ^ that function to the IO thread if possible.
 // I know it's not a big deal, but that's something
 // that I should probably be doing just to be consistent.
-void print_uptime(const WindowData *wd)
+void print_uptime_ldAvg(const WindowData *wd)
 {
     struct sysinfo info;
-
+    s16 days;
+    u64 uptime;
+    s16 hours;
+    s16 minutes;
+    s16 seconds;
     s8 error = sysinfo(&info);
 
     if (error) return;
 
-    char uptimeStr[35];
-    u64 uptime = info.uptime;
-    s16 days = uptime / 86400;
+    char displayStr[66];
+
+    uptime = info.uptime;
+    days = uptime / 86400;
     uptime %= 86400;
-
-    s16 hours = uptime / 3600;
+    hours = uptime / 3600;
     uptime %= 3600;
+    minutes = uptime / 60;
+    seconds = uptime %= 60;
 
-    s16 minutes = uptime / 60;
-    s16 seconds = uptime %= 60;
+    double load[3];
+    error = getloadavg(load, 3);
+
+    if (error == -1) return;
 
     snprintf(
-	uptimeStr,
-	sizeof(uptimeStr),
-	"Uptime: %u days, %02u:%02u:%02u",
+	displayStr,
+	sizeof(displayStr),
+	"Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf",
 	days,
 	hours,
 	minutes,
-	seconds
+	seconds,
+	load[0],
+	load[1],
+	load[2]
     );
 
-    const u8 uptimeX = (wd->wWidth / 2) - (strlen(uptimeStr) / 2);
+    const u8 uptimeX = (wd->wWidth / 2) - (strlen(displayStr) / 2);
 
-    PRINTFC(wd->window, 0, uptimeX, "%s", uptimeStr, MT_PAIR_TM);
+    PRINTFC(wd->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
 }
 
 void print_footer(const WindowData *wd)

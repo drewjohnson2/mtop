@@ -10,6 +10,8 @@
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
 
+extern volatile ProcessInfoSharedData *prcInfoSD;
+
 void run_io(
     Arena *cpuArena,
     Arena *memArena,
@@ -67,6 +69,17 @@ void run_io(
     
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
+
+	if (prcInfoSD->needsFetch && prcInfoSD->pidToFetch > 0)
+	{
+	    pthread_mutex_lock(&procInfoLock);
+	    populate_SD_by_pid(prcInfoSD->pidToFetch); 
+
+	    prcInfoSD->needsFetch = 0;
+
+	    pthread_cond_signal(&procInfoCondition);
+	    pthread_mutex_unlock(&procInfoLock);
+	}
     
 	usleep(READ_SLEEP_TIME);
     }

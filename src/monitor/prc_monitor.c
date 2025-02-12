@@ -9,6 +9,8 @@
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 
+extern volatile ProcessInfoSharedData *prcInfoSD;
+
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
     ProcessList **item,
@@ -141,4 +143,33 @@ ProcessStats * get_processes(
     closedir(directory);
     
     return procStats;
+}
+
+
+void populate_SD_by_pid(u32 pid) 
+{
+    char statusPath[32];
+    char statusBuffer[1024];
+
+    snprintf(statusPath, sizeof(statusPath), "/proc/%d/status", pid);
+
+    FILE *statusFile = fopen(statusPath, "r");
+    
+    if (!statusFile) return;
+    
+    while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
+    {
+	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSD->info->procName) > 0) continue;
+	else if (sscanf(statusBuffer, "State:\t%s\n", prcInfoSD->info->state) > 0) continue;
+	else if (sscanf(statusBuffer, "PPid:\t%d", &prcInfoSD->info->pPid) > 0) continue;
+	else if (sscanf(statusBuffer, "VmPeak:\t%d kB", &prcInfoSD->info->vmPeak) > 0) continue;
+	else if (sscanf(statusBuffer, "VmSize:\t%d kB", &prcInfoSD->info->vmSize) > 0) continue;
+	else if (sscanf(statusBuffer, "VmLck:\t%d kB", &prcInfoSD->info->vmLck) > 0) continue;
+	else if (sscanf(statusBuffer, "VmPin:\t%d kB", &prcInfoSD->info->vmPin) > 0) continue;
+	else if (sscanf(statusBuffer, "VmHWM:\t%d kB", &prcInfoSD->info->vmHWM) > 0) continue;
+	else if (sscanf(statusBuffer, "VmRSS:\t%d kB", &prcInfoSD->info->vmRSS) > 0) continue;
+	else if (sscanf(statusBuffer, "Threads:\t%hu kB", &prcInfoSD->info->threads) > 0) continue;
+    }
+
+    fclose(statusFile);
 }

@@ -86,6 +86,7 @@ typedef struct _process_list_state
     u8 activePage;
     u8 pageSize;
     s8 timeoutActive;
+    u8 infoVisible;
     char cmdBuffer;
     SortOrder sortOrder;
     struct timespec timeoutStart;
@@ -143,7 +144,7 @@ void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
-void print_uptime(const WindowData *wd);
+void print_uptime_ldAvg(const WindowData *wd);
 void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
 
@@ -179,5 +180,6 @@ void read_input(
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 void set_start_end_idx(ProcessListState *state);
+void show_prc_info(ProcessInfo *info, const WindowData *wd);
 
 #endif

@@ -179,3 +179,34 @@ void set_prc_view_data(
 	vd[i]->memPercentage = memPct;	
     }
 }
+
+void show_prc_info(ProcessInfo *info, const WindowData *wd) 
+{
+    const u8 windowTitleY = 0;
+    const u8 windowTitleX = 3;
+
+    SET_COLOR(wd->window, MT_PAIR_BOX);
+
+    werase(wd->window);
+
+    box(wd->window, 0, 0);
+
+    PRINTFC(
+	wd->window,
+	windowTitleY,
+	windowTitleX,
+	" %s ",
+	"Process Info",
+	MT_PAIR_PRC_HEADER
+    );
+    PRINTFC(wd->window, 2, 3, "Name:\t%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 3, 3, "State:\t%s", info->state, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 4, 3, "PPid:\t%d", info->pPid, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 5, 3, "VmPeak:\t%d kB", info->vmPeak, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 6, 3, "VmSize:\t%d kB", info->vmSize, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 7, 3, "VmLck:\t%d kB", info->vmLck, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 8, 3, "VmPin:\t%d kB", info->vmPin, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 9, 3, "VmHWM:\t%d kB", info->vmHWM, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 10, 3, "VmRSS:\t%d kB", info->vmRSS, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 11, 3, "Threads:\t%d", info->threads, MT_PAIR_PRC_UNSEL_TEXT);
+}

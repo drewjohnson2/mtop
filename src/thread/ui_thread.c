@@ -16,6 +16,8 @@
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
 
+extern volatile ProcessInfoSharedData *prcInfoSD;
+
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
@@ -79,6 +81,7 @@ void run_ui(
     listState->pageEndIdx = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
+    listState->infoVisible = 0;
 
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
@@ -88,8 +91,9 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
-	print_uptime(container);
+	print_uptime_ldAvg(container);
 	print_time(container);
+
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
@@ -145,12 +149,34 @@ void run_ui(
 
 	read_input(container->window, listState, di, vd);
 
-    	print_stats(
-	    listState,
-	    procWin,
-	    vd,
-	    curPrcs->count
-    	);
+	if (prcInfoSD->needsFetch)
+	{
+	    pthread_mutex_lock(&procInfoLock);
+
+	    prcInfoSD->pidToFetch = vd[listState->selectedIndex]->pid;
+
+	    while (prcInfoSD->needsFetch)
+		pthread_cond_wait(&procInfoCondition, &procInfoLock);
+
+	    prcInfoSD->pidToFetch = 0;
+	    prcInfoSD->needsFetch = 0;
+
+	    pthread_mutex_unlock(&procInfoLock);
+	}
+
+	if (!listState->infoVisible)
+	{
+	   print_stats(
+	       listState,
+	       procWin,
+	       vd,
+	       curPrcs->count
+    	   );
+	}
+	else 
+	{
+	    show_prc_info(prcInfoSD->info, procWin);
+	}
     
     	a_free(&scratch);
     

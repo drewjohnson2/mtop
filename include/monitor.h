@@ -25,6 +25,27 @@ typedef struct _proc_stats
     ProcessList **processes;
 } ProcessStats;
 
+typedef struct _proc_info
+{
+    char procName[99];
+    char state[99];
+    u32 pPid;
+    u32 vmPeak;
+    u32 vmSize;
+    u32 vmLck;
+    u32 vmPin;
+    u32 vmHWM;
+    u32 vmRSS;
+    u16 threads;
+} ProcessInfo;
+
+typedef struct _proc_info_shared_data 
+{
+    u32 needsFetch;
+    u32 pidToFetch;
+    ProcessInfo *info;
+} ProcessInfoSharedData;
+
 typedef struct _mem_stats
 {
     u64 memTotal;
@@ -96,6 +117,9 @@ typedef struct _cpu_stats
 	    : 0; 									\
     } while(0)										\
 
+
+extern volatile ProcessInfoSharedData *prcInfoSD;
+
 static inline u64 cpu_time_now()
 {
     FILE *f = fopen("/proc/stat", "r");
@@ -118,12 +142,27 @@ static inline u64 cpu_time_now()
     return user + nice + system + idle + ioWait + irq + softIrq + steal;
 }
 
+//
+//		cpu_monitor.c
+//
+//
 CpuStats * fetch_cpu_stats(Arena *arena);
+
+//
+//		mem_monitor.c
+//
+//
 MemoryStats * fetch_memory_stats(Arena *arena);
+
+//
+//		prc_monitor.c
+//
+//
 ProcessStats * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 );
+void populate_SD_by_pid(u32 pid);
 
 #endif
 
