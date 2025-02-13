@@ -4,6 +4,7 @@
 #include <arena.h>
 #include <pthread.h>
 
+#include "monitor.h"
 #include "thread_safe_queue.h"
 #include "window.h"
 
@@ -43,7 +44,8 @@ void run_ui(
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 
 //
@@ -56,6 +58,7 @@ void run_io(
     Arena *procArena,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 #endif

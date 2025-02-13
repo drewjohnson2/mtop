@@ -176,7 +176,8 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd
+    ProcessStatsViewData **vd,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 void set_start_end_idx(ProcessListState *state);

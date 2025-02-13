@@ -184,12 +184,23 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 {
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
+    const u8 dataOffsetX = 2;
+    char windowTitle[50];
+    u8 posY = 2;
 
     SET_COLOR(wd->window, MT_PAIR_BOX);
 
     werase(wd->window);
 
     box(wd->window, 0, 0);
+
+    snprintf(
+	windowTitle,
+	sizeof(windowTitle),
+	"Status for PID %d (%s)",
+	info->pid,
+	info->procName
+    );
 
     PRINTFC(
 	wd->window,
@@ -199,14 +210,53 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 	"Process Info",
 	MT_PAIR_PRC_HEADER
     );
-    PRINTFC(wd->window, 2, 3, "Name:\t%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 3, 3, "State:\t%s", info->state, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 4, 3, "PPid:\t%d", info->pPid, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 5, 3, "VmPeak:\t%d kB", info->vmPeak, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 6, 3, "VmSize:\t%d kB", info->vmSize, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 7, 3, "VmLck:\t%d kB", info->vmLck, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 8, 3, "VmPin:\t%d kB", info->vmPin, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 9, 3, "VmHWM:\t%d kB", info->vmHWM, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 10, 3, "VmRSS:\t%d kB", info->vmRSS, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, 11, 3, "Threads:\t%d", info->threads, MT_PAIR_PRC_UNSEL_TEXT);
+
+    wattron(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY++, 3, "%s", windowTitle, MT_PAIR_PRC_TBL_HEADER);
+    wattroff(wd->window, A_BOLD);
+
+    for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
+    {
+	PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
+    }
+
+    posY++;
+
+    PRINTFC(wd->window, posY++, 3, "Name:\t\t%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "State:\t\t%s", info->state, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "Pid:\t\t\t%d", info->pid, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "PPid:\t\t%d", info->pPid, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "kthread:\t\t%d", info->kthread, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "Threads:\t\t%d", info->threads, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmPeak:\t\t%d kB", info->vmPeak, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmSize:\t\t%d kB", info->vmSize, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmLck:\t\t%d kB", info->vmLck, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmPin:\t\t%d kB", info->vmPin, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmHWM:\t\t%d kB", info->vmHWM, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmRSS:\t\t%d kB", info->vmRSS, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmData:\t\t%d kB", info->vmData, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmStk:\t\t%d kB", info->vmStk, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmExe:\t\t%d kB", info->vmExe, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmLib:\t\t%d kB", info->vmLib, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmPTE:\t\t%d kB", info->vmPTE, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, 3, "VmSwap:\t\t%d kB", info->vmSwap, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(
+	wd->window,
+	posY++,
+	3,
+	"Cpus_allowed:\t%s",
+	info->cpusAllowed,
+	MT_PAIR_PRC_UNSEL_TEXT
+    );
+    PRINTFC(
+	wd->window,
+	posY++,
+	3,
+	"Cpus_allowed_list:\t%s",
+	info->cpusAllowedList,
+	MT_PAIR_PRC_UNSEL_TEXT
+    );
+
+    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", "b", MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", "Return to List", MT_PAIR_CTRL_TXT);
 }

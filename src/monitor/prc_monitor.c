@@ -9,8 +9,6 @@
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 
-extern volatile ProcessInfoSharedData *prcInfoSD;
-
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
     ProcessList **item,
@@ -146,12 +144,12 @@ ProcessStats * get_processes(
 }
 
 
-void populate_SD_by_pid(u32 pid) 
+void populate_SD_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
 {
     char statusPath[32];
     char statusBuffer[1024];
 
-    snprintf(statusPath, sizeof(statusPath), "/proc/%d/status", pid);
+    snprintf(statusPath, sizeof(statusPath), "/proc/%d/status", prcInfoSd->pidToFetch);
 
     FILE *statusFile = fopen(statusPath, "r");
     
@@ -159,16 +157,27 @@ void populate_SD_by_pid(u32 pid)
     
     while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
     {
-	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSD->info->procName) > 0) continue;
-	else if (sscanf(statusBuffer, "State:\t%s\n", prcInfoSD->info->state) > 0) continue;
-	else if (sscanf(statusBuffer, "PPid:\t%d", &prcInfoSD->info->pPid) > 0) continue;
-	else if (sscanf(statusBuffer, "VmPeak:\t%d kB", &prcInfoSD->info->vmPeak) > 0) continue;
-	else if (sscanf(statusBuffer, "VmSize:\t%d kB", &prcInfoSD->info->vmSize) > 0) continue;
-	else if (sscanf(statusBuffer, "VmLck:\t%d kB", &prcInfoSD->info->vmLck) > 0) continue;
-	else if (sscanf(statusBuffer, "VmPin:\t%d kB", &prcInfoSD->info->vmPin) > 0) continue;
-	else if (sscanf(statusBuffer, "VmHWM:\t%d kB", &prcInfoSD->info->vmHWM) > 0) continue;
-	else if (sscanf(statusBuffer, "VmRSS:\t%d kB", &prcInfoSD->info->vmRSS) > 0) continue;
-	else if (sscanf(statusBuffer, "Threads:\t%hu kB", &prcInfoSD->info->threads) > 0) continue;
+	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSd->info->procName) > 0) continue;
+	else if (sscanf(statusBuffer, "State:\t%s\n", prcInfoSd->info->state) > 0) continue;
+	else if (sscanf(statusBuffer, "Pid:\t%d", &prcInfoSd->info->pid) > 0) continue;
+	else if (sscanf(statusBuffer, "PPid:\t%d", &prcInfoSd->info->pPid) > 0) continue;
+	else if (sscanf(statusBuffer, "FDSize:\t%d", &prcInfoSd->info->fdSize) > 0) continue;
+	else if (sscanf(statusBuffer, "Kthread:\t%hu ", &prcInfoSd->info->threads) > 0) continue;
+	else if (sscanf(statusBuffer, "Threads:\t%hu", &prcInfoSd->info->threads) > 0) continue;
+	else if (sscanf(statusBuffer, "VmPeak:\t%d kB", &prcInfoSd->info->vmPeak) > 0) continue;
+	else if (sscanf(statusBuffer, "VmSize:\t%d kB", &prcInfoSd->info->vmSize) > 0) continue;
+	else if (sscanf(statusBuffer, "VmLck:\t%d kB", &prcInfoSd->info->vmLck) > 0) continue;
+	else if (sscanf(statusBuffer, "VmPin:\t%d kB", &prcInfoSd->info->vmPin) > 0) continue;
+	else if (sscanf(statusBuffer, "VmHWM:\t%d kB", &prcInfoSd->info->vmHWM) > 0) continue;
+	else if (sscanf(statusBuffer, "VmRSS:\t%d kB", &prcInfoSd->info->vmRSS) > 0) continue;
+	else if (sscanf(statusBuffer, "VmData:\t%d kB", &prcInfoSd->info->vmData) > 0) continue;
+	else if (sscanf(statusBuffer, "VmStk:\t%d kB", &prcInfoSd->info->vmStk) > 0) continue;
+	else if (sscanf(statusBuffer, "VmExe:\t%d kB", &prcInfoSd->info->vmExe) > 0) continue;
+	else if (sscanf(statusBuffer, "VmLib:\t%d kB", &prcInfoSd->info->vmLib) > 0) continue;
+	else if (sscanf(statusBuffer, "VmPTE:\t%d kB", &prcInfoSd->info->vmPTE) > 0) continue;
+	else if (sscanf(statusBuffer, "VmSwap:\t%d kB", &prcInfoSd->info->vmSwap) > 0) continue;
+	else if (sscanf(statusBuffer, "Cpus_allowed:\t%s ", prcInfoSd->info->cpusAllowed) > 0) continue;
+	else if (sscanf(statusBuffer, "Cpus_allowed_list:\t%s ", prcInfoSd->info->cpusAllowedList) > 0) continue;
     }
 
     fclose(statusFile);

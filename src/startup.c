@@ -19,6 +19,7 @@ typedef struct _ui_thread_args
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
+    volatile ProcessInfoSharedData *prcInfoSD;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
@@ -29,6 +30,7 @@ typedef struct _io_thread_args
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
+    volatile ProcessInfoSharedData *prcInfoSD;
 } IOThreadArgs;
 
 Arena windowArena;
@@ -109,6 +111,7 @@ void run()
     	.memGraphArena = &memoryGraphArena,
     	.memQueue = memoryQueue,
     	.prcQueue = prcQueue,
+	.prcInfoSD = prcInfoSD
     };
     
     IOThreadArgs ioArgs = 
@@ -118,7 +121,8 @@ void run()
     	.prcArena = &prcArena,
     	.cpuQueue = cpuQueue,
     	.memQueue = memoryQueue,
-	.prcQueue = prcQueue
+	.prcQueue = prcQueue,
+	.prcInfoSD = prcInfoSD
     };
     
     pthread_t ioThread;
@@ -195,7 +199,8 @@ static void * _ui_thread_run(void *arg)
     	args->di,
     	args->cpuQueue,
     	args->memQueue,
-    	args->prcQueue
+    	args->prcQueue,
+	args->prcInfoSD
     );
     
     return NULL;
@@ -211,7 +216,8 @@ static void * _io_thread_run(void *arg)
     	args->prcArena,
     	args->cpuQueue,
     	args->memQueue,
-    	args->prcQueue
+    	args->prcQueue,
+	args->prcInfoSD
     );
     
     return NULL;

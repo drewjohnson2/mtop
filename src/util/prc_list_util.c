@@ -16,8 +16,6 @@ typedef enum _nav_direction
     JUMP_UP
 } NavDirection;
 
-extern volatile ProcessInfoSharedData *prcInfoSD;
-
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 
 void set_start_end_idx(ProcessListState *state) 
@@ -62,7 +60,8 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd
+    ProcessStatsViewData **vd,
+    volatile ProcessInfoSharedData *prcInfoSd
 )
 {
     char ch = wgetch(win);
@@ -152,7 +151,7 @@ void read_input(
 	    
 	    return;
 	case 10:
-	    prcInfoSD->needsFetch = 1;
+	    prcInfoSd->needsFetch = 1;
 	    state->infoVisible = 1;
 	    
 	    return;

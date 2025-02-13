@@ -10,15 +10,14 @@
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
 
-extern volatile ProcessInfoSharedData *prcInfoSD;
-
 void run_io(
     Arena *cpuArena,
     Arena *memArena,
     Arena *procArena,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
     pthread_mutex_lock(&procDataLock);
@@ -70,12 +69,12 @@ void run_io(
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	if (prcInfoSD->needsFetch && prcInfoSD->pidToFetch > 0)
+	if (prcInfoSd->needsFetch && prcInfoSd->pidToFetch > 0)
 	{
 	    pthread_mutex_lock(&procInfoLock);
-	    populate_SD_by_pid(prcInfoSD->pidToFetch); 
+	    populate_SD_by_pid(prcInfoSd); 
 
-	    prcInfoSD->needsFetch = 0;
+	    prcInfoSd->needsFetch = 0;
 
 	    pthread_cond_signal(&procInfoCondition);
 	    pthread_mutex_unlock(&procInfoLock);

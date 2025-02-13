@@ -16,15 +16,14 @@
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
 
-extern volatile ProcessInfoSharedData *prcInfoSD;
-
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,
-    ThreadSafeQueue *prcQueue
+    ThreadSafeQueue *prcQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 )
 {
     float cpuPercentage, memoryPercentage;
@@ -147,22 +146,7 @@ void run_ui(
 	    listState->sortFunc
 	);
 
-	read_input(container->window, listState, di, vd);
-
-	if (prcInfoSD->needsFetch)
-	{
-	    pthread_mutex_lock(&procInfoLock);
-
-	    prcInfoSD->pidToFetch = vd[listState->selectedIndex]->pid;
-
-	    while (prcInfoSD->needsFetch)
-		pthread_cond_wait(&procInfoCondition, &procInfoLock);
-
-	    prcInfoSD->pidToFetch = 0;
-	    prcInfoSD->needsFetch = 0;
-
-	    pthread_mutex_unlock(&procInfoLock);
-	}
+	read_input(container->window, listState, di, vd, prcInfoSd);
 
 	if (!listState->infoVisible)
 	{
@@ -175,7 +159,16 @@ void run_ui(
 	}
 	else 
 	{
-	    show_prc_info(prcInfoSD->info, procWin);
+	    pthread_mutex_lock(&procInfoLock);
+
+	    prcInfoSd->pidToFetch = vd[listState->selectedIndex]->pid;
+
+	    while (prcInfoSd->needsFetch)
+		pthread_cond_wait(&procInfoCondition, &procInfoLock);
+
+
+	    show_prc_info(prcInfoSd->info, procWin);
+	    pthread_mutex_unlock(&procInfoLock);
 	}
     
     	a_free(&scratch);
