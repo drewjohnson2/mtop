@@ -6,8 +6,12 @@
 #include <unistd.h>
 
 #include "../../include/monitor.h"
+#include "../../include/sorting.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
+
+
+static int _copy_if_tracked_stat(char *buf);
 
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
@@ -155,30 +159,24 @@ void populate_SD_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
     
     if (!statusFile) return;
     
+    size_t i = 0;
+
     while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
     {
-	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSd->info->procName) > 0) continue;
-	else if (sscanf(statusBuffer, "State:\t%s\n", prcInfoSd->info->state) > 0) continue;
-	else if (sscanf(statusBuffer, "Pid:\t%d", &prcInfoSd->info->pid) > 0) continue;
-	else if (sscanf(statusBuffer, "PPid:\t%d", &prcInfoSd->info->pPid) > 0) continue;
-	else if (sscanf(statusBuffer, "FDSize:\t%d", &prcInfoSd->info->fdSize) > 0) continue;
-	else if (sscanf(statusBuffer, "Kthread:\t%hu ", &prcInfoSd->info->threads) > 0) continue;
-	else if (sscanf(statusBuffer, "Threads:\t%hu", &prcInfoSd->info->threads) > 0) continue;
-	else if (sscanf(statusBuffer, "VmPeak:\t%d kB", &prcInfoSd->info->vmPeak) > 0) continue;
-	else if (sscanf(statusBuffer, "VmSize:\t%d kB", &prcInfoSd->info->vmSize) > 0) continue;
-	else if (sscanf(statusBuffer, "VmLck:\t%d kB", &prcInfoSd->info->vmLck) > 0) continue;
-	else if (sscanf(statusBuffer, "VmPin:\t%d kB", &prcInfoSd->info->vmPin) > 0) continue;
-	else if (sscanf(statusBuffer, "VmHWM:\t%d kB", &prcInfoSd->info->vmHWM) > 0) continue;
-	else if (sscanf(statusBuffer, "VmRSS:\t%d kB", &prcInfoSd->info->vmRSS) > 0) continue;
-	else if (sscanf(statusBuffer, "VmData:\t%d kB", &prcInfoSd->info->vmData) > 0) continue;
-	else if (sscanf(statusBuffer, "VmStk:\t%d kB", &prcInfoSd->info->vmStk) > 0) continue;
-	else if (sscanf(statusBuffer, "VmExe:\t%d kB", &prcInfoSd->info->vmExe) > 0) continue;
-	else if (sscanf(statusBuffer, "VmLib:\t%d kB", &prcInfoSd->info->vmLib) > 0) continue;
-	else if (sscanf(statusBuffer, "VmPTE:\t%d kB", &prcInfoSd->info->vmPTE) > 0) continue;
-	else if (sscanf(statusBuffer, "VmSwap:\t%d kB", &prcInfoSd->info->vmSwap) > 0) continue;
-	else if (sscanf(statusBuffer, "Cpus_allowed:\t%s ", prcInfoSd->info->cpusAllowed) > 0) continue;
-	else if (sscanf(statusBuffer, "Cpus_allowed_list:\t%s ", prcInfoSd->info->cpusAllowedList) > 0) continue;
+	int isTracked = _copy_if_tracked_stat(statusBuffer);
+
+	if (isTracked) 
+	{
+	    strcpy(prcInfoSd->info->stats[i++], statusBuffer);
+	}
     }
 
     fclose(statusFile);
+}
+
+static int _copy_if_tracked_stat(char *buf)
+{
+    char **res = bsearch(buf, trackedStats, 19, sizeof(char *), prc_tracked_stat_cmp);
+
+    return res ? 1 : 0;
 }

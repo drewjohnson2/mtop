@@ -67,7 +67,7 @@ void run()
     	(MAX_PROCS * sizeof(ProcessList))	// or not
     );
     queueArena = a_new(2048);
-    general = a_new(512);
+    general = a_new(1024 * 20);
     
     DisplayItems *di = init_display_items(&windowArena);
     

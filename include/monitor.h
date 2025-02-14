@@ -28,26 +28,27 @@ typedef struct _proc_stats
 typedef struct _proc_info
 {
     char procName[99];
-    char state[99];
-    u32 pid;
-    u32 pPid;
-    u32 fdSize;
-    u32 kthread;
-    u16 threads;
-    u32 vmPeak;
-    u32 vmSize;
-    u32 vmLck;
-    u32 vmPin;
-    u32 vmHWM;
-    u32 vmRSS;
-    u32 vmData;
-    u32 vmStk;
-    u32 vmExe;
-    u32 vmLib;
-    u32 vmPTE;
-    u32 vmSwap;
-    char cpusAllowed[10];
-    char cpusAllowedList[10];
+    char stats[19][1024];
+    //char state[99];
+     u32 pid;
+    // u32 pPid;
+    // u32 fdSize;
+    // u32 kthread;
+    // u16 threads;
+    // u32 vmPeak;
+    // u32 vmSize;
+    // u32 vmLck;
+    // u32 vmPin;
+    // u32 vmHWM;
+    // u32 vmRSS;
+    // u32 vmData;
+    // u32 vmStk;
+    // u32 vmExe;
+    // u32 vmLib;
+    // u32 vmPTE;
+    // u32 vmSwap;
+    // char cpusAllowed[10];
+    // char cpusAllowedList[10];
 } ProcessInfo;
 
 typedef struct _proc_info_shared_data 
@@ -81,6 +82,29 @@ typedef struct _cpu_stats
     u64 guest;
     u64 guestNice;
 } CpuStats;
+
+static const char *trackedStats[19] = 
+{
+    "Cpus_allowed",     
+    "Cpus_allowed_list",
+    "FDSize", 	       
+    "Kthread ", 	       
+    "PPid", 	       
+    "State", 	       
+    "Threads", 	       
+    "VmData", 	       
+    "VmExe", 	       
+    "VmHWM", 	       
+    "VmLck", 	       
+    "VmLib", 	       
+    "VmPeak", 	       
+    "VmPin", 	       
+    "VmPTE", 	       
+    "VmRSS", 	       
+    "VmSize", 	       
+    "VmStk", 	       
+    "VmSwap", 	       
+};
 
 #define CALCULATE_MEMORY_USAGE(stats, percentage) 				\
     do { 									\
