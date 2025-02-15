@@ -94,7 +94,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[36] = 
+static const char *_text[40] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -131,7 +131,11 @@ static const char *_text[36] =
     "<C-u>",				// 32
     "Jump Up",				// 33
     "<C-d>",				// 34
-    "Jump Down"				// 35
+    "Jump Down",			// 35
+    "b",				// 36
+    "Return to List",			// 37
+    "Status for PID %d (%s)",		// 38
+    "Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf"
 };
 
 //

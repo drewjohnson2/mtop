@@ -166,7 +166,6 @@ void run_ui(
 	    while (prcInfoSd->needsFetch)
 		pthread_cond_wait(&procInfoCondition, &procInfoLock);
 
-
 	    show_prc_info(prcInfoSd->info, procWin);
 	    pthread_mutex_unlock(&procInfoLock);
 	}

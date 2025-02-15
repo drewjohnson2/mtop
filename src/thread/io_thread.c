@@ -72,7 +72,7 @@ void run_io(
 	if (prcInfoSd->needsFetch && prcInfoSd->pidToFetch > 0)
 	{
 	    pthread_mutex_lock(&procInfoLock);
-	    populate_SD_by_pid(prcInfoSd); 
+	    get_prc_info_by_pid(prcInfoSd); 
 
 	    prcInfoSd->needsFetch = 0;
 

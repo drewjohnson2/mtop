@@ -29,26 +29,7 @@ typedef struct _proc_info
 {
     char procName[99];
     char stats[19][1024];
-    //char state[99];
      u32 pid;
-    // u32 pPid;
-    // u32 fdSize;
-    // u32 kthread;
-    // u16 threads;
-    // u32 vmPeak;
-    // u32 vmSize;
-    // u32 vmLck;
-    // u32 vmPin;
-    // u32 vmHWM;
-    // u32 vmRSS;
-    // u32 vmData;
-    // u32 vmStk;
-    // u32 vmExe;
-    // u32 vmLib;
-    // u32 vmPTE;
-    // u32 vmSwap;
-    // char cpusAllowed[10];
-    // char cpusAllowedList[10];
 } ProcessInfo;
 
 typedef struct _proc_info_shared_data 
@@ -194,7 +175,7 @@ ProcessStats * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 );
-void populate_SD_by_pid(volatile ProcessInfoSharedData *prcInfoSD);
+void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSD);
 
 #endif
 

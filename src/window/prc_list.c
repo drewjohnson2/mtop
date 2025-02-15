@@ -13,7 +13,7 @@
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
 
-static char * _remove_leading_whitespace(char *str);
+static char * _trim_lws(char *str);
 
 void print_stats(
     ProcessListState *state,
@@ -188,27 +188,27 @@ void set_prc_view_data(
 
 void show_prc_info(ProcessInfo *info, const WindowData *wd) 
 {
-    Arena scratch = a_new(1024 * 19);
+    Arena scratch = a_new(256);
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
     const u8 dataOffsetX = 2;
     const u8 maxTitleLength = strlen(trackedStats[1]);
-    char windowTitle[50];
+    char prcInfoHeader[50];
     u8 posY = 2;
     u8 posX = 3;
     
     werase(wd->window);
 
     snprintf(
-	windowTitle,
-	sizeof(windowTitle),
-	"Status for PID %d (%s)",
+	prcInfoHeader,
+	sizeof(prcInfoHeader),
+	_text[38],
 	info->pid,
 	info->procName
     );
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, 3, "%s", windowTitle, MT_PAIR_PRC_TBL_HEADER);
+    PRINTFC(wd->window, posY++, 3, "%s", prcInfoHeader, MT_PAIR_PRC_TBL_HEADER);
     wattroff(wd->window, A_BOLD);
 
     for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
@@ -217,9 +217,6 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
     }
 
     posY++;
-
-    // PRINTFC(wd->window, posY++, 3, "%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
-    // PRINTFC(wd->window, posY++, 3, "%d", info->pid, MT_PAIR_PRC_UNSEL_TEXT);
 
     for (size_t i = 0; i < 19; i++)
     {
@@ -236,7 +233,7 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 	char *value = strtok(NULL, "\t");
 	u8 valuePos = maxTitleLength + posX + 2;
 
-	value = _remove_leading_whitespace(value);
+	value = _trim_lws(value);
 
 	wattron(wd->window, A_BOLD);
 	PRINTFC(wd->window, posY, posX, "%s\t", title, MT_PAIR_PRC_UNSEL_TEXT);
@@ -244,8 +241,8 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 	PRINTFC(wd->window, posY++, valuePos, "%s", value, MT_PAIR_PRC_UNSEL_TEXT);
     }
 
-    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", "b", MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", "Return to List", MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", _text[36], MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", _text[37], MT_PAIR_CTRL_TXT);
 
     SET_COLOR(wd->window, MT_PAIR_BOX);
 
@@ -265,7 +262,7 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 }
 
 
-static char * _remove_leading_whitespace(char *str)
+static char * _trim_lws(char *str)
 {
     while (*str && isspace((unsigned char)*str)) str++;
 

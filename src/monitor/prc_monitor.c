@@ -148,10 +148,10 @@ ProcessStats * get_processes(
 }
 
 
-void populate_SD_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
+void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
 {
     char statusPath[32];
-    char statusBuffer[1024];
+    char statusBuffer[256];
 
     snprintf(statusPath, sizeof(statusPath), "/proc/%d/status", prcInfoSd->pidToFetch);
 

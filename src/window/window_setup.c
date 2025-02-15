@@ -209,7 +209,7 @@ void print_uptime_ldAvg(const WindowData *wd)
     snprintf(
 	displayStr,
 	sizeof(displayStr),
-	"Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf",
+	_text[39],
 	days,
 	hours,
 	minutes,
