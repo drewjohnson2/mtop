@@ -163,6 +163,9 @@ void populate_SD_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
 
     while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
     {
+	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSd->info->procName) > 0) continue;
+	else if (sscanf(statusBuffer, "Pid:\t%d", &prcInfoSd->info->pid) > 0) continue;
+
 	int isTracked = _copy_if_tracked_stat(statusBuffer);
 
 	if (isTracked) 

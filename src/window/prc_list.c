@@ -1,14 +1,19 @@
+#include <arena.h>
 #include <bits/time.h>
+#include <ctype.h>
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
+
+static char * _remove_leading_whitespace(char *str);
 
 void print_stats(
     ProcessListState *state,
@@ -183,17 +188,16 @@ void set_prc_view_data(
 
 void show_prc_info(ProcessInfo *info, const WindowData *wd) 
 {
+    Arena scratch = a_new(1024 * 19);
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
     const u8 dataOffsetX = 2;
+    const u8 maxTitleLength = strlen(trackedStats[1]);
     char windowTitle[50];
     u8 posY = 2;
-
-    SET_COLOR(wd->window, MT_PAIR_BOX);
-
+    u8 posX = 3;
+    
     werase(wd->window);
-
-    box(wd->window, 0, 0);
 
     snprintf(
 	windowTitle,
@@ -201,15 +205,6 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 	"Status for PID %d (%s)",
 	info->pid,
 	info->procName
-    );
-
-    PRINTFC(
-	wd->window,
-	windowTitleY,
-	windowTitleX,
-	" %s ",
-	"Process Info",
-	MT_PAIR_PRC_HEADER
     );
 
     wattron(wd->window, A_BOLD);
@@ -223,14 +218,56 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
 
     posY++;
 
-    PRINTFC(wd->window, posY++, 3, "%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, posY++, 3, "%d", info->pid, MT_PAIR_PRC_UNSEL_TEXT);
+    // PRINTFC(wd->window, posY++, 3, "%s", info->procName, MT_PAIR_PRC_UNSEL_TEXT);
+    // PRINTFC(wd->window, posY++, 3, "%d", info->pid, MT_PAIR_PRC_UNSEL_TEXT);
 
     for (size_t i = 0; i < 19; i++)
     {
-	PRINTFC(wd->window, posY++, 3, "%s", info->stats[i], MT_PAIR_PRC_UNSEL_TEXT);
+	if (info->stats[i] == NULL) continue;
+
+	if (posY >= wd->wHeight - 4)
+	{
+	    posY = 4;
+	    posX = wd->wWidth / 2;
+	}
+
+	char *str = a_strdup(&scratch, info->stats[i]);
+	char *title = strtok(str, "\t");
+	char *value = strtok(NULL, "\t");
+	u8 valuePos = maxTitleLength + posX + 2;
+
+	value = _remove_leading_whitespace(value);
+
+	wattron(wd->window, A_BOLD);
+	PRINTFC(wd->window, posY, posX, "%s\t", title, MT_PAIR_PRC_UNSEL_TEXT);
+	wattroff(wd->window, A_BOLD);
+	PRINTFC(wd->window, posY++, valuePos, "%s", value, MT_PAIR_PRC_UNSEL_TEXT);
     }
 
     PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", "b", MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", "Return to List", MT_PAIR_CTRL_TXT);
+
+    SET_COLOR(wd->window, MT_PAIR_BOX);
+
+
+    box(wd->window, 0, 0);
+
+    PRINTFC(
+	wd->window,
+	windowTitleY,
+	windowTitleX,
+	" %s ",
+	"Process Info",
+	MT_PAIR_PRC_HEADER
+    );
+
+    a_free(&scratch);
+}
+
+
+static char * _remove_leading_whitespace(char *str)
+{
+    while (*str && isspace((unsigned char)*str)) str++;
+
+    return str;
 }
