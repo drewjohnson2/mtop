@@ -19,6 +19,7 @@ typedef struct _ui_thread_args
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
+    volatile ProcessInfoSharedData *prcInfoSD;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
@@ -29,6 +30,7 @@ typedef struct _io_thread_args
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
+    volatile ProcessInfoSharedData *prcInfoSD;
 } IOThreadArgs;
 
 Arena windowArena;
@@ -38,10 +40,13 @@ Arena cpuGraphArena;
 Arena memoryGraphArena;  
 Arena prcArena;
 Arena queueArena;
+Arena general;
 
 ThreadSafeQueue *cpuQueue;
 ThreadSafeQueue *memoryQueue;
 ThreadSafeQueue *prcQueue;
+
+volatile ProcessInfoSharedData *prcInfoSD;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
@@ -62,6 +67,7 @@ void run()
     	(MAX_PROCS * sizeof(ProcessList))	// or not
     );
     queueArena = a_new(2048);
+    general = a_new(1024 * 20);
     
     DisplayItems *di = init_display_items(&windowArena);
     
@@ -82,6 +88,16 @@ void run()
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
+
+    prcInfoSD = (ProcessInfoSharedData *)a_alloc(
+	&general,
+	sizeof(ProcessInfoSharedData),
+	__alignof(ProcessInfoSharedData)
+    ); 
+    prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
+
+    prcInfoSD->needsFetch = 0;
+    prcInfoSD->pidToFetch = 0;
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
     init_window_dimens(di);
@@ -95,6 +111,7 @@ void run()
     	.memGraphArena = &memoryGraphArena,
     	.memQueue = memoryQueue,
     	.prcQueue = prcQueue,
+	.prcInfoSD = prcInfoSD
     };
     
     IOThreadArgs ioArgs = 
@@ -104,12 +121,13 @@ void run()
     	.prcArena = &prcArena,
     	.cpuQueue = cpuQueue,
     	.memQueue = memoryQueue,
-	.prcQueue = prcQueue
+	.prcQueue = prcQueue,
+	.prcInfoSD = prcInfoSD
     };
     
     pthread_t ioThread;
     pthread_t ui_thread;
-    
+
     // setup
     mutex_init();
     condition_init();
@@ -168,6 +186,7 @@ void cleanup()
     a_free(&memoryGraphArena);
     a_free(&prcArena);
     a_free(&queueArena);
+    a_free(&general);
 }
 
 static void * _ui_thread_run(void *arg)
@@ -180,7 +199,8 @@ static void * _ui_thread_run(void *arg)
     	args->di,
     	args->cpuQueue,
     	args->memQueue,
-    	args->prcQueue
+    	args->prcQueue,
+	args->prcInfoSD
     );
     
     return NULL;
@@ -196,7 +216,8 @@ static void * _io_thread_run(void *arg)
     	args->prcArena,
     	args->cpuQueue,
     	args->memQueue,
-    	args->prcQueue
+    	args->prcQueue,
+	args->prcInfoSD
     );
     
     return NULL;

@@ -6,8 +6,12 @@
 #include <unistd.h>
 
 #include "../../include/monitor.h"
+#include "../../include/sorting.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
+
+
+static int _copy_if_tracked_stat(char *buf);
 
 static void _fetch_proc_pid_stat(
     Arena *prcArena,
@@ -141,4 +145,41 @@ ProcessStats * get_processes(
     closedir(directory);
     
     return procStats;
+}
+
+
+void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
+{
+    char statusPath[32];
+    char statusBuffer[256];
+
+    snprintf(statusPath, sizeof(statusPath), "/proc/%d/status", prcInfoSd->pidToFetch);
+
+    FILE *statusFile = fopen(statusPath, "r");
+    
+    if (!statusFile) return;
+    
+    size_t i = 0;
+
+    while (fgets(statusBuffer, sizeof(statusBuffer), statusFile))
+    {
+	if (sscanf(statusBuffer, "Name:\t%s", prcInfoSd->info->procName) > 0) continue;
+	else if (sscanf(statusBuffer, "Pid:\t%d", &prcInfoSd->info->pid) > 0) continue;
+
+	int isTracked = _copy_if_tracked_stat(statusBuffer);
+
+	if (isTracked) 
+	{
+	    strcpy(prcInfoSd->info->stats[i++], statusBuffer);
+	}
+    }
+
+    fclose(statusFile);
+}
+
+static int _copy_if_tracked_stat(char *buf)
+{
+    char **res = bsearch(buf, trackedStats, 19, sizeof(char *), prc_tracked_stat_cmp);
+
+    return res ? 1 : 0;
 }

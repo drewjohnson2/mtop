@@ -22,7 +22,8 @@ void run_ui(
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,
-    ThreadSafeQueue *prcQueue
+    ThreadSafeQueue *prcQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 )
 {
     float cpuPercentage, memoryPercentage;
@@ -79,6 +80,7 @@ void run_ui(
     listState->pageEndIdx = listState->pageSize - 1;
     listState->sortFunc = vd_name_compare_func;   
     listState->sortOrder = PRC_NAME;
+    listState->infoVisible = 0;
 
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
@@ -88,7 +90,9 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
+	print_uptime_ldAvg(container);
 	print_time(container);
+
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
@@ -142,14 +146,29 @@ void run_ui(
 	    listState->sortFunc
 	);
 
-	read_input(container->window, listState, di, vd);
+	read_input(container->window, listState, di, vd, prcInfoSd);
 
-    	print_stats(
-	    listState,
-	    procWin,
-	    vd,
-	    curPrcs->count
-    	);
+	if (!listState->infoVisible)
+	{
+	   print_stats(
+	       listState,
+	       procWin,
+	       vd,
+	       curPrcs->count
+    	   );
+	}
+	else 
+	{
+	    pthread_mutex_lock(&procInfoLock);
+
+	    prcInfoSd->pidToFetch = vd[listState->selectedIndex]->pid;
+
+	    while (prcInfoSd->needsFetch)
+		pthread_cond_wait(&procInfoCondition, &procInfoLock);
+
+	    show_prc_info(prcInfoSd->info, procWin);
+	    pthread_mutex_unlock(&procInfoLock);
+	}
     
     	a_free(&scratch);
     

@@ -4,6 +4,7 @@
 #include <arena.h>
 #include <pthread.h>
 
+#include "monitor.h"
 #include "thread_safe_queue.h"
 #include "window.h"
 
@@ -15,10 +16,12 @@
 extern pthread_mutex_t cpuQueueLock;
 extern pthread_mutex_t memQueueLock;
 extern pthread_mutex_t procDataLock;
+extern pthread_mutex_t procInfoLock;
 
 extern pthread_cond_t cpuQueueCondition;
 extern pthread_cond_t memQueueCondition;
 extern pthread_cond_t procQueueCondition;
+extern pthread_cond_t procInfoCondition;
 
 extern volatile s8 SHUTDOWN_FLAG;
 
@@ -41,7 +44,8 @@ void run_ui(
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memoryQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 
 //
@@ -54,6 +58,7 @@ void run_io(
     Arena *procArena,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 #endif

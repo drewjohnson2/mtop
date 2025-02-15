@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #include "../../include/sorting.h"
 #include "../../include/monitor.h"
@@ -25,6 +26,16 @@ int prc_pid_compare(const void *a, const void *b)
     const ProcessList *y = *(ProcessList **)b;
     
     return x->pid - y->pid;
+}
+
+int prc_tracked_stat_cmp(const void *a, const void *b)
+{
+    assert(a && b);
+
+    const char *x = (const char *)a;
+    const char *y = *(const char **)b;
+
+    return strncmp(x, y, strlen(y));
 }
 
 int vd_name_compare_func(const void *a, const void *b)
@@ -86,3 +97,4 @@ int vd_mem_compare_func(const void *a, const void *b)
 
     return sortDirection == DESC ? descRet : ascRet;
 }
+

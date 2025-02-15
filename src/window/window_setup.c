@@ -2,9 +2,13 @@
 #include <ncurses.h>
 #include <arena.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <linux/kernel.h>
+#include <sys/sysinfo.h>
 
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
@@ -108,6 +112,9 @@ void init_window_dimens(DisplayItems *di)
     optWin->wHeight = container->wHeight / 4;
     optWin->windowX = (container->wWidth / 2) - (container->wWidth / 8);
     optWin->windowY = (container->wHeight / 2) - (container->wHeight / 8);
+
+    if (optWin->wHeight < 16) optWin->wHeight = 17;
+    if (optWin->wWidth < 50) optWin->wWidth = 55;
 }
 
 void init_windows(DisplayItems *di) 
@@ -150,9 +157,9 @@ void print_header(const WindowData *wd)
     char *user = getlogin();
     
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, 0, 2, "%s", _text[20], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, 0, 2, "%s", _text[20], MT_PAIR_MTOP_LBL);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_BOX);
+    PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_USR_LBL);
 }
 
 void print_time(const WindowData *wd)
@@ -165,7 +172,56 @@ void print_time(const WindowData *wd)
 
     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &tmNow);
 
-    PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_BOX);
+    PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_TM);
+}
+
+// Need to move the data calls from this function
+// and ^ that function to the IO thread if possible.
+// I know it's not a big deal, but that's something
+// that I should probably be doing just to be consistent.
+void print_uptime_ldAvg(const WindowData *wd)
+{
+    struct sysinfo info;
+    s16 days;
+    u64 uptime;
+    s16 hours;
+    s16 minutes;
+    s16 seconds;
+    s8 error = sysinfo(&info);
+
+    if (error) return;
+
+    char displayStr[66];
+
+    uptime = info.uptime;
+    days = uptime / 86400;
+    uptime %= 86400;
+    hours = uptime / 3600;
+    uptime %= 3600;
+    minutes = uptime / 60;
+    seconds = uptime %= 60;
+
+    double load[3];
+    error = getloadavg(load, 3);
+
+    if (error == -1) return;
+
+    snprintf(
+	displayStr,
+	sizeof(displayStr),
+	_text[39],
+	days,
+	hours,
+	minutes,
+	seconds,
+	load[0],
+	load[1],
+	load[2]
+    );
+
+    const u8 uptimeX = (wd->wWidth / 2) - (strlen(displayStr) / 2);
+
+    PRINTFC(wd->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
 }
 
 void print_footer(const WindowData *wd)
@@ -184,24 +240,24 @@ void print_footer(const WindowData *wd)
     const u8 optionsCtrlX = 60;
     const u8 optionsLabelX = optionsCtrlX + 2;
 
-    PRINTFC(wd->window, wd->wHeight - 1, killPrcCtrlX, "%s", _text[0], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(wd->window, wd->wHeight - 1, killPrcCtrlX, "%s", _text[0], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, killPrcLabelX, " %s ",
-	    _text[1], MT_PAIR_PRC_UNSEL_TEXT);
+	    _text[1], MT_PAIR_CTRL_TXT);
     PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
 	_text[2], 
-	MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, downCtrlX, "%s", _text[3], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, downLableX, "%s", _text[4], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, upCtrlX, "%s", _text[5], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, upLabelX, "%s", _text[6], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, pLeftCtrlX, "%s", _text[29], MT_PAIR_PRC_SEL_TEXT);
+	MT_PAIR_GITHUB);
+    PRINTFC(wd->window, wd->wHeight - 1, downCtrlX, "%s", _text[3], MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 1, downLableX, "%s", _text[4], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 1, upCtrlX, "%s", _text[5], MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 1, upLabelX, "%s", _text[6], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pLeftCtrlX, "%s", _text[29], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, pLeftLabelX, "%s",
-	    _text[28], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, pRightCtrlX, "%s", _text[31], MT_PAIR_PRC_SEL_TEXT);
+	    _text[28], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 1, pRightCtrlX, "%s", _text[31], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, pRightLabelX, "%s",
-	    _text[30], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, optionsCtrlX, "%s", _text[7], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(wd->window, wd->wHeight - 1, optionsLabelX, "%s", _text[8], MT_PAIR_PRC_UNSEL_TEXT);
+	    _text[30], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 1, optionsCtrlX, "%s", _text[7], MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 1, optionsLabelX, "%s", _text[8], MT_PAIR_CTRL_TXT);
 }
 
 void display_options(DisplayItems *di)
@@ -225,25 +281,25 @@ void display_options(DisplayItems *di)
     box(optWin->window, 0, 0);
 
     PRINTFC(optWin->window, titlePosY, titlePosX, "%s", _text[9], MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, jUpCtrlY, ctrlBtnStartX, "%s", _text[32], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, jUpCtrlY, infoStartX, "%s", _text[33], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, jUpCtrlY, ctrlBtnStartX, "%s", _text[32], MT_PAIR_CTRL);
+    PRINTFC(optWin->window, jUpCtrlY, infoStartX, "%s", _text[33], MT_PAIR_CTRL_TXT);
 
-    PRINTFC(optWin->window, jDownCtrlY, ctrlBtnStartX, "%s", _text[34], MT_PAIR_PRC_SEL_TEXT);
-    PRINTFC(optWin->window, jDownCtrlY, infoStartX, "%s", _text[35], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(optWin->window, jDownCtrlY, ctrlBtnStartX, "%s", _text[34], MT_PAIR_CTRL);
+    PRINTFC(optWin->window, jDownCtrlY, infoStartX, "%s", _text[35], MT_PAIR_CTRL_TXT);
 
-    PRINTFC(optWin->window, sProcNmY, ctrlStartX, "%s", _text[10], MT_PAIR_PRC_SEL_TEXT);
+    PRINTFC(optWin->window, sProcNmY, ctrlStartX, "%s", _text[10], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sProcNmY, infoStartX, "%s ", _text[11],
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, sPidY, ctrlStartX, "%s", _text[12], MT_PAIR_PRC_SEL_TEXT);
+	    MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, sPidY, ctrlStartX, "%s", _text[12], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sPidY, infoStartX, "%s ", _text[13], 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, sCpuY, ctrlStartX, "%s", _text[14], MT_PAIR_PRC_SEL_TEXT);
+	    MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, sCpuY, ctrlStartX, "%s", _text[14], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sCpuY, infoStartX, "%s ", _text[15], 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, sMemY, ctrlStartX, "%s", _text[16], MT_PAIR_PRC_SEL_TEXT);
+	    MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, sMemY, ctrlStartX, "%s", _text[16], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sMemY, infoStartX, "%s ", _text[17], 
-	    MT_PAIR_PRC_UNSEL_TEXT);
-    PRINTFC(optWin->window, sCloseOpts, ctrlStartX, "%s", _text[18], MT_PAIR_PRC_SEL_TEXT);
+	    MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, sCloseOpts, ctrlStartX, "%s", _text[18], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sCloseOpts, infoStartX, "%s ", _text[19], 
-	    MT_PAIR_PRC_UNSEL_TEXT);
+	    MT_PAIR_CTRL_TXT);
 }

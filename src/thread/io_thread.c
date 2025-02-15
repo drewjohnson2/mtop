@@ -16,7 +16,8 @@ void run_io(
     Arena *procArena,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *memQueue,
-    ThreadSafeQueue *procQueue
+    ThreadSafeQueue *procQueue,
+    volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
     pthread_mutex_lock(&procDataLock);
@@ -67,6 +68,17 @@ void run_io(
     
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
+
+	if (prcInfoSd->needsFetch && prcInfoSd->pidToFetch > 0)
+	{
+	    pthread_mutex_lock(&procInfoLock);
+	    get_prc_info_by_pid(prcInfoSd); 
+
+	    prcInfoSd->needsFetch = 0;
+
+	    pthread_cond_signal(&procInfoCondition);
+	    pthread_mutex_unlock(&procInfoLock);
+	}
     
 	usleep(READ_SLEEP_TIME);
     }

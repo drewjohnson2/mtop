@@ -25,6 +25,20 @@ typedef struct _proc_stats
     ProcessList **processes;
 } ProcessStats;
 
+typedef struct _proc_info
+{
+    char procName[99];
+    char stats[19][1024];
+     u32 pid;
+} ProcessInfo;
+
+typedef struct _proc_info_shared_data 
+{
+    u32 needsFetch;
+    u32 pidToFetch;
+    ProcessInfo *info;
+} ProcessInfoSharedData;
+
 typedef struct _mem_stats
 {
     u64 memTotal;
@@ -49,6 +63,29 @@ typedef struct _cpu_stats
     u64 guest;
     u64 guestNice;
 } CpuStats;
+
+static const char *trackedStats[19] = 
+{
+    "Cpus_allowed",
+    "Cpus_allowed_list",
+    "FDSize",
+    "Kthread",
+    "PPid",
+    "State",
+    "Threads",
+    "VmData",
+    "VmExe",
+    "VmHWM",
+    "VmLck",
+    "VmLib",
+    "VmPTE",
+    "VmPeak",
+    "VmPin",
+    "VmRSS",
+    "VmSize",
+    "VmStk",
+    "VmSwap",
+};
 
 #define CALCULATE_MEMORY_USAGE(stats, percentage) 				\
     do { 									\
@@ -118,12 +155,27 @@ static inline u64 cpu_time_now()
     return user + nice + system + idle + ioWait + irq + softIrq + steal;
 }
 
+//
+//		cpu_monitor.c
+//
+//
 CpuStats * fetch_cpu_stats(Arena *arena);
+
+//
+//		mem_monitor.c
+//
+//
 MemoryStats * fetch_memory_stats(Arena *arena);
+
+//
+//		prc_monitor.c
+//
+//
 ProcessStats * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 );
+void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSD);
 
 #endif
 

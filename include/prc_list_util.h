@@ -8,5 +8,6 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd
+    ProcessStatsViewData **vd,
+    volatile ProcessInfoSharedData *prcInfoSd
 );

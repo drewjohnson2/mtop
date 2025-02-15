@@ -86,6 +86,7 @@ typedef struct _process_list_state
     u8 activePage;
     u8 pageSize;
     s8 timeoutActive;
+    u8 infoVisible;
     char cmdBuffer;
     SortOrder sortOrder;
     struct timespec timeoutStart;
@@ -93,7 +94,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[36] = 
+static const char *_text[40] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -130,7 +131,11 @@ static const char *_text[36] =
     "<C-u>",				// 32
     "Jump Up",				// 33
     "<C-d>",				// 34
-    "Jump Down"				// 35
+    "Jump Down",			// 35
+    "b",				// 36
+    "Return to List",			// 37
+    "Status for PID %d (%s)",		// 38
+    "Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf"
 };
 
 //
@@ -143,6 +148,7 @@ void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
+void print_uptime_ldAvg(const WindowData *wd);
 void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
 
@@ -174,9 +180,11 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd
+    ProcessStatsViewData **vd,
+    volatile ProcessInfoSharedData *prcInfoSd
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 void set_start_end_idx(ProcessListState *state);
+void show_prc_info(ProcessInfo *info, const WindowData *wd);
 
 #endif

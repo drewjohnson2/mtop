@@ -1,8 +1,10 @@
 
+#include <ncurses.h>
 #include <signal.h>
 
 #include "../../include/prc_list_util.h"
 #include "../../include/thread.h"
+#include "../../include/monitor.h"
 
 typedef enum _nav_direction
 {
@@ -58,7 +60,8 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd
+    ProcessStatsViewData **vd,
+    volatile ProcessInfoSharedData *prcInfoSd
 )
 {
     char ch = wgetch(win);
@@ -146,6 +149,15 @@ void read_input(
 	case 'o':
 	    di->optionsVisible = !di->optionsVisible;
 	    
+	    return;
+	case 10:
+	    prcInfoSd->needsFetch = 1;
+	    state->infoVisible = 1;
+	    
+	    return;
+	case 'b':
+	    state->infoVisible = 0;
+
 	    return;
     	case 'q':
 	    SHUTDOWN_FLAG = 1;
