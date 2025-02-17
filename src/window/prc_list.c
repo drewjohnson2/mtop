@@ -186,7 +186,7 @@ void set_prc_view_data(
     }
 }
 
-void show_prc_info(ProcessInfo *info, const WindowData *wd) 
+void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd) 
 {
     Arena scratch = a_new(256);
     const u8 windowTitleY = 0;
@@ -217,6 +217,17 @@ void show_prc_info(ProcessInfo *info, const WindowData *wd)
     }
 
     posY++;
+
+
+    wattron(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_UNSEL_TEXT);
+    wattroff(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->cpuPercentage, MT_PAIR_PRC_UNSEL_TEXT);
+
+    wattron(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY, posX, "%s", _text[41], MT_PAIR_PRC_UNSEL_TEXT);
+    wattroff(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->memPercentage, MT_PAIR_PRC_UNSEL_TEXT);
 
     for (size_t i = 0; i < 19; i++)
     {

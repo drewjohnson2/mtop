@@ -161,12 +161,10 @@ void run_ui(
 	{
 	    pthread_mutex_lock(&procInfoLock);
 
-	    prcInfoSd->pidToFetch = vd[listState->selectedIndex]->pid;
-
 	    while (prcInfoSd->needsFetch)
 		pthread_cond_wait(&procInfoCondition, &procInfoLock);
 
-	    show_prc_info(prcInfoSd->info, procWin);
+	    show_prc_info(vd[listState->selectedIndex], prcInfoSd->info, procWin);
 	    pthread_mutex_unlock(&procInfoLock);
 	}
     
@@ -187,6 +185,11 @@ void run_ui(
 	else 
 	{
 	    REFRESH_WIN(container->window);
+	}
+
+	if (listState->infoVisible)
+	{
+	    prcInfoSd->needsFetch = 1;
 	}
     
     	usleep(DISPLAY_SLEEP_TIME);

@@ -87,6 +87,7 @@ void read_input(
     }
     
     if (ch == -1) return;
+    if (state->infoVisible && (ch != 'b' && ch != 'q')) return;
     
     switch (ch)
     {
@@ -153,6 +154,7 @@ void read_input(
 	case 10:
 	    prcInfoSd->needsFetch = 1;
 	    state->infoVisible = 1;
+	    prcInfoSd->pidToFetch = vd[state->selectedIndex]->pid;
 	    
 	    return;
 	case 'b':

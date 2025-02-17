@@ -94,7 +94,7 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-static const char *_text[40] = 
+static const char *_text[42] = 
 {
     "dd",				// 0				
     "Kill Process",			// 1
@@ -135,7 +135,9 @@ static const char *_text[40] =
     "b",				// 36
     "Return to List",			// 37
     "Status for PID %d (%s)",		// 38
-    "Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf"
+    "Uptime: %u days, %02u:%02u:%02u\tLoad Average: %.2lf %.2lf %.2lf",
+    "CPU %: ",				// 40
+    "Memory %:"				// 41
 };
 
 //
@@ -185,6 +187,6 @@ void read_input(
 );
 void adjust_state(ProcessListState *state, ProcessStats *stats);
 void set_start_end_idx(ProcessListState *state);
-void show_prc_info(ProcessInfo *info, const WindowData *wd);
+void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd);
 
 #endif
