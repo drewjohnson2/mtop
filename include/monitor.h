@@ -7,7 +7,7 @@
 
 #include "mt_type_defs.h"
 
-#define MAX_PROCS 100 
+#define MAX_PROCS 150 
 
 typedef struct _proc_list
 {
@@ -28,7 +28,7 @@ typedef struct _proc_stats
 typedef struct _proc_info
 {
     char procName[99];
-    char stats[19][1024];
+    char stats[19][256];
      u32 pid;
 } ProcessInfo;
 

@@ -32,7 +32,7 @@ void run_ui(
     MemoryStats *memStats = NULL;
     const WindowData *cpuWin = di->windows[CPU_WIN];
     const WindowData *memWin = di->windows[MEMORY_WIN];
-    const WindowData *procWin = di->windows[PRC_WIN];
+    const WindowData *prcWin = di->windows[PRC_WIN];
     const WindowData *optWin = di->windows[OPT_WIN];
     const WindowData *container = di->windows[CONTAINER_WIN];
     GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
@@ -71,7 +71,7 @@ void run_ui(
     listState->selectedIndex = 0;
     listState->pageStartIdx = 0;
     listState->count = curPrcs->count;
-    listState->pageSize = procWin->wHeight - 5;
+    listState->pageSize = prcWin->wHeight - 5;
     listState->totalPages = listState->count / listState->pageSize;
 
     if (listState->count % listState->pageSize > 0)
@@ -84,7 +84,10 @@ void run_ui(
 
     import_colors();
     wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-
+    wbkgd(prcWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    wbkgd(cpuWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    wbkgd(memWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    wbkgd(optWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
     print_header(container);
     print_footer(container);
     
@@ -152,7 +155,7 @@ void run_ui(
 	{
 	   print_stats(
 	       listState,
-	       procWin,
+	       prcWin,
 	       vd,
 	       curPrcs->count
     	   );
@@ -164,7 +167,7 @@ void run_ui(
 	    while (prcInfoSd->needsFetch)
 		pthread_cond_wait(&procInfoCondition, &procInfoLock);
 
-	    show_prc_info(vd[listState->selectedIndex], prcInfoSd->info, procWin);
+	    show_prc_info(vd[listState->selectedIndex], prcInfoSd->info, prcWin);
 	    pthread_mutex_unlock(&procInfoLock);
 	}
     

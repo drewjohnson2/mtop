@@ -55,19 +55,18 @@ void run()
 {
     FILE *tty = fopen("/dev/tty", "r+");
     SCREEN *screen = newterm(NULL, tty, tty);
-    
+
+    // If program starts crashing randomly after
+    // any period of time it's probably time to roll
+    // back to a different commit on this allocation block.
     windowArena = a_new(256);
     cpuArena = a_new(sizeof(CpuStats) + 8);
     memArena = a_new(sizeof(MemoryStats) + 8);
-    cpuGraphArena = a_new(2048);     
-    memoryGraphArena = a_new(2048);  
-    prcArena = a_new(
-	(MAX_PROCS * sizeof(ProcessList *)) + 	// I need to do some closer
-    	sizeof(ProcessStats) +			// looking and see if this is retarded
-    	(MAX_PROCS * sizeof(ProcessList))	// or not
-    );
-    queueArena = a_new(2048);
-    general = a_new(1024 * 20);
+    cpuGraphArena = a_new(sizeof(GraphData));     
+    memoryGraphArena = a_new(sizeof(GraphData));  
+    prcArena = a_new(MAX_PROCS * sizeof(ProcessList *));
+    queueArena = a_new(sizeof(ThreadSafeQueue));
+    general = a_new(256 * 20);
     
     DisplayItems *di = init_display_items(&windowArena);
     

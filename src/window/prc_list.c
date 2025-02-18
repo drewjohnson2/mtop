@@ -244,6 +244,8 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 	char *value = strtok(NULL, "\t");
 	u8 valuePos = maxTitleLength + posX + 2;
 
+	if (!title || !value) continue;
+
 	value = _trim_lws(value);
 
 	wattron(wd->window, A_BOLD);
