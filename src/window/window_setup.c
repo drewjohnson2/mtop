@@ -113,8 +113,16 @@ void init_window_dimens(DisplayItems *di)
     optWin->windowX = (container->wWidth / 2) - (container->wWidth / 8);
     optWin->windowY = (container->wHeight / 2) - (container->wHeight / 8);
 
-    if (optWin->wHeight < 16) optWin->wHeight = 17;
-    if (optWin->wWidth < 50) optWin->wWidth = 55;
+    if (optWin->wHeight < 16)
+    {
+	optWin->wHeight = 17;
+	optWin->windowY -= optWin->wHeight;
+    }
+    if (optWin->wWidth < 50)
+    {
+	optWin->wWidth = 55;
+	optWin->windowX -= optWin->wWidth;
+    }
 }
 
 void init_windows(DisplayItems *di) 
