@@ -106,16 +106,13 @@ void print_stats(
     	const u16 idx = i + state->pageStartIdx;
 
 	if (idx > state->count - 1) break;
-
-    	const u8 isSelectedIndex = 
-    		(state->selectedIndex - state->pageStartIdx) + dataOffsetY == posY;
     
-    	MT_Color_Pairs pair = isSelectedIndex ?
-	    MT_PAIR_PRC_SEL_TEXT :
-	    MT_PAIR_PRC_UNSEL_TEXT;
+    	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
     
-    	if (pair == MT_PAIR_PRC_SEL_TEXT)
+    	if (state->selectedIndex == idx)
     	{
+	    pair = MT_PAIR_PRC_SEL_TEXT;
+
 	    for (size_t y = dataOffsetX; y < wd->wWidth - dataOffsetX; y++)
 		PRINTFC(win, posY, y, "%c", ' ', pair);
     	}
@@ -124,15 +121,14 @@ void print_stats(
     	PRINTFC(win, posY, dataOffsetX, "%s", vd[idx]->command, pair);
     	PRINTFC(win, posY, pidPosX, "%d", vd[idx]->pid, pair);
     
-    	if (fitCpu)
-    	{
-	    MT_Color_Pairs pctPair = vd[idx]->cpuPercentage < 0.01 && 
-		pair != MT_PAIR_PRC_SEL_TEXT ? MT_PAIR_PRC_PCT_ZERO : pair;
+	MT_Color_Pairs pctPair = 
+	    (vd[idx]->cpuPercentage < 0.01 && pair != MT_PAIR_PRC_SEL_TEXT) ?
+	    MT_PAIR_PRC_PCT_ZERO : 
+	    pair;
     
-	    PRINTFC(win, posY, cpuPosX, "%.2f", vd[idx]->cpuPercentage, pctPair);
-    	}
+	PRINTFC(win, posY, cpuPosX, "%.2f", vd[idx]->cpuPercentage, pctPair);
     
-    	if (fitMem) PRINTFC(win, posY++, memPosX, "%.2f", vd[idx]->memPercentage, pair);
+    	PRINTFC(win, posY++, memPosX, "%.2f", vd[idx]->memPercentage, pair);
     }
 }
 

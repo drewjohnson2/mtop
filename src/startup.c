@@ -46,6 +46,8 @@ ThreadSafeQueue *cpuQueue;
 ThreadSafeQueue *memoryQueue;
 ThreadSafeQueue *prcQueue;
 
+MemoryStats *memStats;
+
 volatile ProcessInfoSharedData *prcInfoSD;
 
 static void * _ui_thread_run(void *arg);
@@ -75,6 +77,8 @@ void run()
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
+
+    memStats = a_alloc(&general, sizeof(MemoryStats), __alignof(MemoryStats));
     
     memoryQueue = a_alloc(
     	&queueArena,

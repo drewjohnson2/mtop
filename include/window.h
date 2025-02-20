@@ -70,10 +70,10 @@ typedef struct _graph_data
 
 typedef struct _stats_view_data 
 {
-    char *command;
     u32 pid;
     float cpuPercentage;
     float memPercentage;
+    char *command;
 } ProcessStatsViewData;
 
 typedef struct _process_list_state
