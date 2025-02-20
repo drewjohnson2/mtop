@@ -267,7 +267,7 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 	windowTitleY,
 	windowTitleX,
 	" %s ",
-	"Process Info",
+	"Process Status",
 	MT_PAIR_PRC_HEADER
     );
 
