@@ -12,10 +12,9 @@
 
 void run_io(
     Arena *cpuArena,
-    Arena *memArena,
     Arena *procArena,
+    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *memQueue,
     ThreadSafeQueue *procQueue,
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
@@ -39,16 +38,26 @@ void run_io(
     {
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
-    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE || 
-	    memQueue->size < MIN_QUEUE_SIZE;
+    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE;
+	    
     
     	if (minimumMet) 
     	{
 	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
-	    MemoryStats *memStats = fetch_memory_stats(memArena);
 	    
 	    enqueue(cpuQueue, cpuStats, &cpuQueueLock, &cpuQueueCondition);
-	    enqueue(memQueue, memStats, &memQueueLock, &memQueueCondition);
+
+	    pthread_mutex_lock(&memQueueLock);
+
+	    memStats ->updating = 1;
+	    
+	    fetch_memory_stats(memStats);
+
+	    memStats ->updating = 0; 
+
+	    pthread_cond_signal(&memQueueCondition);
+	    pthread_mutex_unlock(&memQueueLock);
+
     	}
     
     	clock_gettime(CLOCK_REALTIME, &current);
@@ -65,7 +74,7 @@ void run_io(
 		&procDataLock,
 		&procQueueCondition
 	    );
-    
+
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 

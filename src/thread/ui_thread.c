@@ -20,16 +20,17 @@ void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
     DisplayItems *di,
+    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *memoryQueue,
     ThreadSafeQueue *prcQueue,
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {
+
+    u64 memTotal = 0;
     float cpuPercentage, memoryPercentage;
     CpuStats *prevStats = NULL;
     CpuStats *curStats = NULL;
-    MemoryStats *memStats = NULL;
     const WindowData *cpuWin = di->windows[CPU_WIN];
     const WindowData *memWin = di->windows[MEMORY_WIN];
     const WindowData *prcWin = di->windows[PRC_WIN];
@@ -99,10 +100,17 @@ void run_ui(
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
-    	memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
-    	dequeue(memoryQueue, &memQueueLock, &memQueueCondition);
-    
+	pthread_mutex_lock(&memQueueLock);
+
+	while (memStats->updating) 
+	    pthread_cond_wait(&memQueueCondition, &memQueueLock);
+
     	CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
+
+	memTotal = memStats->memTotal;
+
+	pthread_mutex_unlock(&memQueueLock);
+
     	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
     
     	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
@@ -139,7 +147,7 @@ void run_ui(
 	    vd,
 	    curPrcs,
 	    prevPrcs,
-	    memStats->memTotal
+	    memTotal
     	);		
 
 	qsort(

@@ -5,32 +5,22 @@
 
 #define MAX_MEM_REGIONS_ALLOCD 9
 
-static void _parse_stat(MemoryStats *stat, char *buffer);
+static void _parse_stat(volatile MemoryStats *stat, char *buffer);
 
-MemoryStats * fetch_memory_stats(Arena *arena)
+void fetch_memory_stats(volatile MemoryStats *memStats)
 {
     FILE *f = fopen("/proc/meminfo", "r");
     char buffer[256];
 
-    if (arena->regionsAllocated > MAX_MEM_REGIONS_ALLOCD) r_free_head(arena);
-    
-    MemoryStats *stat = a_alloc(
-	arena,
-	sizeof(MemoryStats),
-	__alignof(MemoryStats)
-    );
-    
     while (fgets(buffer, sizeof(buffer), f))
     {
-	_parse_stat(stat, buffer);
+	_parse_stat(memStats, buffer);
     }
     
     fclose(f);
-    
-    return stat;
 }
 
-static void _parse_stat(MemoryStats *stat, char *buffer)
+static void _parse_stat(volatile MemoryStats *stat, char *buffer)
 {
     if (sscanf(buffer, "MemTotal: %lu kB\n", &stat->memTotal) == 1) return;
     else if (sscanf(buffer, "MemFree: %lu kB\n", &stat->memFree) == 1) return;

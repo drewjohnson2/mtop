@@ -16,8 +16,8 @@ typedef struct _ui_thread_args
     Arena *graphArena;
     Arena *memGraphArena;
     DisplayItems *di;
+    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
 } UIThreadArgs;
@@ -25,10 +25,9 @@ typedef struct _ui_thread_args
 typedef struct _io_thread_args
 {
     Arena *cpuArena;
-    Arena *memArena;
     Arena *prcArena;
+    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
 } IOThreadArgs;
@@ -43,11 +42,9 @@ Arena queueArena;
 Arena general;
 
 ThreadSafeQueue *cpuQueue;
-ThreadSafeQueue *memoryQueue;
 ThreadSafeQueue *prcQueue;
 
-MemoryStats *memStats;
-
+volatile MemoryStats *memStats;
 volatile ProcessInfoSharedData *prcInfoSD;
 
 static void * _ui_thread_run(void *arg);
@@ -62,8 +59,8 @@ void run()
     // any period of time it's probably time to roll
     // back to a different commit on this allocation block.
     windowArena = a_new(256);
-    cpuArena = a_new(sizeof(CpuStats) + 8);
-    memArena = a_new(sizeof(MemoryStats) + 8);
+    cpuArena = a_new(sizeof(CpuStats));
+    memArena = a_new(sizeof(MemoryStats));
     cpuGraphArena = a_new(sizeof(GraphData));     
     memoryGraphArena = a_new(sizeof(GraphData));  
     prcArena = a_new(MAX_PROCS * sizeof(ProcessList *));
@@ -78,13 +75,8 @@ void run()
     	__alignof(ThreadSafeQueue)
     );
 
-    memStats = a_alloc(&general, sizeof(MemoryStats), __alignof(MemoryStats));
-    
-    memoryQueue = a_alloc(
-    	&queueArena,
-    	sizeof(ThreadSafeQueue),
-    	__alignof(ThreadSafeQueue)
-    );
+    memStats = a_alloc(&memArena, sizeof(MemoryStats), __alignof(MemoryStats));
+    memStats->updating = 0;
     
     prcQueue = a_alloc(
     	&queueArena,
@@ -111,8 +103,8 @@ void run()
     	.graphArena = &cpuGraphArena,
     	.di = di,
     	.cpuQueue = cpuQueue,
+	.memStats = memStats,
     	.memGraphArena = &memoryGraphArena,
-    	.memQueue = memoryQueue,
     	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
@@ -120,10 +112,9 @@ void run()
     IOThreadArgs ioArgs = 
     {
     	.cpuArena = &cpuArena,
-    	.memArena = &memArena,
     	.prcArena = &prcArena,
+	.memStats = memStats,
     	.cpuQueue = cpuQueue,
-    	.memQueue = memoryQueue,
 	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
@@ -151,17 +142,7 @@ void run()
 void cleanup()
 {
     QueueNode *tmp;
-    QueueNode *head = memoryQueue->head;
-    
-    while (head)
-    {
-	tmp = head;
-    	head = head->next;
-    
-    	free(tmp);
-    }
-    
-    head = cpuQueue->head;
+    QueueNode *head = cpuQueue->head;
     
     while (head)
     {
@@ -200,8 +181,8 @@ static void * _ui_thread_run(void *arg)
 	args->graphArena,
     	args->memGraphArena,
     	args->di,
+	args->memStats,
     	args->cpuQueue,
-    	args->memQueue,
     	args->prcQueue,
 	args->prcInfoSD
     );
@@ -215,10 +196,9 @@ static void * _io_thread_run(void *arg)
     
     run_io(
     	args->cpuArena,
-    	args->memArena,
     	args->prcArena,
+	args->memStats,
     	args->cpuQueue,
-    	args->memQueue,
     	args->prcQueue,
 	args->prcInfoSD
     );

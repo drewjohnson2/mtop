@@ -42,8 +42,8 @@ void run_ui(
     Arena *graphArena,
     Arena *memGraphArena,
     DisplayItems *di,
+    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *memoryQueue,
     ThreadSafeQueue *procQueue,
     volatile ProcessInfoSharedData *prcInfoSd
 );
@@ -54,10 +54,9 @@ void run_ui(
 //
 void run_io(
     Arena *cpuArena,
-    Arena *memArena,
     Arena *procArena,
+    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *memQueue,
     ThreadSafeQueue *procQueue,
     volatile ProcessInfoSharedData *prcInfoSd
 );
