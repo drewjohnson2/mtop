@@ -11,6 +11,14 @@
 #include "../include/window.h"
 #include "../include/thread.h"
 
+#define WINDOW_A_SZ 256
+#define CPU_A_SZ sizeof(CpuStats)
+#define MEM_A_SZ sizeof(MemoryStats)
+#define GRAPH_A_SZ sizeof(GraphData)
+#define QUEUE_A_SZ sizeof(ThreadSafeQueue)
+#define GENERAL_A_SZ 256 * 20
+#define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
+
 typedef struct _ui_thread_args
 {
     Arena *graphArena;
@@ -58,14 +66,14 @@ void run()
     // If program starts crashing randomly after
     // any period of time it's probably time to roll
     // back to a different commit on this allocation block.
-    windowArena = a_new(256);
-    cpuArena = a_new(sizeof(CpuStats));
-    memArena = a_new(sizeof(MemoryStats));
-    cpuGraphArena = a_new(sizeof(GraphData));     
-    memoryGraphArena = a_new(sizeof(GraphData));  
-    prcArena = a_new(MAX_PROCS * sizeof(ProcessList *));
-    queueArena = a_new(sizeof(ThreadSafeQueue));
-    general = a_new(256 * 20);
+    windowArena = a_new(WINDOW_A_SZ);
+    cpuArena = a_new(CPU_A_SZ);
+    memArena = a_new(MEM_A_SZ);
+    cpuGraphArena = a_new(GRAPH_A_SZ);     
+    memoryGraphArena = a_new(GRAPH_A_SZ);  
+    prcArena = a_new(PRC_A_SZ);
+    queueArena = a_new(QUEUE_A_SZ);
+    general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
     
@@ -106,7 +114,7 @@ void run()
 	.memStats = memStats,
     	.memGraphArena = &memoryGraphArena,
     	.prcQueue = prcQueue,
-	.prcInfoSD = prcInfoSD
+	.prcInfoSD = prcInfoSD,
     };
     
     IOThreadArgs ioArgs = 
@@ -181,9 +189,9 @@ static void * _ui_thread_run(void *arg)
 	args->graphArena,
     	args->memGraphArena,
     	args->di,
-	args->memStats,
     	args->cpuQueue,
     	args->prcQueue,
+	args->memStats,
 	args->prcInfoSD
     );
     
@@ -197,9 +205,9 @@ static void * _io_thread_run(void *arg)
     run_io(
     	args->cpuArena,
     	args->prcArena,
-	args->memStats,
     	args->cpuQueue,
     	args->prcQueue,
+	args->memStats,
 	args->prcInfoSD
     );
     

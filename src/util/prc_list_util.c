@@ -87,7 +87,7 @@ void read_input(
     }
     
     if (ch == -1) return;
-    if (state->infoVisible && (ch != 'b' && ch != 'q')) return;
+    if (state->infoVisible && (ch != 'b' && ch != 'q' && ch != 'o')) return;
     
     switch (ch)
     {

@@ -13,9 +13,9 @@
 void run_io(
     Arena *cpuArena,
     Arena *procArena,
-    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
+    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {

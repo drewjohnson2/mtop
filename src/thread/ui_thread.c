@@ -20,9 +20,9 @@ void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
     DisplayItems *di,
-    volatile MemoryStats *memStats,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *prcQueue,
+    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {

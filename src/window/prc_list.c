@@ -71,6 +71,7 @@ void print_stats(
 	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, pc = %u, ap = %u",
 	state->pageStartIdx, state->pageEndIdx, state->selectedIndex,
 	state->count, state->timeoutActive, state->totalPages, state->activePage);
+
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
