@@ -56,6 +56,11 @@ void adjust_state(ProcessListState *state, ProcessStats *stats)
 	state->selectedIndex;
 }
 
+// This function is kinda rough.
+// I don't like it, but I am not going
+// to rewrite it. I'm not even really sure
+// how much I could do much to improve it. 
+// (Clean is not an improvement)
 void read_input(
     WINDOW *win,
     ProcessListState *state,

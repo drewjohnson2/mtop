@@ -16,6 +16,10 @@
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
 
+#define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
+#define CPU_POINT_A_SZ sizeof(GraphPoint)
+#define MEM_POINT_A_SZ sizeof(GraphPoint)
+
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
@@ -47,9 +51,9 @@ void run_ui(
     	__alignof(GraphData)
     );
     
-    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
-    Arena cpuPointArena = a_new(sizeof(GraphPoint));
-    Arena memPointArena = a_new(sizeof(GraphPoint));
+    Arena stateArena = a_new(STATE_A_SZ);
+    Arena cpuPointArena = a_new(CPU_POINT_A_SZ);
+    Arena memPointArena = a_new(MEM_POINT_A_SZ);
     
     // probably need to add some sort of shut down error
     // handling here.
@@ -75,11 +79,12 @@ void run_ui(
     listState->pageSize = prcWin->wHeight - 5;
     listState->totalPages = listState->count / listState->pageSize;
 
-    if (listState->count % listState->pageSize > 0)
-	listState->totalPages++;
+    if (listState->count % listState->pageSize > 0) listState->totalPages++;
 
     listState->pageEndIdx = listState->pageSize - 1;
-    listState->sortFunc = vd_name_compare_func;   
+
+    if (listState->pageEndIdx > listState->count) listState->pageEndIdx = listState->count - 1;
+    listState->sortFunc = vd_name_compare_func;
     listState->sortOrder = PRC_NAME;
     listState->infoVisible = 0;
 
