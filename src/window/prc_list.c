@@ -205,26 +205,28 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
     );
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, 3, "%s", prcInfoHeader, MT_PAIR_PRC_TBL_HEADER);
+    PRINTFC(wd->window, posY++, 3, "%s", prcInfoHeader, MT_PAIR_PRC_STAT_TBL_HEADER);
     wattroff(wd->window, A_BOLD);
 
     for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
     {
-	PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
+	PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_STAT_TBL_HEADER);
     }
 
     posY++;
 
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->cpuPercentage, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->cpuPercentage,
+	    MT_PAIR_PRC_STAT_VAL);
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", _text[41], MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY, posX, "%s", _text[41], MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->memPercentage, MT_PAIR_PRC_UNSEL_TEXT);
+    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->memPercentage,
+	    MT_PAIR_PRC_STAT_VAL);
 
     for (size_t i = 0; i < 19; i++)
     {
@@ -246,16 +248,14 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 	value = _trim_lws(value);
 
 	wattron(wd->window, A_BOLD);
-	PRINTFC(wd->window, posY, posX, "%s\t", title, MT_PAIR_PRC_UNSEL_TEXT);
+	PRINTFC(wd->window, posY, posX, "%s\t", title, MT_PAIR_PRC_STAT_NM);
 	wattroff(wd->window, A_BOLD);
-	PRINTFC(wd->window, posY++, valuePos, "%s", value, MT_PAIR_PRC_UNSEL_TEXT);
+	PRINTFC(wd->window, posY++, valuePos, "%s", value, MT_PAIR_PRC_STAT_VAL);
     }
 
     PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", _text[36], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", _text[37], MT_PAIR_CTRL_TXT);
-
     SET_COLOR(wd->window, MT_PAIR_BOX);
-
 
     box(wd->window, 0, 0);
 

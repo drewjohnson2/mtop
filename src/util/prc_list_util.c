@@ -71,6 +71,8 @@ void read_input(
 {
     char ch = wgetch(win);
 
+    if (state->infoVisible && (ch != 'b' && ch != 'q' && ch != 'o')) return;
+
     flushinp();
 
     u64 timeElapsedMs;
@@ -92,7 +94,6 @@ void read_input(
     }
     
     if (ch == -1) return;
-    if (state->infoVisible && (ch != 'b' && ch != 'q' && ch != 'o')) return;
     
     switch (ch)
     {
