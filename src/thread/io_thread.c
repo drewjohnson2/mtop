@@ -49,11 +49,11 @@ void run_io(
 
 	    pthread_mutex_lock(&memQueueLock);
 
-	    memStats ->updating = 1;
+	    MEM_UPDATING = 1;
 	    
 	    fetch_memory_stats(memStats);
 
-	    memStats ->updating = 0; 
+	    MEM_UPDATING = 0;
 
 	    pthread_cond_signal(&memQueueCondition);
 	    pthread_mutex_unlock(&memQueueLock);

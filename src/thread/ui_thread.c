@@ -107,7 +107,7 @@ void run_ui(
     
 	pthread_mutex_lock(&memQueueLock);
 
-	while (memStats->updating) 
+	while (MEM_UPDATING) 
 	    pthread_cond_wait(&memQueueCondition, &memQueueLock);
 
     	CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);

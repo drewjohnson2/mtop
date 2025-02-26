@@ -9,6 +9,8 @@
 
 #define MAX_PROCS 150 
 
+extern volatile u8 MEM_UPDATING;
+
 typedef struct _proc_list
 {
     u16 pid;
@@ -41,7 +43,6 @@ typedef struct _proc_info_shared_data
 
 typedef struct _mem_stats
 {
-    u8 updating;
     u64 memTotal;
     u64 memFree;
     u64 cachedMem;

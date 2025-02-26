@@ -5,6 +5,8 @@
 
 #define MAX_MEM_REGIONS_ALLOCD 9
 
+volatile u8 MEM_UPDATING = 0;
+
 static void _parse_stat(volatile MemoryStats *stat, char *buffer);
 
 void fetch_memory_stats(volatile MemoryStats *memStats)

@@ -84,7 +84,6 @@ void run()
     );
 
     memStats = a_alloc(&memArena, sizeof(MemoryStats), __alignof(MemoryStats));
-    memStats->updating = 0;
     
     prcQueue = a_alloc(
     	&queueArena,
@@ -114,7 +113,7 @@ void run()
 	.memStats = memStats,
     	.memGraphArena = &memoryGraphArena,
     	.prcQueue = prcQueue,
-	.prcInfoSD = prcInfoSD,
+	.prcInfoSD = prcInfoSD
     };
     
     IOThreadArgs ioArgs = 
