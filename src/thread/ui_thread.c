@@ -16,20 +16,25 @@
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
 
+#define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
+#define CPU_POINT_A_SZ sizeof(GraphPoint)
+#define MEM_POINT_A_SZ sizeof(GraphPoint)
+
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *memoryQueue,
     ThreadSafeQueue *prcQueue,
+    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {
+
+    u64 memTotal = 0;
     float cpuPercentage, memoryPercentage;
     CpuStats *prevStats = NULL;
     CpuStats *curStats = NULL;
-    MemoryStats *memStats = NULL;
     const WindowData *cpuWin = di->windows[CPU_WIN];
     const WindowData *memWin = di->windows[MEMORY_WIN];
     const WindowData *prcWin = di->windows[PRC_WIN];
@@ -46,9 +51,9 @@ void run_ui(
     	__alignof(GraphData)
     );
     
-    Arena stateArena = a_new(sizeof(ProcessListState) + __alignof(ProcessListState));
-    Arena cpuPointArena = a_new(sizeof(GraphPoint));
-    Arena memPointArena = a_new(sizeof(GraphPoint));
+    Arena stateArena = a_new(STATE_A_SZ);
+    Arena cpuPointArena = a_new(CPU_POINT_A_SZ);
+    Arena memPointArena = a_new(MEM_POINT_A_SZ);
     
     // probably need to add some sort of shut down error
     // handling here.
@@ -74,11 +79,12 @@ void run_ui(
     listState->pageSize = prcWin->wHeight - 5;
     listState->totalPages = listState->count / listState->pageSize;
 
-    if (listState->count % listState->pageSize > 0)
-	listState->totalPages++;
+    if (listState->count % listState->pageSize > 0) listState->totalPages++;
 
     listState->pageEndIdx = listState->pageSize - 1;
-    listState->sortFunc = vd_name_compare_func;   
+
+    if (listState->pageEndIdx > listState->count) listState->pageEndIdx = listState->count - 1;
+    listState->sortFunc = vd_name_compare_func;
     listState->sortOrder = PRC_NAME;
     listState->infoVisible = 0;
 
@@ -99,10 +105,17 @@ void run_ui(
     	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
-    	memStats = peek(memoryQueue, &memQueueLock, &memQueueCondition);
-    	dequeue(memoryQueue, &memQueueLock, &memQueueCondition);
-    
+	pthread_mutex_lock(&memQueueLock);
+
+	while (MEM_UPDATING) 
+	    pthread_cond_wait(&memQueueCondition, &memQueueLock);
+
     	CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
+
+	memTotal = memStats->memTotal;
+
+	pthread_mutex_unlock(&memQueueLock);
+
     	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
     
     	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
@@ -139,7 +152,7 @@ void run_ui(
 	    vd,
 	    curPrcs,
 	    prevPrcs,
-	    memStats->memTotal
+	    memTotal
     	);		
 
 	qsort(

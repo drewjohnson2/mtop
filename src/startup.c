@@ -11,13 +11,21 @@
 #include "../include/window.h"
 #include "../include/thread.h"
 
+#define WINDOW_A_SZ 256
+#define CPU_A_SZ sizeof(CpuStats)
+#define MEM_A_SZ sizeof(MemoryStats)
+#define GRAPH_A_SZ sizeof(GraphData)
+#define QUEUE_A_SZ sizeof(ThreadSafeQueue)
+#define GENERAL_A_SZ 256 * 20
+#define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
+
 typedef struct _ui_thread_args
 {
     Arena *graphArena;
     Arena *memGraphArena;
     DisplayItems *di;
+    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
 } UIThreadArgs;
@@ -25,10 +33,9 @@ typedef struct _ui_thread_args
 typedef struct _io_thread_args
 {
     Arena *cpuArena;
-    Arena *memArena;
     Arena *prcArena;
+    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *memQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
 } IOThreadArgs;
@@ -43,9 +50,9 @@ Arena queueArena;
 Arena general;
 
 ThreadSafeQueue *cpuQueue;
-ThreadSafeQueue *memoryQueue;
 ThreadSafeQueue *prcQueue;
 
+volatile MemoryStats *memStats;
 volatile ProcessInfoSharedData *prcInfoSD;
 
 static void * _ui_thread_run(void *arg);
@@ -59,14 +66,14 @@ void run()
     // If program starts crashing randomly after
     // any period of time it's probably time to roll
     // back to a different commit on this allocation block.
-    windowArena = a_new(256);
-    cpuArena = a_new(sizeof(CpuStats) + 8);
-    memArena = a_new(sizeof(MemoryStats) + 8);
-    cpuGraphArena = a_new(sizeof(GraphData));     
-    memoryGraphArena = a_new(sizeof(GraphData));  
-    prcArena = a_new(MAX_PROCS * sizeof(ProcessList *));
-    queueArena = a_new(sizeof(ThreadSafeQueue));
-    general = a_new(256 * 20);
+    windowArena = a_new(WINDOW_A_SZ);
+    cpuArena = a_new(CPU_A_SZ);
+    memArena = a_new(MEM_A_SZ);
+    cpuGraphArena = a_new(GRAPH_A_SZ);     
+    memoryGraphArena = a_new(GRAPH_A_SZ);  
+    prcArena = a_new(PRC_A_SZ);
+    queueArena = a_new(QUEUE_A_SZ);
+    general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
     
@@ -75,12 +82,8 @@ void run()
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
-    
-    memoryQueue = a_alloc(
-    	&queueArena,
-    	sizeof(ThreadSafeQueue),
-    	__alignof(ThreadSafeQueue)
-    );
+
+    memStats = a_alloc(&memArena, sizeof(MemoryStats), __alignof(MemoryStats));
     
     prcQueue = a_alloc(
     	&queueArena,
@@ -107,8 +110,8 @@ void run()
     	.graphArena = &cpuGraphArena,
     	.di = di,
     	.cpuQueue = cpuQueue,
+	.memStats = memStats,
     	.memGraphArena = &memoryGraphArena,
-    	.memQueue = memoryQueue,
     	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
@@ -116,10 +119,9 @@ void run()
     IOThreadArgs ioArgs = 
     {
     	.cpuArena = &cpuArena,
-    	.memArena = &memArena,
     	.prcArena = &prcArena,
+	.memStats = memStats,
     	.cpuQueue = cpuQueue,
-    	.memQueue = memoryQueue,
 	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
@@ -147,17 +149,7 @@ void run()
 void cleanup()
 {
     QueueNode *tmp;
-    QueueNode *head = memoryQueue->head;
-    
-    while (head)
-    {
-	tmp = head;
-    	head = head->next;
-    
-    	free(tmp);
-    }
-    
-    head = cpuQueue->head;
+    QueueNode *head = cpuQueue->head;
     
     while (head)
     {
@@ -197,8 +189,8 @@ static void * _ui_thread_run(void *arg)
     	args->memGraphArena,
     	args->di,
     	args->cpuQueue,
-    	args->memQueue,
     	args->prcQueue,
+	args->memStats,
 	args->prcInfoSD
     );
     
@@ -211,11 +203,10 @@ static void * _io_thread_run(void *arg)
     
     run_io(
     	args->cpuArena,
-    	args->memArena,
     	args->prcArena,
     	args->cpuQueue,
-    	args->memQueue,
     	args->prcQueue,
+	args->memStats,
 	args->prcInfoSD
     );
     

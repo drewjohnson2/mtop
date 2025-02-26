@@ -9,6 +9,8 @@
 
 #define MAX_PROCS 150 
 
+extern volatile u8 MEM_UPDATING;
+
 typedef struct _proc_list
 {
     u16 pid;
@@ -165,7 +167,7 @@ CpuStats * fetch_cpu_stats(Arena *arena);
 //		mem_monitor.c
 //
 //
-MemoryStats * fetch_memory_stats(Arena *arena);
+void fetch_memory_stats(volatile MemoryStats *memStats);
 
 //
 //		prc_monitor.c
