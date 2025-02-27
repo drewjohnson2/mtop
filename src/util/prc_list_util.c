@@ -189,18 +189,14 @@ void read_input(
     
 	return;
     }
-
-    switch (ch)
+    else 
     {
-	case 'd':
-	    state->cmdBuffer = '\0';
-	    state->timeoutActive = 0;
+	state->cmdBuffer = '\0';
+	state->timeoutActive = 0;
 
-	    kill(vd[state->selectedIndex]->pid, SIGKILL);
+	kill(vd[state->selectedIndex]->pid, SIGKILL);
 
-	    return;
-	default:
-	    break;
+	return;
     }
 }
 
