@@ -12,6 +12,8 @@
 #include "../../include/mt_colors.h"
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
+#include "../../include/static_text.h"
+#include "../../include/tracked_stats.h"
 
 static char * _trim_lws(char *str);
 
@@ -33,8 +35,6 @@ void print_stats(
     const u16 prcTblHeaderY = 2;
     const u16 windowTitleX = 3;
     const u16 windowTitleY = 0;
-    const u16 pageX = 3;
-    const u16 pageY = wd->wHeight - 1;
     
     u16 pidPosX = wd->wWidth * .60;
     u16 cpuPosX = pidPosX + (wd->wWidth * .14);
@@ -64,7 +64,8 @@ void print_stats(
 
 
 #ifdef DEBUG
-    char cmd = state->cmdBuffer ? state->cmdBuffer : '0';
+    // May need this as a debug value again someday. Leaving for now.
+    //char cmd = state->cmdBuffer ? state->cmdBuffer : '0'; 
     wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
     mvwprintw(win, 
 	windowTitleY, windowTitleX, 
@@ -74,6 +75,9 @@ void print_stats(
 
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else
+    const u16 pageX = 3;
+    const u16 pageY = wd->wHeight - 1;
+
     PRINTFC(win, windowTitleY, windowTitleX, " %s ", wd->windowTitle, MT_PAIR_PRC_HEADER);
     SET_COLOR(win, MT_PAIR_PRC_HEADER);
     mvwprintw(win, pageY, pageX, " Page %u/%u ", state->activePage + 1, state->totalPages); 
@@ -114,7 +118,7 @@ void print_stats(
     	{
 	    pair = MT_PAIR_PRC_SEL_TEXT;
 
-	    for (size_t y = dataOffsetX; y < wd->wWidth - dataOffsetX; y++)
+	    for (size_t y = dataOffsetX; y < (size_t)(wd->wWidth - dataOffsetX); y++)
 		PRINTFC(win, posY, y, "%c", ' ', pair);
     	}
     
@@ -230,8 +234,6 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 
     for (size_t i = 0; i < 19; i++)
     {
-	if (info->stats[i] == NULL) continue;
-
 	if (posY >= wd->wHeight - 4)
 	{
 	    posY = 4;

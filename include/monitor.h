@@ -66,29 +66,6 @@ typedef struct _cpu_stats
     u64 guestNice;
 } CpuStats;
 
-static const char *trackedStats[19] = 
-{
-    "Cpus_allowed",
-    "Cpus_allowed_list",
-    "FDSize",
-    "Kthread",
-    "PPid",
-    "State",
-    "Threads",
-    "VmData",
-    "VmExe",
-    "VmHWM",
-    "VmLck",
-    "VmLib",
-    "VmPTE",
-    "VmPeak",
-    "VmPin",
-    "VmRSS",
-    "VmSize",
-    "VmStk",
-    "VmSwap",
-};
-
 #define CALCULATE_MEMORY_USAGE(stats, percentage) 				\
     do { 									\
 	u64 usedDiff = stats->memFree + stats->cachedMem 			\
