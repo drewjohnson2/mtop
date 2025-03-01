@@ -2,7 +2,6 @@
 #include <ncurses.h>
 #include <arena.h>
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -12,6 +11,7 @@
 
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
+#include "../../include/static_text.h"
 
 DisplayItems * init_display_items(Arena *arena) 
 {

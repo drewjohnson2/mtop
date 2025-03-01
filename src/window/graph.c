@@ -85,10 +85,7 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
     // head of the point linked list to NULL.
     if (gd->graphPointCount >= wd->wWidth)
     {
-    	GraphPoint *tmp = gd->head;
     	gd->head = gd->head->next;
-    
-    	tmp = NULL;
     	gd->graphPointCount--;
     
     	r_free_head(arena);

@@ -7,9 +7,9 @@
 
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
+#include "../../include/tracked_stats.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
-
 
 static u8 _copy_if_tracked_stat(char *buf);
 
@@ -74,8 +74,8 @@ static void _fetch_proc_pid_stat(
     
     sscanf(statBuffer,
 	"%hu %98s %*c %*d %*d "
-    	"%*d %*d %*d %*u %*lu "
-    	"%*lu %*lu %*lu %lu %lu ",
+    	"%*d %*d %*d %*u %*u "
+    	"%*u %*u %*u %lu %lu ",
     	&(*item)->pid, name,
     	&(*item)->utime, &(*item)->stime
     );
@@ -119,14 +119,16 @@ ProcessStats * get_processes(
     {
 	if (procStats->count > MAX_PROCS - 1) break;
     
-    	char statPath[32];
-    	char statusPath[32];
+	char *statFmt = "/proc/%s/stat";
+	char *statusFmt = "/proc/%s/status";
+    	char statPath[256 + strlen(statFmt)];
+    	char statusPath[256 + strlen(statusFmt)];
     	u8 skip = atoi(dp->d_name) == 0;
     
     	if (skip || dp->d_type != DT_DIR) continue;
     
-    	snprintf(statPath, sizeof(statPath), "/proc/%s/stat", dp->d_name);
-    	snprintf(statusPath, sizeof(statusPath), "/proc/%s/status", dp->d_name);
+    	snprintf(statPath, sizeof(statPath), statFmt, dp->d_name);
+    	snprintf(statusPath, sizeof(statusPath), statusFmt, dp->d_name);
     
     	_fetch_proc_pid_stat(
 	   procArena,
