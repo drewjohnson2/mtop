@@ -1,7 +1,7 @@
 backgroundColor = [2, 23, 28]
 boxColor = [11, 85, 99]
 cpuPointColor = [90, 148, 163]
-memPointColor = [93, 122, 131]
+memPointColor = [90, 148, 163]
 prcUnselectedTextColor = [112, 131, 149]
 prcSelectedTextColor = [90, 148, 163]
 zeroPercentColor = [11, 85, 99]

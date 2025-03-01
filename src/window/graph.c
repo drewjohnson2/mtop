@@ -10,7 +10,13 @@
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
 
-s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
+s8 graph_render(
+    Arena *arena,
+    GraphData *gd,
+    const WindowData *wd,
+    MT_Color_Pairs gpColor,
+    MT_Color_Pairs headerColor
+)
 {
     if (!gd->head) return 1;
     
@@ -25,7 +31,6 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
     if (posX < 2) posX = 2;
     
     werase(win);	
-    SET_COLOR(wd->window, MT_PAIR_CPU_GP);
     
     while (current)
     {
@@ -45,7 +50,7 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
 	    // wmove(win, posY--, posX);
 	    // waddnwstr(win, &bullet, -1);
 		
-	    PRINTFC(win, posY--, posX, "%c", dataChar, MT_PAIR_CPU_GP);
+	    PRINTFC(win, posY--, posX, "%c", dataChar, gpColor);
 	}
 	
 	posY = wd->wHeight - 2;
@@ -56,11 +61,11 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
 
 #ifdef DEBUG
 	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
-	    MT_PAIR_CPU_HEADER);
+	    headerColor);
 	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
-	    MT_PAIR_CPU_HEADER);
+	    headerColor);
 #else 
-	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, MT_PAIR_CPU_HEADER);
+	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, headerColor);
 #endif
 	last = current;	
 	current = current->next;
@@ -71,7 +76,7 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
 	wd->wWidth - 5 :
 	wd->wWidth - 6;
 
-    PRINTFC(win, 1, pctPadLeft, " %d%% ", pctLabel, MT_PAIR_CPU_HEADER);
+    PRINTFC(win, 1, pctPadLeft, " %d%% ", pctLabel, headerColor);
 
     // NOTE: I've created an arena specifically for 
     // graph points. If I let the graph points
@@ -90,8 +95,6 @@ s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd)
     
     	r_free_head(arena);
     }
-    
-    UNSET_COLOR(wd->window, MT_PAIR_CPU_GP);
     
     return 0;
 }
