@@ -219,7 +219,6 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 
     posY++;
 
-
     wattron(wd->window, A_BOLD);
     PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);

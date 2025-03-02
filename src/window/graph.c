@@ -88,7 +88,7 @@ s8 graph_render(
     // This is essentially just freeing the head
     // of the region linked list. Then we set the
     // head of the point linked list to NULL.
-    if (gd->graphPointCount >= wd->wWidth)
+    if (gd->graphPointCount >= wd->wWidth - 4)
     {
     	gd->head = gd->head->next;
     	gd->graphPointCount--;
