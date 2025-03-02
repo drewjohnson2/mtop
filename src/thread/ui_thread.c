@@ -119,10 +119,10 @@ void run_ui(
     	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
     
     	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
-    	graph_render(&cpuPointArena, cpuGraphData, cpuWin);
+    	graph_render(&cpuPointArena, cpuGraphData, cpuWin, MT_PAIR_CPU_GP, MT_PAIR_CPU_HEADER);
     
     	add_graph_point(&memPointArena, memGraphData, memoryPercentage);
-    	graph_render(&memPointArena, memGraphData, memWin);
+    	graph_render(&memPointArena, memGraphData, memWin, MT_PAIR_MEM_GP, MT_PAIR_MEM_HEADER);
     
     	prevStats = curStats;
     

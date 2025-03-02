@@ -13,7 +13,7 @@ extern volatile u8 MEM_UPDATING;
 
 typedef struct _proc_list
 {
-    u16 pid;
+    u32 pid;
     char procName[99];
     u64 utime;
     u64 stime;
@@ -101,14 +101,18 @@ typedef struct _cpu_stats
 	    0; 								\
     } while(0)								\
 
+// Initially had a different calculation for process CPU percentage.
+// Now I'm trying to copy htop's calculation as closely as possible. 
+// Honestly not seeing much of a difference, so I'll defer to htop.
 #define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) 		\
     do { 										\
-	u8 cpuCount = sysconf(_SC_NPROCESSORS_ONLN); 					\
+	u64 cpuCount = sysconf(_SC_NPROCESSORS_ONLN); 					\
 	float elapsedCpuTime = curCpuTime - prevCpuTime; 				\
 	float procCpuTime = (cur->stime + cur->utime) - (prev->stime + prev->utime);	\
+	float period = elapsedCpuTime / cpuCount;					\
 											\
 	pct = elapsedCpuTime > 0 ? 							\
-	    (procCpuTime / elapsedCpuTime) * 100 * cpuCount 				\
+	    procCpuTime / period * 100 							\
 	    : 0; 									\
     } while(0)										\
 

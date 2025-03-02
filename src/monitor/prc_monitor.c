@@ -73,13 +73,13 @@ static void _fetch_proc_pid_stat(
     char name[99];
     
     sscanf(statBuffer,
-	"%hu %98s %*c %*d %*d "
+	"%u %98s %*c %*d %*d "
     	"%*d %*d %*d %*u %*u "
     	"%*u %*u %*u %lu %lu ",
     	&(*item)->pid, name,
     	&(*item)->utime, &(*item)->stime
     );
-    
+
     size_t len = strlen(name) - 2;
     
     strncpy((*item)->procName, name + 1, len);

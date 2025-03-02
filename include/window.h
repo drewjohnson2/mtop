@@ -8,6 +8,7 @@
 #include "mt_type_defs.h"
 #include "monitor.h"
 #include "sorting.h"
+#include "mt_colors.h"
 
 #define INPUT_TIMEOUT_MS 575
 
@@ -112,7 +113,13 @@ void display_options(DisplayItems *di);
 //		graph.c
 //
 //
-s8 graph_render(Arena *arena, GraphData *gd, const WindowData *wd);
+s8 graph_render(
+    Arena *arena,
+    GraphData *gd,
+    const WindowData *wd,
+    MT_Color_Pairs gpColor,
+    MT_Color_Pairs headerColor
+);
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
 
 //
