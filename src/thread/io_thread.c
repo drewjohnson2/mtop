@@ -57,7 +57,6 @@ void run_io(
 
 	    pthread_cond_signal(&memQueueCondition);
 	    pthread_mutex_unlock(&memQueueLock);
-
     	}
     
     	clock_gettime(CLOCK_REALTIME, &current);
