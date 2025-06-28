@@ -13,10 +13,13 @@
 #include "../../include/thread_safe_queue.h"
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
+#include "../../include/startup.h"
 
 #define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
 #define MEM_POINT_A_SZ sizeof(GraphPoint)
+
+//volatile Settings *mtopSettings;
 
 void run_ui(
     Arena *cpuGraphArena,
@@ -87,11 +90,15 @@ void run_ui(
     listState->infoVisible = 0;
 
     import_colors();
-    wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(prcWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(cpuWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(memWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(optWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+
+    if (!mtopSettings->transparencyEnabled)
+    {
+	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    	wbkgd(prcWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    	wbkgd(cpuWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    	wbkgd(memWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    	wbkgd(optWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    }
     print_header(container);
     print_footer(container);
     

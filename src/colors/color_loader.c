@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#include "../../include/startup.h"
 #include "../../include/mt_colors.h"
 
 static MT_UI_Theme * _alloc_theme(Arena *arena);
@@ -15,6 +16,8 @@ void import_colors()
     
     Arena arena = a_new(512);
     MT_UI_Theme *theme = _alloc_theme(&arena);
+    u8 bgPair;
+    u8 useBackground;
 
 #define DEF_COLORS(color, colEnumVal, memberName) \
     if (sscanf(buffer, #memberName " = [%hu, %hu, %hu]\n", &theme->memberName->red, 	\
@@ -29,7 +32,6 @@ void import_colors()
     		theme->memberName->blue); 						\
     }
     
-    
     while (fgets(buffer, sizeof(buffer), f))
     {
 #include "../../include/tables/color_table.h"
@@ -37,8 +39,14 @@ void import_colors()
 #undef DEF_COLORS
 
     init_pair(MT_PAIR_BACKGROUND, MT_CLR_BACKGROUND, MT_CLR_BACKGROUND);
+    
+#define DEF_PAIRS(pair, fg, bg)						\
+    bgPair = pair == MT_PAIR_PRC_SEL_TEXT || pair == MT_PAIR_CTRL; 	\
+    useBackground = !mtopSettings->transparencyEnabled || bgPair; 	\
+									\
+    if (useBackground) init_pair(pair, fg, bg); 			\
+    else init_pair(pair, fg, -1); 
 
-#define DEF_PAIRS(pair, fg, bg) init_pair(pair, fg, bg);
 #include "../../include/tables/pair_table.h"
 #undef DEF_PAIRS
     

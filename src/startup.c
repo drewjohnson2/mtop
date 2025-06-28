@@ -55,10 +55,12 @@ ThreadSafeQueue *prcQueue;
 volatile MemoryStats *memStats;
 volatile ProcessInfoSharedData *prcInfoSD;
 
+volatile Settings *mtopSettings;
+
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 
-void run() 
+void run(u8 transparencyEnabled) 
 {
     FILE *tty = fopen("/dev/tty", "r+");
     SCREEN *screen = newterm(NULL, tty, tty);
@@ -97,6 +99,9 @@ void run()
 	__alignof(ProcessInfoSharedData)
     ); 
     prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
+
+    mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
+    mtopSettings->transparencyEnabled = transparencyEnabled;
 
     prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;

@@ -54,6 +54,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
 {
     setlocale(LC_ALL, "");
     set_term(screen);
+    use_default_colors();
     start_color();
     raw();
     getmaxyx(stdscr, wd->wHeight, wd->wWidth);
