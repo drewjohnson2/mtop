@@ -106,13 +106,11 @@ typedef struct _cpu_stats
 // Honestly not seeing much of a difference, so I'll defer to htop.
 #define CALC_PRC_CPU_USAGE_PCT(prev, cur, pct, prevCpuTime, curCpuTime) 		\
     do { 										\
-	u64 cpuCount = sysconf(_SC_NPROCESSORS_ONLN); 					\
 	float elapsedCpuTime = curCpuTime - prevCpuTime; 				\
 	float procCpuTime = (cur->stime + cur->utime) - (prev->stime + prev->utime);	\
-	float period = elapsedCpuTime / cpuCount;					\
 											\
 	pct = elapsedCpuTime > 0 ? 							\
-	    procCpuTime / period * 100 							\
+	    (procCpuTime / elapsedCpuTime) * 100 					\
 	    : 0; 									\
     } while(0)										\
 

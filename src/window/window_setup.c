@@ -166,7 +166,7 @@ void print_header(const WindowData *wd)
 void print_time(const WindowData *wd)
 {
     char timeBuf[10];
-     time_t now = time(0);
+    time_t now = time(0);
     struct tm tmNow;
 
     localtime_r(&now, &tmNow);
@@ -183,11 +183,11 @@ void print_time(const WindowData *wd)
 void print_uptime_ldAvg(const WindowData *wd)
 {
     struct sysinfo info;
-    s16 days;
+    u16 days;
     u64 uptime;
-    s16 hours;
-    s16 minutes;
-    s16 seconds;
+    u16 hours;
+    u16 minutes;
+    u16 seconds;
     s8 error = sysinfo(&info);
 
     if (error) return;

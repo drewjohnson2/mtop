@@ -8,7 +8,7 @@ static MT_UI_Theme * _alloc_theme(Arena *arena);
 
 void import_colors()
 {
-    FILE *f = fopen("./colors", "r");
+    FILE *f = fopen("/usr/local/share/mtop/colors", "r");
     char buffer[255];
     
     if (!f) exit(1);
