@@ -12,6 +12,9 @@
 #include "../../include/window.h"
 #include "../../include/mt_colors.h"
 #include "../../include/static_text.h"
+#include "../../include/startup.h"
+
+static void _setup_opt_win(WindowData *container, WindowData *optWin);
 
 DisplayItems * init_display_items(Arena *arena) 
 {
@@ -62,7 +65,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     curs_set(0);
 }
 
-void init_window_dimens(DisplayItems *di) 
+void init_window_dimens_full(DisplayItems *di) 
 {
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *cpuWin = di->windows[CPU_WIN];
@@ -109,14 +112,67 @@ void init_window_dimens(DisplayItems *di)
     prcWin->windowX = memoryWin->wWidth + prcWin->paddingLeft;
     prcWin->windowY = cpuWin->wHeight + prcWin->paddingTop;
 
-    optWin->wWidth = container->wWidth / 4;
-    optWin->wHeight = container->wHeight / 4;
+    _setup_opt_win(container, optWin);
+}
 
-    if (optWin->wHeight < 16) optWin->wHeight = 17;
-    if (optWin->wWidth < 50) optWin->wWidth = 55;
+// rename this init_window_dimens_duo
+void init_window_dimens_two(DisplayItems *di, mt_Window selectedWins[3])
+{
+    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *selWinOne = di->windows[selectedWins[0]];
+    WindowData *selWinTwo = di->windows[selectedWins[1]];
+    WindowData *optWin = di->windows[OPT_WIN];
 
-    optWin->windowX = (container->wWidth / 2) - (optWin->wWidth / 2);
-    optWin->windowY = (container->wHeight / 2) - (optWin->wHeight / 2);
+    container->windowX = 0;
+    container->windowY = 0;
+    
+    selWinOne->paddingTop = 1;
+    selWinOne->paddingBottom = 0;
+    selWinOne->paddingLeft = 1;
+    selWinOne->paddingRight = 1;
+    selWinOne->windowTitle = _text[selectedWins[0] + 20];
+
+    selWinTwo->paddingTop = 1;
+    selWinTwo->paddingBottom = 0;
+    selWinTwo->paddingLeft = 1;
+    selWinTwo->paddingRight = 1;
+    selWinTwo->windowTitle = _text[selectedWins[1] + 20];
+
+    selWinOne->wWidth = container->wWidth - (selWinOne->paddingLeft + selWinOne->paddingRight);
+    selWinOne->wHeight = (container->wHeight / 2) - (selWinOne->paddingTop + selWinOne->paddingBottom);
+    selWinOne->windowX = selWinOne->paddingLeft;
+    selWinOne->windowY = selWinOne->paddingTop;
+
+    selWinTwo->wWidth = container->wWidth - (selWinTwo->paddingLeft + selWinTwo->paddingRight);
+    selWinTwo->wHeight = (container->wHeight / 2) - 1;
+    selWinTwo->windowX = selWinTwo->paddingLeft;
+    selWinTwo->windowY = selWinOne->wHeight + selWinTwo->paddingTop;
+
+    _setup_opt_win(container, optWin);
+}
+
+
+void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin)
+{
+    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *selWin = di->windows[selectedWin];
+    WindowData *optWin = di->windows[OPT_WIN];
+
+    container->windowX = 0;
+    container->windowY = 0;
+
+    selWin->paddingTop = 1;
+    selWin->paddingBottom = 0;
+    selWin->paddingLeft = 1;
+    selWin->paddingRight = 1;
+    selWin->windowTitle = _text[selectedWin + 20];
+
+    selWin->wWidth = container->wWidth - (selWin->paddingLeft + selWin->paddingRight);
+    selWin->wHeight = (container->wHeight) - (selWin->paddingTop + selWin->paddingBottom);
+    selWin->windowX = selWin->paddingLeft;
+    selWin->windowY = selWin->paddingTop;
+
+    _setup_opt_win(container, optWin);
 }
 
 void init_windows(DisplayItems *di) 
@@ -304,4 +360,35 @@ void display_options(DisplayItems *di)
     PRINTFC(optWin->window, sCloseOpts, ctrlStartX, "%s", _text[18], MT_PAIR_CTRL);
     PRINTFC(optWin->window, sCloseOpts, infoStartX, "%s ", _text[19], 
 	    MT_PAIR_CTRL_TXT);
+}
+
+void set_bg_colors(
+    WINDOW *container,
+    WINDOW *cpuWin,
+    WINDOW *memWin,
+    WINDOW *prcWin,
+    WINDOW *optWin
+)
+{
+    volatile u8 *activeWindows = mtopSettings->activeWindows;
+
+    wbkgd(container, COLOR_PAIR(MT_PAIR_BACKGROUND));
+
+    if (activeWindows[CPU_WIN]) wbkgd(cpuWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    if (activeWindows[MEMORY_WIN]) wbkgd(memWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    if (activeWindows[PRC_WIN]) wbkgd(prcWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+
+    wbkgd(optWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+}
+
+static void _setup_opt_win(WindowData *container, WindowData *optWin)
+{
+    optWin->wWidth = container->wWidth / 4;
+    optWin->wHeight = container->wHeight / 4;
+
+    if (optWin->wHeight < 16) optWin->wHeight = 17;
+    if (optWin->wWidth < 50) optWin->wWidth = 55;
+
+    optWin->windowX = (container->wWidth / 2) - (optWin->wWidth / 2);
+    optWin->windowY = (container->wHeight / 2) - (optWin->wHeight / 2);
 }

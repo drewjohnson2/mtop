@@ -1,3 +1,7 @@
+#define _GNU_SOURCE
+
+#include <getopt.h>
+#include <unistd.h>
 #include <ncurses.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -59,9 +63,15 @@ volatile Settings *mtopSettings;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
+static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
 
-void run(u8 transparencyEnabled) 
+void run(int argc, char **argv) 
 {
+    int option_index = 0;
+    u8 cpuWinActive = 0;
+    u8 memWinActive = 0;
+    s8 arg;
+
     FILE *tty = fopen("/dev/tty", "r+");
     SCREEN *screen = newterm(NULL, tty, tty);
 
@@ -101,13 +111,72 @@ void run(u8 transparencyEnabled)
     prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
-    mtopSettings->transparencyEnabled = transparencyEnabled;
+    mtopSettings->activeWindowCount = 0;
+    mtopSettings->allWindowsActive = 1;
+    mtopSettings->activeWindows[CPU_WIN] = 0;
+    mtopSettings->activeWindows[MEMORY_WIN] = 0;
+    mtopSettings->activeWindows[PRC_WIN] = 0;
+
+    mt_Window windows[3] = { -1, -1, -1 };
+
+    static struct option long_options[] = 
+    {
+	{ "transparent", no_argument, NULL, 't' },
+	{ "cpu", no_argument, NULL, 'c'},
+	{ "memory", no_argument, NULL, 'm'},
+	{ "process", no_argument, NULL, 'p'},
+	{ NULL, no_argument, NULL, 0 }
+    };
+
+    while((arg = getopt_long(argc, argv, "tcmp", long_options, &option_index)) != -1)
+    {
+	switch (arg) 
+    	{
+    	    case 't':
+		mtopSettings->transparencyEnabled = 1;
+    	        break;
+	    case 'c':
+		printf("setting cpu\n");
+		mtopSettings->activeWindows[CPU_WIN] = 1;
+		mtopSettings->allWindowsActive = 0;
+		_set_active_window(windows, CPU_WIN);
+		break;
+	    case 'm':
+		printf("Setting memory\n");
+		mtopSettings->activeWindows[MEMORY_WIN] = 1;
+		mtopSettings->allWindowsActive = 0;
+		_set_active_window(windows, MEMORY_WIN);
+		break;
+	    case 'p':
+		printf("Setting process\n");
+		mtopSettings->activeWindows[PRC_WIN] = 1;
+		mtopSettings->allWindowsActive = 0;
+		_set_active_window(windows, PRC_WIN);
+    	    default:
+    	        break;
+    	}
+    }
+
+    mtopSettings->allWindowsActive = (mtopSettings->activeWindows[CPU_WIN] &&
+	mtopSettings->activeWindows[MEMORY_WIN] &&
+	mtopSettings->activeWindows[PRC_WIN]) || mtopSettings->allWindowsActive;
+
+    if (mtopSettings->allWindowsActive)
+    {
+        mtopSettings->activeWindows[CPU_WIN] = 1;
+        mtopSettings->activeWindows[MEMORY_WIN] = 1;
+        mtopSettings->activeWindows[PRC_WIN] = 1;
+    }
 
     prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
-    init_window_dimens(di);
+
+    if (mtopSettings->allWindowsActive) init_window_dimens_full(di);
+    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_two(di, windows);
+    else init_window_dimens_single(di, windows[0]);
+
     init_windows(di);
     
     UIThreadArgs uiArgs = 
@@ -216,4 +285,9 @@ static void * _io_thread_run(void *arg)
     );
     
     return NULL;
+}
+
+static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
+{
+    windows[mtopSettings->activeWindowCount++] = winToAdd; 
 }

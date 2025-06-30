@@ -9,6 +9,7 @@
 #include "../../include/thread_safe_queue.h"
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
+#include "../../include/startup.h"
 
 void run_io(
     Arena *cpuArena,
@@ -19,6 +20,10 @@ void run_io(
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
+    u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+    u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
+
     pthread_mutex_lock(&procDataLock);
     get_processes(procArena, prc_pid_compare);  
     pthread_mutex_unlock(&procDataLock);
@@ -28,10 +33,10 @@ void run_io(
     clock_gettime(CLOCK_REALTIME, &start);
     
     enqueue(
-    	procQueue,
-    	get_processes(procArena, prc_pid_compare),
-    	&procDataLock,
-    	&procQueueCondition
+	procQueue,
+	get_processes(procArena, prc_pid_compare),
+	&procDataLock,
+	&procQueueCondition
     );
     
     while (!SHUTDOWN_FLAG)
@@ -39,7 +44,6 @@ void run_io(
     	// This check prevents lag between the read and display of stats
     	// without it the points on the graph can be several seconds behind.
     	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE;
-	    
     
     	if (minimumMet) 
     	{
@@ -58,7 +62,7 @@ void run_io(
 	    pthread_cond_signal(&memQueueCondition);
 	    pthread_mutex_unlock(&memQueueLock);
     	}
-    
+
     	clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;

@@ -15,9 +15,11 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor
+    MT_Color_Pairs headerColor,
+    u8 winActive
 )
 {
+    if (!winActive) return 0;
     if (!gd->head) return 1;
     
     assert(gd && wd);
@@ -106,8 +108,10 @@ s8 graph_render(
 // bounds.You could imagine the issues with trying to allocate both of these
 // types on the same arena. This is probably a really dumb way to do it,
 // but idgaf.
-s8 add_graph_point(Arena *arena, GraphData *gd, float percentage)
+s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive)
 {
+    if (!winActive) return 0;
+
     assert(arena && gd);
     
     GraphPoint *gp = a_alloc(arena, sizeof(GraphPoint), __alignof(GraphPoint));

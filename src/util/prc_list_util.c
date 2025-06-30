@@ -5,6 +5,7 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/thread.h"
 #include "../../include/monitor.h"
+#include "../../include/startup.h"
 
 typedef enum _nav_direction
 {
@@ -17,6 +18,7 @@ typedef enum _nav_direction
 } NavDirection;
 
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
+static void _read_input(DisplayItems *di, s8 ch);
 
 void set_start_end_idx(ProcessListState *state) 
 {
@@ -37,6 +39,8 @@ void set_start_end_idx(ProcessListState *state)
 
 void adjust_state(ProcessListState *state, ProcessStats *stats)
 {
+    if (!mtopSettings->activeWindows[PRC_WIN]) return;
+
     if (state->count == (s8)stats->count) return;
     
     state->count = stats->count;
@@ -69,7 +73,13 @@ void read_input(
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {
-    char ch = wgetch(win);
+    s8 ch = wgetch(win);
+
+    if (!mtopSettings->activeWindows[PRC_WIN])
+    {
+	_read_input(di, ch);
+	return;
+    }
 
     if (state->infoVisible && (ch != 'b' && ch != 'q' && ch != 'o')) return;
 
@@ -260,4 +270,20 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     }
 
     if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);
+}
+
+static void _read_input(DisplayItems *di, s8 ch)
+{
+    switch (ch)
+    {
+	case 'o':
+	    di->optionsVisible = !di->optionsVisible;
+	    
+	    return;
+    	case 'q':
+	    SHUTDOWN_FLAG = 1;
+	    return;
+	default:
+	    return;
+    }
 }

@@ -14,6 +14,7 @@
 #include "../../include/sorting.h"
 #include "../../include/static_text.h"
 #include "../../include/tracked_stats.h"
+#include "../../include/startup.h"
 
 static char * _trim_lws(char *str);
 
@@ -24,7 +25,7 @@ void print_stats(
     s16 count
 )
 {
-    if (vd == NULL) return;
+    if (vd == NULL || !mtopSettings->activeWindows[PRC_WIN]) return;
         
     const char *commandTitle = _text[24];
     const char *pidTitle = _text[25];
@@ -145,6 +146,8 @@ void set_prc_view_data(
     u64 memTotal
 )
 {
+    if (!mtopSettings->activeWindows[PRC_WIN]) return;
+
     for (size_t i = 0; i < curPrcs->count; i++)
     {
 	float cpuPct = 0.0;

@@ -19,8 +19,6 @@
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
 #define MEM_POINT_A_SZ sizeof(GraphPoint)
 
-//volatile Settings *mtopSettings;
-
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
@@ -31,7 +29,6 @@ void run_ui(
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {
-
     u64 memTotal = 0;
     float cpuPercentage, memoryPercentage;
     CpuStats *prevStats = NULL;
@@ -42,6 +39,9 @@ void run_ui(
     const WindowData *optWin = di->windows[OPT_WIN];
     const WindowData *container = di->windows[CONTAINER_WIN];
     GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
+    const u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+    const u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    const u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
     
     ProcessStats *prevPrcs = NULL;
     ProcessStats *curPrcs = NULL;
@@ -84,7 +84,9 @@ void run_ui(
 
     listState->pageEndIdx = listState->pageSize - 1;
 
-    if (listState->pageEndIdx > listState->count) listState->pageEndIdx = listState->count - 1;
+    if (listState->pageEndIdx > listState->count)
+	listState->pageEndIdx = listState->count - 1;
+
     listState->sortFunc = vd_name_compare_func;
     listState->sortOrder = PRC_NAME;
     listState->infoVisible = 0;
@@ -93,12 +95,15 @@ void run_ui(
 
     if (!mtopSettings->transparencyEnabled)
     {
-	wbkgd(container->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    	wbkgd(prcWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    	wbkgd(cpuWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    	wbkgd(memWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    	wbkgd(optWin->window, COLOR_PAIR(MT_PAIR_BACKGROUND));
+	set_bg_colors(
+	    container->window,
+	    cpuWin->window,
+	    memWin->window,
+	    prcWin->window,
+	    optWin->window
+	);
     }
+
     print_header(container);
     print_footer(container);
     
@@ -123,11 +128,25 @@ void run_ui(
 
     	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
     
-    	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage);
-    	graph_render(&cpuPointArena, cpuGraphData, cpuWin, MT_PAIR_CPU_GP, MT_PAIR_CPU_HEADER);
+    	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage, cpuActive);
+    	graph_render(
+	    &cpuPointArena,
+	    cpuGraphData,
+	    cpuWin,
+	    MT_PAIR_CPU_GP,
+	    MT_PAIR_CPU_HEADER,
+	    cpuActive
+	);
     
-    	add_graph_point(&memPointArena, memGraphData, memoryPercentage);
-    	graph_render(&memPointArena, memGraphData, memWin, MT_PAIR_MEM_GP, MT_PAIR_MEM_HEADER);
+    	add_graph_point(&memPointArena, memGraphData, memoryPercentage, memActive);
+    	graph_render(
+	    &memPointArena,
+	    memGraphData,
+	    memWin,
+	    MT_PAIR_MEM_GP,
+	    MT_PAIR_MEM_HEADER,
+	    memActive
+	);
     
     	prevStats = curStats;
     
@@ -160,12 +179,15 @@ void run_ui(
 	    memTotal
     	);		
 
-	qsort(
-	    vd,
-	    curPrcs->count,
-	    sizeof(ProcessStatsViewData *),
-	    listState->sortFunc
-	);
+	if (prcActive)
+	{
+	    qsort(
+	        vd,
+	        curPrcs->count,
+	        sizeof(ProcessStatsViewData *),
+	        listState->sortFunc
+	    );
+	}
 
 	read_input(container->window, listState, di, vd, prcInfoSd);
 
