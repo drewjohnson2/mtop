@@ -65,11 +65,11 @@ static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
 
+static mt_Window windows[3] = { WINDOW_ID_MAX, WINDOW_ID_MAX, WINDOW_ID_MAX};
+
 void run(int argc, char **argv) 
 {
     int option_index = 0;
-    u8 cpuWinActive = 0;
-    u8 memWinActive = 0;
     s8 arg;
 
     FILE *tty = fopen("/dev/tty", "r+");
@@ -117,8 +117,6 @@ void run(int argc, char **argv)
     mtopSettings->activeWindows[MEMORY_WIN] = 0;
     mtopSettings->activeWindows[PRC_WIN] = 0;
 
-    mt_Window windows[3] = { -1, -1, -1 };
-
     static struct option long_options[] = 
     {
 	{ "transparent", no_argument, NULL, 't' },
@@ -136,19 +134,16 @@ void run(int argc, char **argv)
 		mtopSettings->transparencyEnabled = 1;
     	        break;
 	    case 'c':
-		printf("setting cpu\n");
 		mtopSettings->activeWindows[CPU_WIN] = 1;
 		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, CPU_WIN);
 		break;
 	    case 'm':
-		printf("Setting memory\n");
 		mtopSettings->activeWindows[MEMORY_WIN] = 1;
 		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, MEMORY_WIN);
 		break;
 	    case 'p':
-		printf("Setting process\n");
 		mtopSettings->activeWindows[PRC_WIN] = 1;
 		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, PRC_WIN);
@@ -157,15 +152,17 @@ void run(int argc, char **argv)
     	}
     }
 
-    mtopSettings->allWindowsActive = (mtopSettings->activeWindows[CPU_WIN] &&
-	mtopSettings->activeWindows[MEMORY_WIN] &&
-	mtopSettings->activeWindows[PRC_WIN]) || mtopSettings->allWindowsActive;
-
-    if (mtopSettings->allWindowsActive)
+    if (windows[0] == WINDOW_ID_MAX && windows[1] == WINDOW_ID_MAX && windows[2] == WINDOW_ID_MAX)
     {
-        mtopSettings->activeWindows[CPU_WIN] = 1;
-        mtopSettings->activeWindows[MEMORY_WIN] = 1;
-        mtopSettings->activeWindows[PRC_WIN] = 1;
+	mtopSettings->activeWindowCount = 3;
+
+	windows[0] = CPU_WIN;
+	windows[1] = MEMORY_WIN;
+	windows[2] = PRC_WIN;
+
+	mtopSettings->activeWindows[CPU_WIN] = 1;
+	mtopSettings->activeWindows[MEMORY_WIN] = 1;
+	mtopSettings->activeWindows[PRC_WIN] = 1;
     }
 
     prcInfoSD->needsFetch = 0;
@@ -173,8 +170,8 @@ void run(int argc, char **argv)
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
 
-    if (mtopSettings->allWindowsActive) init_window_dimens_full(di);
-    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_two(di, windows);
+    if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
+    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
     else init_window_dimens_single(di, windows[0]);
 
     init_windows(di);

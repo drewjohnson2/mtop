@@ -65,58 +65,58 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     curs_set(0);
 }
 
-void init_window_dimens_full(DisplayItems *di) 
+void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3]) 
 {
     WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *cpuWin = di->windows[CPU_WIN];
-    WindowData *memoryWin = di->windows[MEMORY_WIN];
-    WindowData *prcWin = di->windows[PRC_WIN];
+    WindowData *winOne = di->windows[selectedWins[0]];
+    WindowData *winTwo = di->windows[selectedWins[1]];
+    WindowData *winThree = di->windows[selectedWins[2]];
     WindowData *optWin = di->windows[OPT_WIN];
     
     container->windowX = 0;
     container->windowY = 0;
     
-    cpuWin->paddingTop = 1;
-    cpuWin->paddingBottom = 0;
-    cpuWin->paddingLeft = 1;
-    cpuWin->paddingRight = 1;
-    cpuWin->windowTitle = _text[21];
+    winOne->paddingTop = 1;
+    winOne->paddingBottom = 0;
+    winOne->paddingLeft = 1;
+    winOne->paddingRight = 1;
+    winOne->windowTitle = _text[selectedWins[0] + 20];
     
-    memoryWin->paddingTop = 1;
-    memoryWin->paddingBottom = 0;
-    memoryWin->paddingLeft = 1;
-    memoryWin->paddingRight = 0;
-    memoryWin->windowTitle = _text[22];
+    winTwo->paddingTop = 1;
+    winTwo->paddingBottom = 0;
+    winTwo->paddingLeft = 1;
+    winTwo->paddingRight = 0;
+    winTwo->windowTitle = _text[selectedWins[1] + 20];
     
-    prcWin->paddingTop = 1;
-    prcWin->paddingBottom = 0;
-    prcWin->paddingLeft = 1;
-    prcWin->paddingRight = 0;
-    prcWin->windowTitle = _text[23];
+    winThree->paddingTop = 1;
+    winThree->paddingBottom = 0;
+    winThree->paddingLeft = 1;
+    winThree->paddingRight = 0;
+    winThree->windowTitle = _text[selectedWins[2] + 20];
     
     // CPU win
-    cpuWin->wWidth = container->wWidth - (cpuWin->paddingLeft + cpuWin->paddingRight);
-    cpuWin->wHeight = (container->wHeight / 2) - (cpuWin->paddingTop + cpuWin->paddingBottom);
-    cpuWin->windowX = cpuWin->paddingLeft;
-    cpuWin->windowY = cpuWin->paddingTop;
+    winOne->wWidth = container->wWidth - (winOne->paddingLeft + winOne->paddingRight);
+    winOne->wHeight = (container->wHeight / 2) - (winOne->paddingTop + winOne->paddingBottom);
+    winOne->windowX = winOne->paddingLeft;
+    winOne->windowY = winOne->paddingTop;
     
     // Memory win
-    memoryWin->wWidth = (container->wWidth / 2) - (memoryWin->paddingLeft + memoryWin->paddingRight);
-    memoryWin->wHeight = (container->wHeight / 2) - 1;
-    memoryWin->windowX = memoryWin->paddingLeft;
-    memoryWin->windowY = cpuWin->wHeight + memoryWin->paddingTop;
+    winTwo->wWidth = (container->wWidth / 2) - (winTwo->paddingLeft + winTwo->paddingRight);
+    winTwo->wHeight = (container->wHeight / 2) - 1;
+    winTwo->windowX = winTwo->paddingLeft;
+    winTwo->windowY = winOne->wHeight + winTwo->paddingTop;
     
     //Process Win
-    prcWin->wWidth = (container->wWidth / 2) - (prcWin->paddingLeft + prcWin->paddingRight);
-    prcWin->wHeight = (container->wHeight / 2) - 1; 
-    prcWin->windowX = memoryWin->wWidth + prcWin->paddingLeft;
-    prcWin->windowY = cpuWin->wHeight + prcWin->paddingTop;
+    winThree->wWidth = (container->wWidth / 2) - (winThree->paddingLeft + winThree->paddingRight);
+    winThree->wHeight = (container->wHeight / 2) - 1; 
+    winThree->windowX = winTwo->wWidth + winThree->paddingLeft;
+    winThree->windowY = winOne->wHeight + winThree->paddingTop;
 
     _setup_opt_win(container, optWin);
 }
 
 // rename this init_window_dimens_duo
-void init_window_dimens_two(DisplayItems *di, mt_Window selectedWins[3])
+void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3])
 {
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *selWinOne = di->windows[selectedWins[0]];
