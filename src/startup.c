@@ -113,6 +113,7 @@ void run(int argc, char **argv)
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
     mtopSettings->orientation = HORIZONTAL;
+    mtopSettings->layout = QUARTERS_BOTTOM;
     mtopSettings->activeWindowCount = 0;
     mtopSettings->activeWindows[CPU_WIN] = 0;
     mtopSettings->activeWindows[MEMORY_WIN] = 0;
@@ -148,6 +149,8 @@ void run(int argc, char **argv)
 		_set_active_window(windows, PRC_WIN);
 		break;
 	    case 'v':
+		mtopSettings->orientation = VERTICAL;
+
 		if (optarg == NULL && optind < argc && argv[optind][0] != '-')
 		{
 		    optarg = argv[optind++];
@@ -155,18 +158,19 @@ void run(int argc, char **argv)
 
 		if (optarg == NULL)
 		{
-		    mtopSettings->orientation = VERTICAL_STACK_L;
+		    mtopSettings->layout = QUARTERS_LEFT;
 		    printf("We're going vertical, but with nothing, so left");
 		    break;
 		}
 		
 		if (strcmp(optarg, "right") == 0)
 		{
-		    mtopSettings->orientation = VERTICAL_STACK_R;
+		    mtopSettings->layout = QUARTERS_RIGHT;
 		    printf("We're going vertical right %s\n.", optarg);
+		    break;
 		}
 
-		mtopSettings->orientation = VERTICAL_STACK_L;
+		mtopSettings->layout = QUARTERS_LEFT;
 		printf("We're going vertical left %s\n.", optarg);
 
 		break;
@@ -193,14 +197,17 @@ void run(int argc, char **argv)
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
 
-    if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == HORIZONTAL) 
-	init_window_dimens_full(di, windows);
-    else if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == VERTICAL_STACK_R) 
-	init_window_dimens_v_full(di, windows);
-    else if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == VERTICAL_STACK_L) 
-	init_window_dimens_v_full(di, windows);
-    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
-    else init_window_dimens_single(di, windows[0]);
+    if (mtopSettings->orientation == HORIZONTAL)
+    {
+	if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
+    	else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
+    	else init_window_dimens_single(di, windows[0]);
+    }
+    else
+    {
+	if (mtopSettings->layout == QUARTERS_LEFT) init_window_dimens_vl_full(di, windows);
+	else if (mtopSettings->layout == QUARTERS_RIGHT) init_window_dimens_vr_full(di, windows);
+    }
 
     init_windows(di);
     

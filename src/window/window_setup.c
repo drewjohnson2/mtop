@@ -175,7 +175,7 @@ void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin)
     _setup_opt_win(container, optWin);
 }
 
-void init_window_dimens_v_full(DisplayItems *di, mt_Window selectedWins[3]) 
+void init_window_dimens_vl_full(DisplayItems *di, mt_Window selectedWins[3]) 
 {
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *winOne = di->windows[selectedWins[0]];
@@ -221,6 +221,56 @@ void init_window_dimens_v_full(DisplayItems *di, mt_Window selectedWins[3])
     winThree->wHeight = container->wHeight - (winThree->paddingTop + winThree->paddingBottom); 
     winThree->windowX = container->wWidth - winThree->paddingRight - winThree->wWidth;
     winThree->windowY = winThree->paddingTop;
+
+    _setup_opt_win(container, optWin);
+}
+
+void init_window_dimens_vr_full(DisplayItems *di, mt_Window selectedWins[3]) 
+{
+    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *winOne = di->windows[selectedWins[0]];
+    WindowData *winTwo = di->windows[selectedWins[1]];
+    WindowData *winThree = di->windows[selectedWins[2]];
+    WindowData *optWin = di->windows[OPT_WIN];
+    
+    container->windowX = 0;
+    container->windowY = 0;
+    
+    winOne->paddingTop = 1;
+    winOne->paddingBottom = 0;
+    winOne->paddingLeft = 1;
+    winOne->paddingRight = 1;
+    winOne->windowTitle = _text[selectedWins[0] + 20];
+    
+    winTwo->paddingTop = 1;
+    winTwo->paddingBottom = 0;
+    winTwo->paddingLeft = 1;
+    winTwo->paddingRight = 1;
+    winTwo->windowTitle = _text[selectedWins[1] + 20];
+    
+    winThree->paddingTop = 1;
+    winThree->paddingBottom = 2;
+    winThree->paddingLeft = 1;
+    winThree->paddingRight = 1;
+    winThree->windowTitle = _text[selectedWins[2] + 20];
+    
+    // CPU win
+    winOne->wWidth = (container->wWidth / 2);
+    winOne->wHeight = container->wHeight - (winOne->paddingTop + winThree->paddingBottom);
+    winOne->windowX = winOne->paddingLeft;
+    winOne->windowY = winOne->paddingTop;
+    
+    // Memory win
+    winTwo->wWidth = (container->wWidth / 2) - (winTwo->paddingLeft + winTwo->paddingRight);
+    winTwo->wHeight = (container->wHeight / 2) - 1;
+    winTwo->windowX = container->wWidth - winTwo->paddingRight - winTwo->wWidth;
+    winTwo->windowY = winOne->paddingTop;
+    
+    //Process Win
+    winThree->wWidth = (container->wWidth / 2) - (winThree->paddingLeft + winThree->paddingRight); 
+    winThree->wHeight = (container->wHeight / 2) - 1; 
+    winThree->windowX = container->wWidth - winThree->paddingRight - winThree->wWidth;
+    winThree->windowY = winTwo->wHeight + winThree->paddingTop;
 
     _setup_opt_win(container, optWin);
 }

@@ -8,9 +8,16 @@
 typedef enum _layout_orientation
 {
     HORIZONTAL,
-    VERTICAL_STACK_L,
-    VERTICAL_STACK_R
+    VERTICAL,
 } LayoutOrientation;
+
+typedef enum _layout
+{
+    QUARTERS_LEFT,
+    QUARTERS_RIGHT,
+    QUARTERS_TOP,
+    QUARTERS_BOTTOM
+} Layout;
 
 typedef struct _mtop_settings
 {
@@ -19,6 +26,7 @@ typedef struct _mtop_settings
     u8 activeWindows[4];
     u8 transparencyEnabled;
     u8 activeWindowCount;
+    Layout layout;
     LayoutOrientation orientation;
 } Settings;
 
