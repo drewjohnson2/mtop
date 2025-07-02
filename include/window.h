@@ -104,6 +104,8 @@ void init_windows(DisplayItems *di);
 void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3]);
 void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3]);
 void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin);
+void init_window_dimens_v_full(DisplayItems *di, mt_Window selectedWins[3]);
+void init_window_dimens_v_duo(DisplayItems *di, mt_Window selectedWins[3]);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);

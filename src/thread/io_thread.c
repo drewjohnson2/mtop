@@ -20,10 +20,6 @@ void run_io(
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
-    u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
-    u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
-    u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
-
     pthread_mutex_lock(&procDataLock);
     get_processes(procArena, prc_pid_compare);  
     pthread_mutex_unlock(&procDataLock);

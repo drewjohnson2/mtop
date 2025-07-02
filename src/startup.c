@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <arena.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "../include/startup.h"
 #include "../include/monitor.h"
@@ -111,8 +112,8 @@ void run(int argc, char **argv)
     prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
+    mtopSettings->orientation = HORIZONTAL;
     mtopSettings->activeWindowCount = 0;
-    mtopSettings->allWindowsActive = 1;
     mtopSettings->activeWindows[CPU_WIN] = 0;
     mtopSettings->activeWindows[MEMORY_WIN] = 0;
     mtopSettings->activeWindows[PRC_WIN] = 0;
@@ -123,10 +124,11 @@ void run(int argc, char **argv)
 	{ "cpu", no_argument, NULL, 'c'},
 	{ "memory", no_argument, NULL, 'm'},
 	{ "process", no_argument, NULL, 'p'},
+	{ "vertical", optional_argument, NULL, 'v'},
 	{ NULL, no_argument, NULL, 0 }
     };
 
-    while((arg = getopt_long(argc, argv, "tcmp", long_options, &option_index)) != -1)
+    while((arg = getopt_long(argc, argv, "tcmpv::", long_options, &option_index)) != -1)
     {
 	switch (arg) 
     	{
@@ -135,18 +137,39 @@ void run(int argc, char **argv)
     	        break;
 	    case 'c':
 		mtopSettings->activeWindows[CPU_WIN] = 1;
-		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, CPU_WIN);
 		break;
 	    case 'm':
 		mtopSettings->activeWindows[MEMORY_WIN] = 1;
-		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, MEMORY_WIN);
 		break;
 	    case 'p':
 		mtopSettings->activeWindows[PRC_WIN] = 1;
-		mtopSettings->allWindowsActive = 0;
 		_set_active_window(windows, PRC_WIN);
+		break;
+	    case 'v':
+		if (optarg == NULL && optind < argc && argv[optind][0] != '-')
+		{
+		    optarg = argv[optind++];
+		}
+
+		if (optarg == NULL)
+		{
+		    mtopSettings->orientation = VERTICAL_STACK_L;
+		    printf("We're going vertical, but with nothing, so left");
+		    break;
+		}
+		
+		if (strcmp(optarg, "right") == 0)
+		{
+		    mtopSettings->orientation = VERTICAL_STACK_R;
+		    printf("We're going vertical right %s\n.", optarg);
+		}
+
+		mtopSettings->orientation = VERTICAL_STACK_L;
+		printf("We're going vertical left %s\n.", optarg);
+
+		break;
     	    default:
     	        break;
     	}
@@ -170,7 +193,12 @@ void run(int argc, char **argv)
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
 
-    if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
+    if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == HORIZONTAL) 
+	init_window_dimens_full(di, windows);
+    else if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == VERTICAL_STACK_R) 
+	init_window_dimens_v_full(di, windows);
+    else if (mtopSettings->activeWindowCount == 3 && mtopSettings->orientation == VERTICAL_STACK_L) 
+	init_window_dimens_v_full(di, windows);
     else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
     else init_window_dimens_single(di, windows[0]);
 
@@ -288,3 +316,5 @@ static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
 {
     windows[mtopSettings->activeWindowCount++] = winToAdd; 
 }
+
+
