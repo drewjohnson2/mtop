@@ -205,8 +205,9 @@ void run(int argc, char **argv)
     }
     else
     {
-	if (mtopSettings->layout == QUARTERS_LEFT) init_window_dimens_vl_full(di, windows);
-	else if (mtopSettings->layout == QUARTERS_RIGHT) init_window_dimens_vr_full(di, windows);
+	if (mtopSettings->layout == QUARTERS_LEFT && mtopSettings->activeWindowCount == 3) init_window_dimens_vl_full(di, windows);
+	else if (mtopSettings->layout == QUARTERS_RIGHT && mtopSettings->activeWindowCount == 3) init_window_dimens_vr_full(di, windows);
+	else if (mtopSettings->activeWindowCount == 2) init_window_dimens_v_duo(di, windows);
     }
 
     init_windows(di);
