@@ -95,71 +95,6 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
-typedef struct _padding_vals
-{
-    u8 paddingTop;
-    u8 paddingBottom;
-    u8 paddingLeft;
-    u8 paddingRight;
-} PaddingValues;
-
-// [orientation][layout][number of wins - 1][position]
-static PaddingValues verticalPaddingTable[2][4][3][3] = {
-    // orientation horizontal
-    {
-	//layout quarters left
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	},
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	},
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	},
-	{
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	}
-    },
-    {
-	//layout
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 1, 0, 1, 1 }, { 1, 0, 1, 1 },{ 1, 2, 1, 1 } }
-	},
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	},
-	{
-	    // # of windows
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	},
-	{
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } },
-	    { { 0, 0, 0, 0 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }
-	}
-    }
-};
-
 //
 //		window_setup.c
 //
@@ -169,9 +104,6 @@ void init_windows(DisplayItems *di);
 void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3]);
 void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3]);
 void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin);
-void init_window_dimens_vl_full(DisplayItems *di, mt_Window selectedWins[3]);
-void init_window_dimens_vr_full(DisplayItems *di, mt_Window selectedWins[3]);
-void init_window_dimens_v_duo(DisplayItems *di, mt_Window selectedWins[3]);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);

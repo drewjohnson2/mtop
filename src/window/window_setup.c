@@ -26,6 +26,62 @@
 #define POS_Y_START(win) win->paddingTop
 #define POS_Y_BOTTOM(conatiner, win) win->wHeight + win->paddingTop
 
+typedef struct _padding_vals
+{
+    u8 paddingTop;
+    u8 paddingBottom;
+    u8 paddingLeft;
+    u8 paddingRight;
+} PaddingValues;
+
+// [orientation][layout][number of wins - 1][position]
+static PaddingValues paddingTable[2][6][3][3] = {
+    // orientation horizontal
+    {
+	{},{},
+	// layout quarters top
+	{
+	},
+	// layout quarters bottom
+	{
+	    {}, {}, { { 1, 0, 1, 1 }, { 1, 0, 1, 1 }, { 1, 0, 0, 1 } }
+	},
+	// layout duo
+	{
+	    // # of windows
+	    {}, { { 1, 0, 1, 1 }, { 1, 0, 1, 1 },{ 0, 0, 0, 0 } }, {}
+	},
+	// layout single
+	{
+	    { { 1, 1, 1, 1 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }, {}, {}
+	}
+    },
+    {
+	// layout quarters left
+	{
+	    // # of windows
+	    { }, { }, { { 1, 0, 1, 1 }, { 1, 0, 1, 1 },{ 1, 2, 1, 1 } }
+	},
+	// layout quarters right
+	{
+	    // # of windows
+	    {}, {}, { { 1, 2, 1, 1 }, { 1, 0, 1, 1 },{ 1, 0, 1, 1 } }
+	},
+	{},
+	{},
+	// layout duo
+	{
+	    // # of windows
+	    {}, { { 1, 1, 1, 0 }, { 1, 1, 0, 1 },{ 0, 0, 0, 0 } }, {}
+	},
+	// layout single
+	{
+	    { { 1, 1, 1, 1 }, { 0, 0, 0, 0 },{ 0, 0, 0, 0 } }, {}, {}
+	}
+
+    }
+};
+
 static void _setup_opt_win(WindowData *container, WindowData *optWin);
 
 DisplayItems * init_display_items(Arena *arena) 
@@ -77,56 +133,105 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     curs_set(0);
 }
 
-void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3]) 
+void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3])
 {
+    LayoutOrientation orientation = mtopSettings->orientation;    
+    Layout layout = mtopSettings->layout;
+    u8 winCount = mtopSettings->activeWindowCount;
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *winOne = di->windows[selectedWins[0]];
     WindowData *winTwo = di->windows[selectedWins[1]];
     WindowData *winThree = di->windows[selectedWins[2]];
     WindowData *optWin = di->windows[OPT_WIN];
-    
+
     container->windowX = 0;
     container->windowY = 0;
-    
-    winOne->paddingTop = 1;
-    winOne->paddingBottom = 0;
-    winOne->paddingLeft = 1;
-    winOne->paddingRight = 1;
-    winOne->windowTitle = _text[selectedWins[0] + 20];
-    
-    winTwo->paddingTop = 1;
-    winTwo->paddingBottom = 0;
-    winTwo->paddingLeft = 1;
-    winTwo->paddingRight = 1;
-    winTwo->windowTitle = _text[selectedWins[1] + 20];
-    
-    winThree->paddingTop = 1;
-    winThree->paddingBottom = 0;
-    winThree->paddingLeft = 0;
-    winThree->paddingRight = 1;
-    winThree->windowTitle = _text[selectedWins[2] + 20];
-    
-    winOne->wWidth = FULL_WIDTH(container, winOne);
-    winOne->wHeight = HALF_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
-    
-    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_START(winTwo);
-    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo); 
-    
-    winThree->wWidth = HALF_WIDTH(container, winThree);
-    winThree->wHeight = HALF_HEIGHT(container, winThree); 
-    winThree->windowX = POS_X_END(container, winThree);
-    winThree->windowY = POS_Y_BOTTOM(container, winThree);
+
+    winOne->paddingTop 		= paddingTable[orientation][layout][winCount - 1][0].paddingTop;
+    winOne->paddingBottom 	= paddingTable[orientation][layout][winCount - 1][0].paddingBottom;
+    winOne->paddingLeft 	= paddingTable[orientation][layout][winCount - 1][0].paddingLeft;
+    winOne->paddingRight 	= paddingTable[orientation][layout][winCount - 1][0].paddingRight;
+    winOne->windowTitle 	= _text[selectedWins[0] + 20];
+
+    winTwo->paddingTop 		= paddingTable[orientation][layout][winCount - 1][1].paddingTop;
+    winTwo->paddingBottom 	= paddingTable[orientation][layout][winCount - 1][1].paddingBottom;
+    winTwo->paddingLeft 	= paddingTable[orientation][layout][winCount - 1][1].paddingLeft;
+    winTwo->paddingRight 	= paddingTable[orientation][layout][winCount - 1][1].paddingRight;
+    winTwo->windowTitle 	= _text[selectedWins[1] + 20];
+
+    winThree->paddingTop 	= paddingTable[orientation][layout][winCount - 1][2].paddingTop;
+    winThree->paddingBottom 	= paddingTable[orientation][layout][winCount - 1][2].paddingBottom;
+    winThree->paddingLeft 	= paddingTable[orientation][layout][winCount - 1][2].paddingLeft;
+    winThree->paddingRight 	= paddingTable[orientation][layout][winCount - 1][2].paddingRight;
+    winThree->windowTitle 	= _text[selectedWins[2] + 20];
+
+    switch (layout) 
+    {
+	case QUARTERS_LEFT:
+	    winOne->wWidth = HALF_WIDTH(container, winOne);
+	    winOne->wHeight = HALF_HEIGHT(container, winOne);
+	    winOne->windowX = POS_X_START(winOne);
+	    winOne->windowY = POS_Y_START(winOne);
+	    
+	    winTwo->wWidth = HALF_WIDTH(container, winTwo);
+	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_START(winTwo);
+	    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
+	    
+	    winThree->wWidth = HALF_WIDTH(container, winThree); 
+	    winThree->wHeight = FULL_HEIGHT(container, winThree);
+	    winThree->windowX = POS_X_END(container, winThree);
+	    winThree->windowY = POS_X_START(winThree);
+
+	    break;
+	case QUARTERS_RIGHT:
+	    winOne->wWidth = HALF_WIDTH(container, winOne);
+	    winOne->wHeight = FULL_HEIGHT(container, winOne);
+	    winOne->windowX = POS_X_START(winOne);
+	    winOne->windowY = POS_Y_START(winOne);
+	    
+	    winTwo->wWidth = HALF_WIDTH(container, winTwo); 
+	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_END(container, winTwo);
+	    winTwo->windowY = POS_Y_START(winTwo); 
+	    
+	    winThree->wWidth = HALF_WIDTH(container, winThree);
+	    winThree->wHeight = HALF_HEIGHT(container, winThree);
+	    winThree->windowX = POS_X_END(container, winThree);
+	    winThree->windowY = POS_Y_BOTTOM(conatiner, winThree);
+	    
+	    break;
+	case QUARTERS_TOP:
+	    exit(0);
+	case QUARTERS_BOTTOM:
+	    winOne->wWidth = FULL_WIDTH(container, winOne);
+	    winOne->wHeight = HALF_HEIGHT(container, winOne);
+	    winOne->windowX = POS_X_START(winOne);
+	    winOne->windowY = POS_Y_START(winOne);
+	    
+	    winTwo->wWidth = HALF_WIDTH(container, winTwo);
+	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_START(winTwo);
+	    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo); 
+	    
+	    winThree->wWidth = HALF_WIDTH(container, winThree);
+	    winThree->wHeight = HALF_HEIGHT(container, winThree); 
+	    winThree->windowX = POS_X_END(container, winThree);
+	    winThree->windowY = POS_Y_BOTTOM(container, winThree);
+
+	    break;
+	default:
+	    exit(0);
+    }
 
     _setup_opt_win(container, optWin);
 }
 
-// rename this init_window_dimens_duo
-void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3])
+void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3]) 
 {
+    LayoutOrientation orientation = mtopSettings->orientation;    
+    Layout layout = mtopSettings->layout;
+    u8 winCount = mtopSettings->activeWindowCount;
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *winOne = di->windows[selectedWins[0]];
     WindowData *winTwo = di->windows[selectedWins[1]];
@@ -134,35 +239,56 @@ void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3])
 
     container->windowX = 0;
     container->windowY = 0;
-    
-    winOne->paddingTop = 1;
-    winOne->paddingBottom = 0;
-    winOne->paddingLeft = 1;
-    winOne->paddingRight = 1;
-    winOne->windowTitle = _text[selectedWins[0] + 20];
 
-    winTwo->paddingTop = 1;
-    winTwo->paddingBottom = 0;
-    winTwo->paddingLeft = 1;
-    winTwo->paddingRight = 1;
-    winTwo->windowTitle = _text[selectedWins[1] + 20];
+    winOne->paddingTop 		= paddingTable[orientation][layout][winCount - 1][0].paddingTop;
+    winOne->paddingBottom 	= paddingTable[orientation][layout][winCount - 1][0].paddingBottom;
+    winOne->paddingLeft 	= paddingTable[orientation][layout][winCount - 1][0].paddingLeft;
+    winOne->paddingRight 	= paddingTable[orientation][layout][winCount - 1][0].paddingRight;
+    winOne->windowTitle 	= _text[selectedWins[0] + 20];
 
-    winOne->wWidth = FULL_WIDTH(container, winOne);
-    winOne->wHeight = HALF_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    winTwo->paddingTop 		= paddingTable[orientation][layout][winCount - 1][1].paddingTop;
+    winTwo->paddingBottom 	= paddingTable[orientation][layout][winCount - 1][1].paddingBottom;
+    winTwo->paddingLeft 	= paddingTable[orientation][layout][winCount - 1][1].paddingLeft;
+    winTwo->paddingRight 	= paddingTable[orientation][layout][winCount - 1][1].paddingRight;
+    winTwo->windowTitle 	= _text[selectedWins[1] + 20];
 
-    winTwo->wWidth = FULL_WIDTH(container, winTwo);
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_START(winTwo);
-    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
+    switch (orientation)
+    {
+	case HORIZONTAL:
+	    winOne->wWidth = FULL_WIDTH(container, winOne);
+	    winOne->wHeight = HALF_HEIGHT(container, winOne);
+	    winOne->windowX = POS_X_START(winOne);
+	    winOne->windowY = POS_Y_START(winOne);
+	
+	    winTwo->wWidth = FULL_WIDTH(container, winTwo);
+	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_START(winTwo);
+	    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
+
+	    break;
+	case VERTICAL:
+	    winOne->wWidth = HALF_WIDTH(container, winOne);
+	    winOne->wHeight = FULL_HEIGHT(container, winOne);
+	    winOne->windowX = POS_X_START(winOne);
+	    winOne->windowY = POS_Y_START(winOne);
+	
+	    winTwo->wWidth = HALF_WIDTH(container, winTwo);
+	    winTwo->wHeight = FULL_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_END(container, winTwo);
+	    winTwo->windowY = POS_Y_START(winTwo);
+
+	    break;	
+	default:
+	    exit(0);
+    }
 
     _setup_opt_win(container, optWin);
 }
 
-
 void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin)
 {
+    LayoutOrientation orientation = mtopSettings->orientation;    
+    Layout layout = mtopSettings->layout;
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *win = di->windows[selectedWin];
     WindowData *optWin = di->windows[OPT_WIN];
@@ -170,145 +296,16 @@ void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin)
     container->windowX = 0;
     container->windowY = 0;
 
-    win->paddingTop = 1;
-    win->paddingBottom = 1;
-    win->paddingLeft = 1;
-    win->paddingRight = 1;
-    win->windowTitle = _text[selectedWin + 20];
+    win->paddingTop 	= paddingTable[orientation][layout][0][0].paddingTop;
+    win->paddingBottom 	= paddingTable[orientation][layout][0][0].paddingBottom;
+    win->paddingLeft 	= paddingTable[orientation][layout][0][0].paddingLeft;
+    win->paddingRight 	= paddingTable[orientation][layout][0][0].paddingRight;
+    win->windowTitle 	= _text[selectedWin + 20];
 
     win->wWidth = FULL_WIDTH(container, win);
     win->wHeight = FULL_HEIGHT(container, win);
     win->windowX = POS_X_START(win);
     win->windowY = POS_Y_START(win);
-
-    _setup_opt_win(container, optWin);
-}
-
-void init_window_dimens_vl_full(DisplayItems *di, mt_Window selectedWins[3]) 
-{
-    WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *winOne = di->windows[selectedWins[0]];
-    WindowData *winTwo = di->windows[selectedWins[1]];
-    WindowData *winThree = di->windows[selectedWins[2]];
-    WindowData *optWin = di->windows[OPT_WIN];
-    
-    container->windowX = 0;
-    container->windowY = 0;
-    
-    winOne->paddingTop 		= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingTop;
-    winOne->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingBottom;
-    winOne->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingLeft;
-    winOne->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingRight;
-    winOne->windowTitle 	= _text[selectedWins[0] + 20];
-    
-    winTwo->paddingTop 		= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingTop;
-    winTwo->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingBottom;
-    winTwo->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingLeft;
-    winTwo->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingRight;
-    winTwo->windowTitle 	= _text[selectedWins[1] + 20];
-    
-    winThree->paddingTop 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingTop;
-    winThree->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingBottom;
-    winThree->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingLeft;
-    winThree->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingRight;
-    winThree->windowTitle 	= _text[selectedWins[2] + 20];
-    
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = HALF_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
-    
-    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_START(winTwo);
-    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
-    
-    winThree->wWidth = HALF_WIDTH(container, winThree); 
-    winThree->wHeight = FULL_HEIGHT(container, winThree);
-    winThree->windowX = POS_X_END(container, winThree);
-    winThree->windowY = POS_X_START(winThree);
-
-    _setup_opt_win(container, optWin);
-}
-
-void init_window_dimens_vr_full(DisplayItems *di, mt_Window selectedWins[3]) 
-{
-    WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *winOne = di->windows[selectedWins[0]];
-    WindowData *winTwo = di->windows[selectedWins[1]];
-    WindowData *winThree = di->windows[selectedWins[2]];
-    WindowData *optWin = di->windows[OPT_WIN];
-    
-    container->windowX = 0;
-    container->windowY = 0;
-    
-    winOne->paddingTop = 1;
-    winOne->paddingBottom = 2;
-    winOne->paddingLeft = 1;
-    winOne->paddingRight = 1;
-    winOne->windowTitle = _text[selectedWins[0] + 20];
-    
-    winTwo->paddingTop = 1;
-    winTwo->paddingBottom = 0;
-    winTwo->paddingLeft = 1;
-    winTwo->paddingRight = 1;
-    winTwo->windowTitle = _text[selectedWins[1] + 20];
-    
-    winThree->paddingTop = 1;
-    winThree->paddingBottom = 0;
-    winThree->paddingLeft = 1;
-    winThree->paddingRight = 1;
-    winThree->windowTitle = _text[selectedWins[2] + 20];
-    
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = FULL_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
-    
-    winTwo->wWidth = HALF_WIDTH(container, winTwo); 
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_END(container, winTwo);
-    winTwo->windowY = POS_Y_START(winTwo); 
-    
-    winThree->wWidth = HALF_WIDTH(container, winThree);
-    winThree->wHeight = HALF_HEIGHT(container, winThree);
-    winThree->windowX = POS_X_END(container, winThree);
-    winThree->windowY = POS_Y_BOTTOM(conatiner, winThree);
-
-    _setup_opt_win(container, optWin);
-}
-
-void init_window_dimens_v_duo(DisplayItems *di, mt_Window selectedWins[3])
-{
-    WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *winOne = di->windows[selectedWins[0]];
-    WindowData *winTwo = di->windows[selectedWins[1]];
-    WindowData *optWin = di->windows[OPT_WIN];
-
-    container->windowX = 0;
-    container->windowY = 0;
-    
-    winOne->paddingTop = 1;
-    winOne->paddingBottom = 1;
-    winOne->paddingLeft = 1;
-    winOne->paddingRight = 0;
-    winOne->windowTitle = _text[selectedWins[0] + 20];
-
-    winTwo->paddingTop = 1;
-    winTwo->paddingBottom = 1;
-    winTwo->paddingLeft = 0;
-    winTwo->paddingRight = 1;
-    winTwo->windowTitle = _text[selectedWins[1] + 20];
-
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = FULL_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
-
-    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-    winTwo->wHeight = FULL_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_END(container, winTwo);
-    winTwo->windowY = POS_Y_START(winTwo);
 
     _setup_opt_win(container, optWin);
 }

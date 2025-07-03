@@ -159,19 +159,16 @@ void run(int argc, char **argv)
 		if (optarg == NULL)
 		{
 		    mtopSettings->layout = QUARTERS_LEFT;
-		    printf("We're going vertical, but with nothing, so left");
 		    break;
 		}
 		
 		if (strcmp(optarg, "right") == 0)
 		{
 		    mtopSettings->layout = QUARTERS_RIGHT;
-		    printf("We're going vertical right %s\n.", optarg);
 		    break;
 		}
 
 		mtopSettings->layout = QUARTERS_LEFT;
-		printf("We're going vertical left %s\n.", optarg);
 
 		break;
     	    default:
@@ -192,24 +189,17 @@ void run(int argc, char **argv)
 	mtopSettings->activeWindows[PRC_WIN] = 1;
     }
 
+    if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
+    else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
+
     prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
 
-    if (mtopSettings->orientation == HORIZONTAL)
-    {
-	if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
-    	else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
-    	else init_window_dimens_single(di, windows[0]);
-    }
-    else
-    {
-	if (mtopSettings->layout == QUARTERS_LEFT && mtopSettings->activeWindowCount == 3) init_window_dimens_vl_full(di, windows);
-	else if (mtopSettings->layout == QUARTERS_RIGHT && mtopSettings->activeWindowCount == 3) init_window_dimens_vr_full(di, windows);
-	else if (mtopSettings->activeWindowCount == 2) init_window_dimens_v_duo(di, windows);
-	else init_window_dimens_single(di, windows[0]);
-    }
+    if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
+    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
+    else init_window_dimens_single(di, windows[0]);
 
     init_windows(di);
     

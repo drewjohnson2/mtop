@@ -16,7 +16,9 @@ typedef enum _layout
     QUARTERS_LEFT,
     QUARTERS_RIGHT,
     QUARTERS_TOP,
-    QUARTERS_BOTTOM
+    QUARTERS_BOTTOM,
+    DUO,
+    SINGLE
 } Layout;
 
 typedef struct _mtop_settings
