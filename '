@@ -23,7 +23,7 @@
 #define POS_X_START(win) win->paddingLeft
 #define POS_X_END(container, win) container->wWidth - win->paddingRight - win->wWidth
 
-#define POS_Y_START(win) win->paddingTop
+#define POS_Y_START(container, win) win->paddingTop
 #define POS_Y_BOTTOM(conatiner, win) win->wHeight + win->paddingTop
 
 static void _setup_opt_win(WindowData *container, WindowData *optWin);
@@ -108,12 +108,12 @@ void init_window_dimens_full(DisplayItems *di, mt_Window selectedWins[3])
     
     winOne->wWidth = FULL_WIDTH(container, winOne);
     winOne->wHeight = HALF_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    winOne->windowX = POS_X_START(container, winOne);
+    winOne->windowY = POS_Y_START(container, winOne);
     
     winTwo->wWidth = HALF_WIDTH(container, winTwo);
     winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_START(winTwo);
+    winTwo->windowX = POS_X_START(container, winTwo);
     winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo); 
     
     winThree->wWidth = HALF_WIDTH(container, winThree);
@@ -150,7 +150,7 @@ void init_window_dimens_duo(DisplayItems *di, mt_Window selectedWins[3])
     winOne->wWidth = FULL_WIDTH(container, winOne);
     winOne->wHeight = HALF_HEIGHT(container, winOne);
     winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    winOne->windowY = POS_Y_START(container, winOne);
 
     winTwo->wWidth = FULL_WIDTH(container, winTwo);
     winTwo->wHeight = HALF_HEIGHT(container, winTwo);
@@ -177,9 +177,9 @@ void init_window_dimens_single(DisplayItems *di, mt_Window selectedWin)
     win->windowTitle = _text[selectedWin + 20];
 
     win->wWidth = FULL_WIDTH(container, win);
-    win->wHeight = FULL_HEIGHT(container, win);
-    win->windowX = POS_X_START(win);
-    win->windowY = POS_Y_START(win);
+    win->wHeight = FULL_HEIGHT(container, win) 
+    win->windowX = POS_X_START(container, win)
+    win->windowY = win->paddingTop;
 
     _setup_opt_win(container, optWin);
 }
@@ -195,38 +195,38 @@ void init_window_dimens_vl_full(DisplayItems *di, mt_Window selectedWins[3])
     container->windowX = 0;
     container->windowY = 0;
     
-    winOne->paddingTop 		= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingTop;
-    winOne->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingBottom;
-    winOne->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingLeft;
-    winOne->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][0].paddingRight;
-    winOne->windowTitle 	= _text[selectedWins[0] + 20];
+    winOne->paddingTop = 1;
+    winOne->paddingBottom = 0;
+    winOne->paddingLeft = 1;
+    winOne->paddingRight = 1;
+    winOne->windowTitle = _text[selectedWins[0] + 20];
     
-    winTwo->paddingTop 		= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingTop;
-    winTwo->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingBottom;
-    winTwo->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingLeft;
-    winTwo->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][1].paddingRight;
-    winTwo->windowTitle 	= _text[selectedWins[1] + 20];
+    winTwo->paddingTop = 1;
+    winTwo->paddingBottom = 0;
+    winTwo->paddingLeft = 1;
+    winTwo->paddingRight = 1;
+    winTwo->windowTitle = _text[selectedWins[1] + 20];
     
-    winThree->paddingTop 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingTop;
-    winThree->paddingBottom 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingBottom;
-    winThree->paddingLeft 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingLeft;
-    winThree->paddingRight 	= verticalPaddingTable[VERTICAL][QUARTERS_LEFT][2][2].paddingRight;
-    winThree->windowTitle 	= _text[selectedWins[2] + 20];
+    winThree->paddingTop = 1;
+    winThree->paddingBottom = 2;
+    winThree->paddingLeft = 1;
+    winThree->paddingRight = 1;
+    winThree->windowTitle = _text[selectedWins[2] + 20];
     
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = HALF_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    winOne->wWidth = (container->wWidth / 2) - winOne->paddingRight;
+    winOne->wHeight = (container->wHeight / 2) - 1;
+    winOne->windowX = winOne->paddingLeft;
+    winOne->windowY = winOne->paddingTop;
     
-    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_START(winTwo);
-    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
+    winTwo->wWidth = (container->wWidth / 2) - winTwo->paddingRight;
+    winTwo->wHeight = (container->wHeight / 2) - 1;
+    winTwo->windowX = winTwo->paddingLeft;
+    winTwo->windowY = winOne->wHeight + winTwo->paddingTop;
     
-    winThree->wWidth = HALF_WIDTH(container, winThree); 
-    winThree->wHeight = FULL_HEIGHT(container, winThree);
-    winThree->windowX = POS_X_END(container, winThree);
-    winThree->windowY = POS_X_START(winThree);
+    winThree->wWidth = (container->wWidth / 2) - winThree->paddingLeft; 
+    winThree->wHeight = container->wHeight - (winThree->paddingTop + winThree->paddingBottom); 
+    winThree->windowX = container->wWidth - winThree->paddingRight - winThree->wWidth;
+    winThree->windowY = winThree->paddingTop;
 
     _setup_opt_win(container, optWin);
 }
@@ -255,25 +255,27 @@ void init_window_dimens_vr_full(DisplayItems *di, mt_Window selectedWins[3])
     winTwo->windowTitle = _text[selectedWins[1] + 20];
     
     winThree->paddingTop = 1;
-    winThree->paddingBottom = 0;
+    winThree->paddingBottom = 2;
     winThree->paddingLeft = 1;
     winThree->paddingRight = 1;
     winThree->windowTitle = _text[selectedWins[2] + 20];
     
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = FULL_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    // I need to fix width here to account for padding. 
+    // I think this ends up making this window too wide
+    winOne->wWidth = (container->wWidth / 2) - winOne->paddingLeft;
+    winOne->wHeight = container->wHeight - (winOne->paddingTop + winOne->paddingBottom);
+    winOne->windowX = winOne->paddingLeft;
+    winOne->windowY = winOne->paddingTop;
     
-    winTwo->wWidth = HALF_WIDTH(container, winTwo); 
-    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_END(container, winTwo);
-    winTwo->windowY = POS_Y_START(winTwo); 
+    winTwo->wWidth = (container->wWidth / 2) - winTwo->paddingRight;
+    winTwo->wHeight = (container->wHeight / 2) - 1;
+    winTwo->windowX = container->wWidth - winTwo->paddingRight - winTwo->wWidth;
+    winTwo->windowY = winOne->paddingTop; // winTwo (change this)
     
-    winThree->wWidth = HALF_WIDTH(container, winThree);
-    winThree->wHeight = HALF_HEIGHT(container, winThree);
-    winThree->windowX = POS_X_END(container, winThree);
-    winThree->windowY = POS_Y_BOTTOM(conatiner, winThree);
+    winThree->wWidth = (container->wWidth / 2) - winThree->paddingRight; 
+    winThree->wHeight = (container->wHeight / 2) - 1; 
+    winThree->windowX = container->wWidth - winThree->paddingRight - winThree->wWidth;
+    winThree->windowY = winThree->wHeight + winThree->paddingTop;
 
     _setup_opt_win(container, optWin);
 }
@@ -281,34 +283,34 @@ void init_window_dimens_vr_full(DisplayItems *di, mt_Window selectedWins[3])
 void init_window_dimens_v_duo(DisplayItems *di, mt_Window selectedWins[3])
 {
     WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *winOne = di->windows[selectedWins[0]];
-    WindowData *winTwo = di->windows[selectedWins[1]];
+    WindowData *selWinOne = di->windows[selectedWins[0]];
+    WindowData *selWinTwo = di->windows[selectedWins[1]];
     WindowData *optWin = di->windows[OPT_WIN];
 
     container->windowX = 0;
     container->windowY = 0;
     
-    winOne->paddingTop = 1;
-    winOne->paddingBottom = 1;
-    winOne->paddingLeft = 1;
-    winOne->paddingRight = 0;
-    winOne->windowTitle = _text[selectedWins[0] + 20];
+    selWinOne->paddingTop = 1;
+    selWinOne->paddingBottom = 1;
+    selWinOne->paddingLeft = 1;
+    selWinOne->paddingRight = 0;
+    selWinOne->windowTitle = _text[selectedWins[0] + 20];
 
-    winTwo->paddingTop = 1;
-    winTwo->paddingBottom = 1;
-    winTwo->paddingLeft = 0;
-    winTwo->paddingRight = 1;
-    winTwo->windowTitle = _text[selectedWins[1] + 20];
+    selWinTwo->paddingTop = 1;
+    selWinTwo->paddingBottom = 1;
+    selWinTwo->paddingLeft = 0;
+    selWinTwo->paddingRight = 1;
+    selWinTwo->windowTitle = _text[selectedWins[1] + 20];
 
-    winOne->wWidth = HALF_WIDTH(container, winOne);
-    winOne->wHeight = FULL_HEIGHT(container, winOne);
-    winOne->windowX = POS_X_START(winOne);
-    winOne->windowY = POS_Y_START(winOne);
+    selWinOne->wWidth = (container->wWidth / 2) - (selWinOne->paddingLeft + selWinOne->paddingRight);
+    selWinOne->wHeight = container->wHeight - (selWinOne->paddingTop + selWinOne->paddingBottom);
+    selWinOne->windowX = selWinOne->paddingLeft;
+    selWinOne->windowY = selWinOne->paddingTop;
 
-    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-    winTwo->wHeight = FULL_HEIGHT(container, winTwo);
-    winTwo->windowX = POS_X_END(container, winTwo);
-    winTwo->windowY = POS_Y_START(winTwo);
+    selWinTwo->wWidth = (container->wWidth / 2) - (selWinTwo->paddingLeft + selWinTwo->paddingRight);
+    selWinTwo->wHeight = container->wHeight - (selWinTwo->paddingTop + selWinTwo->paddingBottom);
+    selWinTwo->windowX = container->wWidth - selWinTwo->paddingRight - selWinTwo->wWidth;
+    selWinTwo->windowY = selWinTwo->paddingTop;
 
     _setup_opt_win(container, optWin);
 }
