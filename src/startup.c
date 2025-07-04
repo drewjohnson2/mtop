@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <arena.h>
 #include <unistd.h>
-#include <ctype.h>
 
 #include "../include/startup.h"
 #include "../include/monitor.h"
@@ -319,7 +318,7 @@ static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
 
 static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind)
 {
-    if ((*optarg) == NULL && optind < argc && argv[optind][0] != '-')
+    if ((*optarg == NULL || strcmp((*optarg), "=") == 0) && optind < argc && argv[optind][0] != '-')
     {
 	*optarg = argv[optind++];
     }
