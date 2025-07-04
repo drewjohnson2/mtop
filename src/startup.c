@@ -129,7 +129,7 @@ void run(int argc, char **argv)
 	{ NULL, no_argument, NULL, 0 }
     };
 
-    while((arg = getopt_long(argc, argv, "tcmpv::", long_options, &option_index)) != -1)
+    while((arg = getopt_long(argc, argv, "tcmpbv::", long_options, &option_index)) != -1)
     {
 	switch (arg) 
     	{
@@ -147,6 +147,10 @@ void run(int argc, char **argv)
 	    case 'p':
 		mtopSettings->activeWindows[PRC_WIN] = 1;
 		_set_active_window(windows, PRC_WIN);
+		break;
+	    case 'b':
+		mtopSettings->orientation = HORIZONTAL;
+		mtopSettings->layout = QUARTERS_TOP;
 		break;
 	    case 'v':
 		mtopSettings->orientation = VERTICAL;
@@ -196,11 +200,7 @@ void run(int argc, char **argv)
     prcInfoSD->pidToFetch = 0;
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
-
-    if (mtopSettings->activeWindowCount == 3) init_window_dimens_full(di, windows);
-    else if (mtopSettings->activeWindowCount == 2) init_window_dimens_duo(di, windows);
-    else init_window_dimens_single(di, windows[0]);
-
+    init_window_dimens(di, windows);
     init_windows(di);
     
     UIThreadArgs uiArgs = 
