@@ -50,7 +50,7 @@ static PaddingValues paddingTable[2][6][3][3] = {
     },
     {
 	// layout quarters left
-	{ { }, { }, { { 1, 0, 1, 1 }, { 0, 0, 1, 1 }, { 1, 1, 1, 1 } } },
+	{ { }, { }, { { 1, 0, 1, 1 }, { 1, 1, 1, 1 }, { 0, 0, 1, 1 } } },
 	// layout quarters right
 	{ {}, {}, { { 1, 1, 1, 1 }, { 1, 0, 1, 1 }, { 0, 0, 1, 1 } } },
 	{}, {},
@@ -147,19 +147,19 @@ void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3])
 	    winOne->windowX = POS_X_START(winOne);
 	    winOne->windowY = POS_Y_START(winOne);
 	    winOne->windowTitle = _text[selectedWins[0] + 20];
-
-	    winTwo->wWidth = HALF_WIDTH(container, winTwo);
-	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
-	    winTwo->windowX = POS_X_START(winTwo);
-	    winTwo->windowY = POS_Y_BOTTOM(conatiner, winTwo);
+ 
+	    winTwo->wWidth = HALF_WIDTH(container, winTwo); 
+	    winTwo->wHeight = FULL_HEIGHT(container, winTwo);
+	    winTwo->windowX = POS_X_END(container, winTwo);
+	    winTwo->windowY = POS_X_START(winTwo);
 	    winTwo->windowTitle = _text[selectedWins[1] + 20];
-	    
-	    winThree->wWidth = HALF_WIDTH(container, winThree); 
-	    winThree->wHeight = FULL_HEIGHT(container, winThree);
-	    winThree->windowX = POS_X_END(container, winThree);
-	    winThree->windowY = POS_X_START(winThree);
-	    winThree->windowTitle = _text[selectedWins[2] + 20];
 
+	    winThree->wWidth = HALF_WIDTH(container, winThree);
+	    winThree->wHeight = HALF_HEIGHT(container, winThree);
+	    winThree->windowX = POS_X_START(winThree);
+	    winThree->windowY = POS_Y_BOTTOM(conatiner, winThree);
+	    winThree->windowTitle = _text[selectedWins[2] + 20];
+	   
 	    break;
 	case QUARTERS_RIGHT:
 	    winOne->wWidth = HALF_WIDTH(container, winOne);
@@ -181,7 +181,7 @@ void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3])
 	    winThree->windowTitle = _text[selectedWins[2] + 20];
 	    
 	    break;
-	case QUARTERS_TOP:
+	case QUARTERS_TOP: 
 	    winOne->wWidth = HALF_WIDTH(container, winOne);
 	    winOne->wHeight = HALF_HEIGHT(container, winOne);
 	    winOne->windowX = POS_X_START(winOne);
