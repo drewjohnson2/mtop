@@ -8,6 +8,7 @@
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
 #include "../../include/tracked_stats.h"
+#include "../../include/startup.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 

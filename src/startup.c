@@ -1,3 +1,7 @@
+#define _GNU_SOURCE
+
+#include <getopt.h>
+#include <unistd.h>
 #include <ncurses.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -59,9 +63,16 @@ volatile Settings *mtopSettings;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
+static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
+static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind);
 
-void run(u8 transparencyEnabled) 
+static mt_Window windows[3] = { WINDOW_ID_MAX, WINDOW_ID_MAX, WINDOW_ID_MAX};
+
+void run(int argc, char **argv) 
 {
+    int option_index = 0;
+    s8 arg;
+
     FILE *tty = fopen("/dev/tty", "r+");
     SCREEN *screen = newterm(NULL, tty, tty);
 
@@ -101,13 +112,95 @@ void run(u8 transparencyEnabled)
     prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
-    mtopSettings->transparencyEnabled = transparencyEnabled;
+    mtopSettings->orientation = HORIZONTAL;
+    mtopSettings->layout = QUARTERS_BOTTOM;
+    mtopSettings->activeWindowCount = 0;
+    mtopSettings->activeWindows[CPU_WIN] = 0;
+    mtopSettings->activeWindows[MEMORY_WIN] = 0;
+    mtopSettings->activeWindows[PRC_WIN] = 0;
+
+    static struct option long_options[] = 
+    {
+	{ "transparent", no_argument, NULL, 't' },
+	{ "cpu", no_argument, NULL, 'c'},
+	{ "memory", no_argument, NULL, 'm'},
+	{ "process", no_argument, NULL, 'p'},
+	{ "vertical", optional_argument, NULL, 'v'},
+	{ "horizontal", optional_argument, NULL, 'h' },
+	{ NULL, no_argument, NULL, 0 }
+    };
+
+    while((arg = getopt_long(argc, argv, "tcmpv::h::", long_options, &option_index)) != -1)
+    {
+	switch (arg) 
+    	{
+    	    case 't':
+		mtopSettings->transparencyEnabled = 1;
+    	        break;
+	    case 'c':
+		mtopSettings->activeWindows[CPU_WIN] = 1;
+		_set_active_window(windows, CPU_WIN);
+		break;
+	    case 'm':
+		mtopSettings->activeWindows[MEMORY_WIN] = 1;
+		_set_active_window(windows, MEMORY_WIN);
+		break;
+	    case 'p':
+		mtopSettings->activeWindows[PRC_WIN] = 1;
+		_set_active_window(windows, PRC_WIN);
+		break;
+	    case 'h':
+		mtopSettings->orientation = HORIZONTAL;
+		mtopSettings->layout = QUARTERS_BOTTOM;
+
+		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
+
+		if (strcmp(optarg, "top") == 0)
+		{
+		    mtopSettings->layout = QUARTERS_TOP;
+		    break;
+		}
+
+		break;
+	    case 'v':
+		mtopSettings->orientation = VERTICAL;
+		mtopSettings->layout = QUARTERS_LEFT;
+
+		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
+		
+		if (strcmp(optarg, "right") == 0)
+		{
+		    mtopSettings->layout = QUARTERS_RIGHT;
+		    break;
+		}
+
+		break;
+    	    default:
+    	        break;
+    	}
+    }
+
+    if (windows[0] == WINDOW_ID_MAX && windows[1] == WINDOW_ID_MAX && windows[2] == WINDOW_ID_MAX)
+    {
+	mtopSettings->activeWindowCount = 3;
+
+	windows[0] = CPU_WIN;
+	windows[1] = MEMORY_WIN;
+	windows[2] = PRC_WIN;
+
+	mtopSettings->activeWindows[CPU_WIN] = 1;
+	mtopSettings->activeWindows[MEMORY_WIN] = 1;
+	mtopSettings->activeWindows[PRC_WIN] = 1;
+    }
+
+    if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
+    else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
 
     prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;
     
     init_ncurses(di->windows[CONTAINER_WIN], screen);
-    init_window_dimens(di);
+    init_window_dimens(di, windows);
     init_windows(di);
     
     UIThreadArgs uiArgs = 
@@ -216,4 +309,19 @@ static void * _io_thread_run(void *arg)
     );
     
     return NULL;
+}
+
+static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
+{
+    windows[mtopSettings->activeWindowCount++] = winToAdd; 
+}
+
+static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind)
+{
+    if ((*optarg == NULL || strcmp((*optarg), "=") == 0) && optind < argc && argv[optind][0] != '-')
+    {
+	*optarg = argv[optind++];
+    }
+
+    return *optarg != NULL;
 }

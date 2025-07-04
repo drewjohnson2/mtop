@@ -101,13 +101,20 @@ typedef struct _process_list_state
 //
 DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
-void init_window_dimens(DisplayItems *di);
+void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3]);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
 void print_uptime_ldAvg(const WindowData *wd);
 void print_footer(const WindowData *wd);
 void display_options(DisplayItems *di);
+void set_bg_colors(
+    WINDOW *container,
+    WINDOW *cpuWin,
+    WINDOW *memWin,
+    WINDOW *prcWin,
+    WINDOW *optWin
+);
 
 //
 //		graph.c
@@ -118,9 +125,10 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor
+    MT_Color_Pairs headerColor,
+    u8 winActive
 );
-s8 add_graph_point(Arena *arena, GraphData *gd, float percentage);
+s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive);
 
 //
 //		prc_list.c
