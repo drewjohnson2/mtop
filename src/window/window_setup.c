@@ -368,7 +368,7 @@ void print_footer(const WindowData *wd)
 {
     const u8 killPrcCtrlX = 2;
     const u8 killPrcLabelX = killPrcCtrlX + 2;
-    const u8 githubText = wd->wWidth - 29;
+    const u8 githubText = wd->wWidth - 30;
     const u8 downCtrlX = 19;
     const u8 downLableX = downCtrlX + 2;
     const u8 upCtrlX = 27;
