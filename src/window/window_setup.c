@@ -187,16 +187,19 @@ void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3])
 	    winOne->wHeight = HALF_HEIGHT(container, winOne);
 	    winOne->windowX = POS_X_START(winOne);
 	    winOne->windowY = POS_Y_START(winOne);
+	    winOne->windowTitle = _text[selectedWins[0] + 20];
 
 	    winTwo->wWidth = HALF_WIDTH(container, winTwo);
 	    winTwo->wHeight = HALF_HEIGHT(container, winTwo);
 	    winTwo->windowX = POS_X_END(container, winTwo);
 	    winTwo->windowY = POS_Y_START(winTwo);
+	    winTwo->windowTitle = _text[selectedWins[1] + 20];
 
 	    winThree->wWidth = FULL_WIDTH(container, winThree);
 	    winThree->wHeight = HALF_HEIGHT(container, winThree);
 	    winThree->windowX = POS_X_START(winThree);
 	    winThree->windowY = POS_Y_BOTTOM(container, winThree);
+	    winThree->windowTitle = _text[selectedWins[2] + 20];
 
 	    break;
 	case QUARTERS_BOTTOM:
