@@ -53,8 +53,7 @@ static PaddingValues paddingTable[2][6][3][3] = {
 	{ { }, { }, { { 1, 0, 1, 1 }, { 0, 0, 1, 1 }, { 1, 1, 1, 1 } } },
 	// layout quarters right
 	{ {}, {}, { { 1, 1, 1, 1 }, { 1, 0, 1, 1 }, { 0, 0, 1, 1 } } },
-	{},
-	{},
+	{}, {},
 	// layout duo
 	{ {}, { { 1, 1, 1, 0 }, { 1, 1, 0, 1 }, { 0, 0, 0, 0 } }, {} },
 	// layout single
@@ -248,6 +247,7 @@ void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3])
 	    winOne->wHeight = FULL_HEIGHT(container, winOne);
 	    winOne->windowX = POS_X_START(winOne);
 	    winOne->windowY = POS_Y_START(winOne);
+	    winTwo->windowTitle = _text[selectedWins[0] + 20];
 
 	    break;
 	default:

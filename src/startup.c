@@ -65,6 +65,7 @@ volatile Settings *mtopSettings;
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
 static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
+static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind);
 
 static mt_Window windows[3] = { WINDOW_ID_MAX, WINDOW_ID_MAX, WINDOW_ID_MAX};
 
@@ -126,10 +127,11 @@ void run(int argc, char **argv)
 	{ "memory", no_argument, NULL, 'm'},
 	{ "process", no_argument, NULL, 'p'},
 	{ "vertical", optional_argument, NULL, 'v'},
+	{ "horizontal", optional_argument, NULL, 'h' },
 	{ NULL, no_argument, NULL, 0 }
     };
 
-    while((arg = getopt_long(argc, argv, "tcmpbv::", long_options, &option_index)) != -1)
+    while((arg = getopt_long(argc, argv, "tcmpv::h::", long_options, &option_index)) != -1)
     {
 	switch (arg) 
     	{
@@ -148,31 +150,30 @@ void run(int argc, char **argv)
 		mtopSettings->activeWindows[PRC_WIN] = 1;
 		_set_active_window(windows, PRC_WIN);
 		break;
-	    case 'b':
+	    case 'h':
 		mtopSettings->orientation = HORIZONTAL;
-		mtopSettings->layout = QUARTERS_TOP;
+		mtopSettings->layout = QUARTERS_BOTTOM;
+
+		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
+
+		if (strcmp(optarg, "top") == 0)
+		{
+		    mtopSettings->layout = QUARTERS_TOP;
+		    break;
+		}
+
 		break;
 	    case 'v':
 		mtopSettings->orientation = VERTICAL;
+		mtopSettings->layout = QUARTERS_LEFT;
 
-		if (optarg == NULL && optind < argc && argv[optind][0] != '-')
-		{
-		    optarg = argv[optind++];
-		}
-
-		if (optarg == NULL)
-		{
-		    mtopSettings->layout = QUARTERS_LEFT;
-		    break;
-		}
+		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
 		
 		if (strcmp(optarg, "right") == 0)
 		{
 		    mtopSettings->layout = QUARTERS_RIGHT;
 		    break;
 		}
-
-		mtopSettings->layout = QUARTERS_LEFT;
 
 		break;
     	    default:
@@ -316,4 +317,12 @@ static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
     windows[mtopSettings->activeWindowCount++] = winToAdd; 
 }
 
+static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind)
+{
+    if ((*optarg) == NULL && optind < argc && argv[optind][0] != '-')
+    {
+	*optarg = argv[optind++];
+    }
 
+    return *optarg != NULL;
+}
