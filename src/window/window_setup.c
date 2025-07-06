@@ -125,6 +125,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     curs_set(0);
 }
 
+// need to fix full screen duo vertical. It's all messed up for some reason.
 void init_window_dimens(DisplayItems *di)
 {
     const LayoutOrientation orientation = mtopSettings->orientation;    
