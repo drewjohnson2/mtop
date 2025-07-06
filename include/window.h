@@ -55,6 +55,7 @@ typedef struct _display_items
     size_t windowCount;
     u8 optionsVisible;
     WindowData **windows;
+    mt_Window selectedWindows[3]; 
 } DisplayItems;
 
 typedef struct _graph_point
@@ -95,13 +96,15 @@ typedef struct _process_list_state
     int (*sortFunc)(const void *a, const void *b);
 } ProcessListState;
 
+extern u8 RESIZE;
+
 //
 //		window_setup.c
 //
 //
 DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
-void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3]);
+void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
@@ -115,6 +118,7 @@ void set_bg_colors(
     WINDOW *prcWin,
     WINDOW *optWin
 );
+void resize_win(DisplayItems *di);
 
 //
 //		graph.c

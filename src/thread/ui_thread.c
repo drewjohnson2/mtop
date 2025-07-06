@@ -109,6 +109,8 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
+	if (RESIZE) resize_win(di); 
+
 	print_uptime_ldAvg(container);
 	print_time(container);
 

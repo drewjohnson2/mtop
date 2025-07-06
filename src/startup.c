@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <arena.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "../include/startup.h"
 #include "../include/monitor.h"
@@ -66,7 +67,7 @@ static void * _io_thread_run(void *arg);
 static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
 static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind);
 
-static mt_Window windows[3] = { WINDOW_ID_MAX, WINDOW_ID_MAX, WINDOW_ID_MAX};
+void _handle_resize(int sig);
 
 void run(int argc, char **argv) 
 {
@@ -89,7 +90,7 @@ void run(int argc, char **argv)
     general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
-    
+
     cpuQueue = a_alloc(
     	&queueArena,
     	sizeof(ThreadSafeQueue),
@@ -139,15 +140,15 @@ void run(int argc, char **argv)
     	        break;
 	    case 'c':
 		mtopSettings->activeWindows[CPU_WIN] = 1;
-		_set_active_window(windows, CPU_WIN);
+		_set_active_window(di->selectedWindows, CPU_WIN);
 		break;
 	    case 'm':
 		mtopSettings->activeWindows[MEMORY_WIN] = 1;
-		_set_active_window(windows, MEMORY_WIN);
+		_set_active_window(di->selectedWindows, MEMORY_WIN);
 		break;
 	    case 'p':
 		mtopSettings->activeWindows[PRC_WIN] = 1;
-		_set_active_window(windows, PRC_WIN);
+		_set_active_window(di->selectedWindows, PRC_WIN);
 		break;
 	    case 'h':
 		mtopSettings->orientation = HORIZONTAL;
@@ -180,13 +181,17 @@ void run(int argc, char **argv)
     	}
     }
 
-    if (windows[0] == WINDOW_ID_MAX && windows[1] == WINDOW_ID_MAX && windows[2] == WINDOW_ID_MAX)
+    if (
+	di->selectedWindows[0] == WINDOW_ID_MAX && 
+	di->selectedWindows[1] == WINDOW_ID_MAX && 
+	di->selectedWindows[2] == WINDOW_ID_MAX
+    )
     {
 	mtopSettings->activeWindowCount = 3;
 
-	windows[0] = CPU_WIN;
-	windows[1] = MEMORY_WIN;
-	windows[2] = PRC_WIN;
+	di->selectedWindows[0] = CPU_WIN;
+	di->selectedWindows[1] = MEMORY_WIN;
+	di->selectedWindows[2] = PRC_WIN;
 
 	mtopSettings->activeWindows[CPU_WIN] = 1;
 	mtopSettings->activeWindows[MEMORY_WIN] = 1;
@@ -199,8 +204,9 @@ void run(int argc, char **argv)
     prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;
     
+    signal(SIGWINCH, _handle_resize);
     init_ncurses(di->windows[CONTAINER_WIN], screen);
-    init_window_dimens(di, windows);
+    init_window_dimens(di);
     init_windows(di);
     
     UIThreadArgs uiArgs = 
@@ -324,4 +330,9 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
     }
 
     return *optarg != NULL;
+}
+
+void _handle_resize(int sig)
+{
+    if (sig == SIGWINCH) RESIZE = 1;
 }
