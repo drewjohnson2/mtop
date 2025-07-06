@@ -48,6 +48,7 @@ static PaddingValues paddingTable[2][6][3][3] = {
 	// layout single
 	{ { { 1, 1, 1, 1 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, {}, {} }
     },
+    // orientation vertical
     {
 	// layout quarters left
 	{ { }, { }, { { 1, 0, 1, 1 }, { 1, 1, 1, 1 }, { 0, 0, 1, 1 } } },
@@ -55,7 +56,7 @@ static PaddingValues paddingTable[2][6][3][3] = {
 	{ {}, {}, { { 1, 1, 1, 1 }, { 1, 0, 1, 1 }, { 0, 0, 1, 1 } } },
 	{}, {},
 	// layout duo
-	{ {}, { { 1, 1, 1, 0 }, { 1, 1, 0, 1 }, { 0, 0, 0, 0 } }, {} },
+	{ {}, { { 1, 1, 1, 1 }, { 1, 1, 0, 1 }, { 0, 0, 0, 0 } }, {} },
 	// layout single
 	{ { { 1, 1, 1, 1 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, {}, {} }
 
@@ -253,7 +254,7 @@ void init_window_dimens(DisplayItems *di)
 	    winOne->wHeight = FULL_HEIGHT(container, winOne);
 	    winOne->windowX = POS_X_START(winOne);
 	    winOne->windowY = POS_Y_START(winOne);
-	    winTwo->windowTitle = _text[di->selectedWindows[0] + 20];
+	    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
 
 	    break;
 	default:
