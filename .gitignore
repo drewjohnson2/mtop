@@ -6,3 +6,4 @@ obj
 compile_commands.json
 r
 d
+.vscode/*

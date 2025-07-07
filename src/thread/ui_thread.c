@@ -19,6 +19,12 @@
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
 #define MEM_POINT_A_SZ sizeof(GraphPoint)
 
+static void _setup_list_state(
+    ProcessListState *listState,
+    ProcessStats *curPrcs,
+    const WindowData *prcWin
+);
+
 void run_ui(
     Arena *cpuGraphArena,
     Arena *memGraphArena,
@@ -72,25 +78,7 @@ void run_ui(
     	__alignof(ProcessListState)
     );
     
-    listState->cmdBuffer = '\0';
-    listState->timeoutActive = 0;
-    listState->selectedIndex = 0;
-    listState->pageStartIdx = 0;
-    listState->count = curPrcs->count;
-    listState->pageSize = prcWin->wHeight - 5;
-    listState->totalPages = listState->count / listState->pageSize;
-
-    if (listState->count % listState->pageSize > 0) listState->totalPages++;
-
-    listState->pageEndIdx = listState->pageSize - 1;
-
-    if (listState->pageEndIdx > listState->count)
-	listState->pageEndIdx = listState->count - 1;
-
-    listState->sortFunc = vd_name_compare_func;
-    listState->sortOrder = PRC_NAME;
-    listState->infoVisible = 0;
-
+    _setup_list_state(listState, curPrcs, prcWin);
     import_colors();
 
     if (!mtopSettings->transparencyEnabled)
@@ -109,7 +97,11 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
-	if (RESIZE) resize_win(di); 
+	if (RESIZE)
+	{
+	    resize_win(di); 
+	    _setup_list_state(listState, curPrcs, prcWin);
+	}
 
 	print_uptime_ldAvg(container);
 	print_time(container);
@@ -243,4 +235,30 @@ void run_ui(
     a_free(&cpuPointArena);
     a_free(&memPointArena);
     a_free(&stateArena);
+}
+
+static void _setup_list_state(
+    ProcessListState *listState,
+    ProcessStats *curPrcs,
+    const WindowData *prcWin
+)
+{
+    listState->cmdBuffer = '\0';
+    listState->timeoutActive = 0;
+    listState->selectedIndex = 0;
+    listState->pageStartIdx = 0;
+    listState->count = curPrcs->count;
+    listState->pageSize = prcWin->wHeight - 5;
+    listState->totalPages = listState->count / listState->pageSize;
+
+    if (listState->count % listState->pageSize > 0) listState->totalPages++;
+
+    listState->pageEndIdx = listState->pageSize - 1;
+
+    if (listState->pageEndIdx > listState->count)
+	listState->pageEndIdx = listState->count - 1;
+
+    listState->sortFunc = vd_name_compare_func;
+    listState->sortOrder = PRC_NAME;
+    listState->infoVisible = 0;
 }
