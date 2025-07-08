@@ -34,6 +34,9 @@ typedef struct _padding_vals
     u8 paddingRight;
 } PaddingValues;
 
+// FIXME: something is happening here when the height is an even
+// number one or more windows is overlapping the footer. 
+
 // [orientation][layout][number of wins - 1][position]
 static PaddingValues paddingTable[2][6][3][3] = {
     // orientation horizontal
