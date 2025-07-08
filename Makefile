@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -MMD -MP
 LIBS = -lncurses -lpthread -L/usr/lib -larena
 
-SRC_DIRS = src src/window src/monitor src/thread src/util src/colors
+SRC_DIRS = src src/window src/monitor src/thread src/util src/colors src/task
 OBJ_DIR = obj
 RC_DIR = /usr/local/share/mtop
 RC_FILES = colors

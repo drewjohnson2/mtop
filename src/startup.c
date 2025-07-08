@@ -37,8 +37,7 @@ typedef struct _ui_thread_args
 
 typedef struct _io_thread_args
 {
-    Arena *cpuArena;
-    Arena *prcArena;
+    mtopArenas *arenas;
     volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *prcQueue;
@@ -90,6 +89,16 @@ void run(int argc, char **argv)
     general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
+    mtopArenas *arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
+
+    arenas->general = &general;
+    arenas->cpuArena = &cpuArena;
+    arenas->windowArena = &windowArena;
+    arenas->queueArena = &queueArena;
+    arenas->memArena = &memArena;
+    arenas->cpuGraphArena = &cpuGraphArena;
+    arenas->memoryGraphArena  = &memoryGraphArena;
+    arenas->prcArena = &prcArena;
 
     cpuQueue = a_alloc(
     	&queueArena,
@@ -222,12 +231,11 @@ void run(int argc, char **argv)
     
     IOThreadArgs ioArgs = 
     {
-    	.cpuArena = &cpuArena,
-    	.prcArena = &prcArena,
+	.arenas = arenas,
 	.memStats = memStats,
     	.cpuQueue = cpuQueue,
 	.prcQueue = prcQueue,
-	.prcInfoSD = prcInfoSD
+	.prcInfoSD = prcInfoSD,
     };
     
     pthread_t ioThread;
@@ -306,8 +314,7 @@ static void * _io_thread_run(void *arg)
     IOThreadArgs *args = (IOThreadArgs *)arg;
     
     run_io(
-    	args->cpuArena,
-    	args->prcArena,
+	args->arenas,
     	args->cpuQueue,
     	args->prcQueue,
 	args->memStats,

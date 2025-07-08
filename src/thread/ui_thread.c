@@ -14,6 +14,7 @@
 #include "../../include/mt_colors.h"
 #include "../../include/sorting.h"
 #include "../../include/startup.h"
+#include "../../include/task.h"
 
 #define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
@@ -64,8 +65,8 @@ void run_ui(
     
     // probably need to add some sort of shut down error
     // handling here.
-    prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-    dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+    // prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+    // dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
     
     prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
     dequeue(prcQueue, &procDataLock, &procQueueCondition);
@@ -106,8 +107,24 @@ void run_ui(
 	print_uptime_ldAvg(container);
 	print_time(container);
 
-    	curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-    	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+    	// curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+    	// dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+	TaskGroup *tg = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+
+	// instead of passing in specific arena we could
+	// pass in the arenas structure? Idk if I like that,
+	// honestly.
+	UITask *task = tg->tasks;
+	
+	while (task)
+	{
+	    task->action(&cpuPointArena, di, task->data);
+	    task = tg->tasks->next;
+	}
+
+	tg->tasksComplete = 1;
+	tg->cleanup();
     
 	pthread_mutex_lock(&memQueueLock);
 
@@ -120,17 +137,17 @@ void run_ui(
 
 	pthread_mutex_unlock(&memQueueLock);
 
-    	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
-    
-    	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage, cpuActive);
-    	graph_render(
-	    &cpuPointArena,
-	    cpuGraphData,
-	    cpuWin,
-	    MT_PAIR_CPU_GP,
-	    MT_PAIR_CPU_HEADER,
-	    cpuActive
-	);
+ //    	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
+ //    
+ //    	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage, cpuActive);
+ //    	graph_render(
+	//     &cpuPointArena,
+	//     cpuGraphData,
+	//     cpuWin,
+	//     MT_PAIR_CPU_GP,
+	//     MT_PAIR_CPU_HEADER,
+	//     cpuActive
+	// );
     
     	add_graph_point(&memPointArena, memGraphData, memoryPercentage, memActive);
     	graph_render(
@@ -228,6 +245,8 @@ void run_ui(
 	{
 	    prcInfoSd->needsFetch = 1;
 	}
+
+	tg->tasksComplete = 1;
     
     	usleep(DISPLAY_SLEEP_TIME);
     }

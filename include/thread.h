@@ -5,6 +5,7 @@
 #include <pthread.h>
 
 #include "monitor.h"
+#include "startup.h"
 #include "thread_safe_queue.h"
 #include "window.h"
 
@@ -53,8 +54,7 @@ void run_ui(
 //
 //
 void run_io(
-    Arena *cpuArena,
-    Arena *procArena,
+    mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
     volatile MemoryStats *memStats,

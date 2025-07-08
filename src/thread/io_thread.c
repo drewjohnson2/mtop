@@ -9,17 +9,30 @@
 #include "../../include/thread_safe_queue.h"
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
-#include "../../include/startup.h"
+#include "../../include/task.h"
+
+Arena scratch;
+
+static void _task_group_cleanup();
 
 void run_io(
-    Arena *cpuArena,
-    Arena *procArena,
+    mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
     volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
+    Arena *cpuArena = arenas->cpuArena;
+    Arena *procArena = arenas->prcArena;
+    Arena tgArena = a_new(sizeof(TaskGroup));
+    CpuStats *prevStats = fetch_cpu_stats(cpuArena);
+    CpuStats *curStats = NULL;
+    TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
+
+    tg->tasksComplete = 1;
+    tg->cleanup = _task_group_cleanup;
+
     pthread_mutex_lock(&procDataLock);
     get_processes(procArena, prc_pid_compare);  
     pthread_mutex_unlock(&procDataLock);
@@ -34,30 +47,42 @@ void run_io(
 	&procDataLock,
 	&procQueueCondition
     );
+
+    init_data(arenas->cpuGraphArena); 
+
+    // Create cleanup function on task group to free this arena
+    scratch = a_new(sizeof(UITask));
     
     while (!SHUTDOWN_FLAG)
     {
-    	// This check prevents lag between the read and display of stats
-    	// without it the points on the graph can be several seconds behind.
-    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE;
-    
-    	if (minimumMet) 
-    	{
-	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
-	    
-	    enqueue(cpuQueue, cpuStats, &cpuQueueLock, &cpuQueueCondition);
+	if (!tg->tasksComplete)
+	{
+	    usleep(READ_SLEEP_TIME);
+	    continue;
+	} 
 
-	    pthread_mutex_lock(&memQueueLock);
+	curStats = fetch_cpu_stats(cpuArena);
+	UITask *task = build_cpu_task(&scratch, curStats, prevStats);
 
-	    MEM_UPDATING = 1;
-	    
-	    fetch_memory_stats(memStats);
+	tg->tasks = task;
+	tg->tasksComplete = 0;
 
-	    MEM_UPDATING = 0;
+	enqueue(cpuQueue, tg, &cpuQueueLock, &cpuQueueCondition);
 
-	    pthread_cond_signal(&memQueueCondition);
-	    pthread_mutex_unlock(&memQueueLock);
-    	}
+	task = tg->tasks->next;
+
+	prevStats = curStats;
+	
+	pthread_mutex_lock(&memQueueLock);
+	
+	MEM_UPDATING = 1;
+	
+	fetch_memory_stats(memStats);
+	
+	MEM_UPDATING = 0;
+	
+	pthread_cond_signal(&memQueueCondition);
+	pthread_mutex_unlock(&memQueueLock);
 
     	clock_gettime(CLOCK_REALTIME, &current);
     
@@ -90,4 +115,11 @@ void run_io(
     
 	usleep(READ_SLEEP_TIME);
     }
+}
+
+static void _task_group_cleanup()
+{
+    a_free(&scratch);
+
+    scratch = a_new(sizeof(UITask));
 }
