@@ -17,8 +17,6 @@
 #include "../../include/task.h"
 
 #define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
-#define CPU_POINT_A_SZ sizeof(GraphPoint)
-#define MEM_POINT_A_SZ sizeof(GraphPoint)
 
 static void _setup_list_state(
     ProcessListState *listState,
@@ -27,47 +25,27 @@ static void _setup_list_state(
 );
 
 void run_ui(
-    Arena *cpuGraphArena,
-    Arena *memGraphArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *prcQueue,
-    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 )
 {
     u64 memTotal = 0;
-    float cpuPercentage, memoryPercentage;
-    CpuStats *prevStats = NULL;
-    CpuStats *curStats = NULL;
     const WindowData *cpuWin = di->windows[CPU_WIN];
     const WindowData *memWin = di->windows[MEMORY_WIN];
     const WindowData *prcWin = di->windows[PRC_WIN];
     const WindowData *optWin = di->windows[OPT_WIN];
     const WindowData *container = di->windows[CONTAINER_WIN];
-    GraphData *cpuGraphData = a_alloc(cpuGraphArena, sizeof(GraphData), __alignof(GraphData));
-    const u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
-    const u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
     const u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
     
     ProcessStats *prevPrcs = NULL;
     ProcessStats *curPrcs = NULL;
     
-    GraphData *memGraphData = a_alloc(
-        memGraphArena,
-    	sizeof(GraphData), 
-    	__alignof(GraphData)
-    );
-    
     Arena stateArena = a_new(STATE_A_SZ);
-    Arena cpuPointArena = a_new(CPU_POINT_A_SZ);
-    Arena memPointArena = a_new(MEM_POINT_A_SZ);
     
     // probably need to add some sort of shut down error
     // handling here.
-    // prevStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-    // dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-    
     prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
     dequeue(prcQueue, &procDataLock, &procQueueCondition);
     
@@ -107,8 +85,6 @@ void run_ui(
 	print_uptime_ldAvg(container);
 	print_time(container);
 
-    	// curStats = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-    	// dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	TaskGroup *tg = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
 
@@ -119,47 +95,12 @@ void run_ui(
 	
 	while (task)
 	{
-	    task->action(&cpuPointArena, di, task->data);
-	    task = tg->tasks->next;
+	    task->action(di, task->data);
+	    task = task->next;
 	}
 
 	tg->tasksComplete = 1;
 	tg->cleanup();
-    
-	pthread_mutex_lock(&memQueueLock);
-
-	while (MEM_UPDATING) 
-	    pthread_cond_wait(&memQueueCondition, &memQueueLock);
-
-    	CALCULATE_MEMORY_USAGE(memStats, memoryPercentage);
-
-	memTotal = memStats->memTotal;
-
-	pthread_mutex_unlock(&memQueueLock);
-
- //    	CALCULATE_CPU_PERCENTAGE(prevStats, curStats, cpuPercentage);
- //    
- //    	add_graph_point(&cpuPointArena, cpuGraphData, cpuPercentage, cpuActive);
- //    	graph_render(
-	//     &cpuPointArena,
-	//     cpuGraphData,
-	//     cpuWin,
-	//     MT_PAIR_CPU_GP,
-	//     MT_PAIR_CPU_HEADER,
-	//     cpuActive
-	// );
-    
-    	add_graph_point(&memPointArena, memGraphData, memoryPercentage, memActive);
-    	graph_render(
-	    &memPointArena,
-	    memGraphData,
-	    memWin,
-	    MT_PAIR_MEM_GP,
-	    MT_PAIR_MEM_HEADER,
-	    memActive
-	);
-    
-    	prevStats = curStats;
     
     	if (prcQueue->size > 0)
     	{
@@ -251,8 +192,6 @@ void run_ui(
     	usleep(DISPLAY_SLEEP_TIME);
     }
     
-    a_free(&cpuPointArena);
-    a_free(&memPointArena);
     a_free(&stateArena);
 }
 

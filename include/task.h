@@ -9,7 +9,7 @@
 
 typedef struct _ui_task
 {
-    void (*action)(Arena *a, DisplayItems *di, void *ctx);
+    void (*action)(DisplayItems *di, void *ctx);
     void *data;
     void *next;
 } UITask;
@@ -26,13 +26,15 @@ typedef struct _task_group
     task_data_builder.c
 
 */
-void init_data(Arena *cpuGraphArena);
-UITask * build_cpu_task(Arena *taskArena, CpuStats *curStats, CpuStats *prevStats);
+void init_data(Arena *cpuGraphArena, Arena *memGraphArena);
+UITask * build_cpu_task(Arena *taskArena, Arena *actionArena, CpuStats *curStats, CpuStats *prevStats);
+UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memStats);
 
 /*
 
     task_functions.c
 
 */
-void cpu_action_function(Arena *a, DisplayItems *di, void *ctx);
+void cpu_action_function(DisplayItems *di, void *ctx);
+void mem_action_function(DisplayItems *di, void *ctx);
 #endif

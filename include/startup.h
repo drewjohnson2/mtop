@@ -43,6 +43,8 @@ typedef struct _arenas
     Arena *prcArena;
     Arena *queueArena;
     Arena *general;
+    Arena *cpuPointArena;
+    Arena *memPointArena;
 } mtopArenas;
 
 extern volatile Settings *mtopSettings;

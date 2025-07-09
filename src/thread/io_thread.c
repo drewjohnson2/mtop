@@ -14,24 +14,31 @@
 Arena scratch;
 
 static void _task_group_cleanup();
+static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 
 void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 ) 
 {
     Arena *cpuArena = arenas->cpuArena;
     Arena *procArena = arenas->prcArena;
+    Arena *memArena = arenas->memArena;
     Arena tgArena = a_new(sizeof(TaskGroup));
-    CpuStats *prevStats = fetch_cpu_stats(cpuArena);
-    CpuStats *curStats = NULL;
+    CpuStats *prevStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
+    CpuStats *curStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
+
+    fetch_cpu_stats(prevStats);
+
+    MemoryStats *memStats = NULL;
     TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
 
     tg->tasksComplete = 1;
     tg->cleanup = _task_group_cleanup;
+
+    memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
 
     pthread_mutex_lock(&procDataLock);
     get_processes(procArena, prc_pid_compare);  
@@ -48,7 +55,7 @@ void run_io(
 	&procQueueCondition
     );
 
-    init_data(arenas->cpuGraphArena); 
+    init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
     // Create cleanup function on task group to free this arena
     scratch = a_new(sizeof(UITask));
@@ -61,28 +68,23 @@ void run_io(
 	    continue;
 	} 
 
-	curStats = fetch_cpu_stats(cpuArena);
-	UITask *task = build_cpu_task(&scratch, curStats, prevStats);
+	fetch_cpu_stats(curStats);
 
-	tg->tasks = task;
+	UITask *cpuTask = build_cpu_task(&scratch, arenas->cpuPointArena, curStats, prevStats);
+
+	_copy_stats(prevStats, curStats);
+	
+	fetch_memory_stats(memStats);
+
+	UITask *memTask = build_mem_task(&scratch, arenas->memPointArena, memStats);
+
+	cpuTask->next = memTask;
+	memTask->next = NULL;
+
+	tg->tasks = cpuTask;
 	tg->tasksComplete = 0;
 
 	enqueue(cpuQueue, tg, &cpuQueueLock, &cpuQueueCondition);
-
-	task = tg->tasks->next;
-
-	prevStats = curStats;
-	
-	pthread_mutex_lock(&memQueueLock);
-	
-	MEM_UPDATING = 1;
-	
-	fetch_memory_stats(memStats);
-	
-	MEM_UPDATING = 0;
-	
-	pthread_cond_signal(&memQueueCondition);
-	pthread_mutex_unlock(&memQueueLock);
 
     	clock_gettime(CLOCK_REALTIME, &current);
     
@@ -115,6 +117,8 @@ void run_io(
     
 	usleep(READ_SLEEP_TIME);
     }
+
+    a_free(&tgArena);
 }
 
 static void _task_group_cleanup()
@@ -122,4 +126,19 @@ static void _task_group_cleanup()
     a_free(&scratch);
 
     scratch = a_new(sizeof(UITask));
+}
+
+static void _copy_stats(CpuStats *prevStats, CpuStats *curStats)
+{
+    prevStats->cpuNumber = curStats->cpuNumber;
+    prevStats->guest = curStats->guest;
+    prevStats->guestNice = curStats->guestNice;
+    prevStats->nice = curStats->nice;
+    prevStats->idle = curStats->idle;
+    prevStats->ioWait = curStats->ioWait;
+    prevStats->irq = curStats->irq;
+    prevStats->softIrq = curStats->softIrq;
+    prevStats->steal = curStats->steal;
+    prevStats->system = curStats->system;
+    prevStats->user = curStats->user;
 }

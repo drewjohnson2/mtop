@@ -5,18 +5,18 @@
 
 #define MAX_CPU_REGIONS_ALLOCD 5
 
-CpuStats * fetch_cpu_stats(Arena *arena) 
+void fetch_cpu_stats(CpuStats *stat) 
 {
     FILE *f = fopen("/proc/stat", "r");
     char buffer[512];
 
-    if (arena->regionsAllocated > MAX_CPU_REGIONS_ALLOCD) r_free_head(arena);
-    
-    CpuStats *stat = a_alloc(
-	arena,
-	sizeof(CpuStats),
-	__alignof(CpuStats) 
-    );
+ //    if (arena->regionsAllocated > MAX_CPU_REGIONS_ALLOCD) r_free_head(arena);
+ //    
+ //    CpuStats *stat = a_alloc(
+	// arena,
+	// sizeof(CpuStats),
+	// __alignof(CpuStats) 
+ //    );
     
     fgets(buffer, sizeof(buffer), f);
     
@@ -27,6 +27,4 @@ CpuStats * fetch_cpu_stats(Arena *arena)
     );
     
     fclose(f);
-    
-    return stat;
 }

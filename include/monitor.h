@@ -140,7 +140,7 @@ static inline u64 cpu_time_now()
 //		cpu_monitor.c
 //
 //
-CpuStats * fetch_cpu_stats(Arena *arena);
+void fetch_cpu_stats(CpuStats *stats);
 
 //
 //		mem_monitor.c

@@ -40,12 +40,9 @@ void condition_destroy();
 //
 //
 void run_ui(
-    Arena *graphArena,
-    Arena *memGraphArena,
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 );
 
@@ -57,7 +54,6 @@ void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
     volatile ProcessInfoSharedData *prcInfoSd
 );
 #endif

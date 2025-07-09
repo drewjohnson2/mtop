@@ -23,13 +23,12 @@
 #define QUEUE_A_SZ sizeof(ThreadSafeQueue)
 #define GENERAL_A_SZ 256 * 20
 #define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
+#define CPU_POINT_A_SZ sizeof(GraphPoint)
+#define MEM_POINT_A_SZ sizeof(GraphPoint)
 
 typedef struct _ui_thread_args
 {
-    Arena *graphArena;
-    Arena *memGraphArena;
     DisplayItems *di;
-    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
@@ -38,7 +37,6 @@ typedef struct _ui_thread_args
 typedef struct _io_thread_args
 {
     mtopArenas *arenas;
-    volatile MemoryStats *memStats;
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
@@ -51,12 +49,14 @@ Arena cpuGraphArena;
 Arena memoryGraphArena;  
 Arena prcArena;
 Arena queueArena;
+Arena cpuPointArena;
+Arena memPointArena;
 Arena general;
+
 
 ThreadSafeQueue *cpuQueue;
 ThreadSafeQueue *prcQueue;
 
-volatile MemoryStats *memStats;
 volatile ProcessInfoSharedData *prcInfoSD;
 
 volatile Settings *mtopSettings;
@@ -86,6 +86,8 @@ void run(int argc, char **argv)
     memoryGraphArena = a_new(GRAPH_A_SZ);  
     prcArena = a_new(PRC_A_SZ);
     queueArena = a_new(QUEUE_A_SZ);
+    cpuPointArena = a_new(CPU_POINT_A_SZ);
+    memPointArena = a_new(MEM_POINT_A_SZ);
     general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
@@ -99,6 +101,8 @@ void run(int argc, char **argv)
     arenas->cpuGraphArena = &cpuGraphArena;
     arenas->memoryGraphArena  = &memoryGraphArena;
     arenas->prcArena = &prcArena;
+    arenas->cpuPointArena = &cpuPointArena;
+    arenas->memPointArena = &memPointArena;
 
     cpuQueue = a_alloc(
     	&queueArena,
@@ -106,8 +110,6 @@ void run(int argc, char **argv)
     	__alignof(ThreadSafeQueue)
     );
 
-    memStats = a_alloc(&memArena, sizeof(MemoryStats), __alignof(MemoryStats));
-    
     prcQueue = a_alloc(
     	&queueArena,
     	sizeof(ThreadSafeQueue),
@@ -220,11 +222,8 @@ void run(int argc, char **argv)
     
     UIThreadArgs uiArgs = 
     {
-    	.graphArena = &cpuGraphArena,
     	.di = di,
     	.cpuQueue = cpuQueue,
-	.memStats = memStats,
-    	.memGraphArena = &memoryGraphArena,
     	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
@@ -232,7 +231,6 @@ void run(int argc, char **argv)
     IOThreadArgs ioArgs = 
     {
 	.arenas = arenas,
-	.memStats = memStats,
     	.cpuQueue = cpuQueue,
 	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD,
@@ -290,6 +288,8 @@ void cleanup()
     a_free(&prcArena);
     a_free(&queueArena);
     a_free(&general);
+    a_free(&cpuPointArena);
+    a_free(&memPointArena);
 }
 
 static void * _ui_thread_run(void *arg)
@@ -297,12 +297,9 @@ static void * _ui_thread_run(void *arg)
     UIThreadArgs *args = (UIThreadArgs *)arg;
     
     run_ui(
-	args->graphArena,
-    	args->memGraphArena,
     	args->di,
     	args->cpuQueue,
     	args->prcQueue,
-	args->memStats,
 	args->prcInfoSD
     );
     
@@ -317,7 +314,6 @@ static void * _io_thread_run(void *arg)
 	args->arenas,
     	args->cpuQueue,
     	args->prcQueue,
-	args->memStats,
 	args->prcInfoSD
     );
     
