@@ -57,16 +57,20 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
 UITask * build_prc_task(
     Arena *taskArena,
     ProcessListState *listState,
-    ProcessStatsViewData **vd,
-    ProcessStats *curPrcs
+    ProcessStats *prevPrcs,
+    ProcessStats *curPrcs,
+    ProcessInfoData *prcInfo,
+    u64 memTotal
 )
 {
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
     ProcessesContext *ctx = a_alloc(taskArena, sizeof(ProcessesContext), __alignof(ProcessesContext));
 
     ctx->listState = listState;
+    ctx->prevPrcs = prevPrcs;
     ctx->curPrcs = curPrcs;
-    ctx->vd = vd;
+    ctx->memTotal = memTotal;
+    ctx->processInfo = prcInfo;
 
     task->action = process_action_func;
     task->data = ctx;
@@ -77,15 +81,13 @@ UITask * build_prc_task(
 
 UITask * build_input_task(
     Arena *taskArena,
-    ProcessListState *listState,
-    ProcessStatsViewData **vd
+    ProcessListState *listState
 )
 {
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
     InputContext *ctx = a_alloc(taskArena, sizeof(InputContext), __alignof(InputContext));
 
     ctx->listState = listState;
-    ctx->vd = vd;
 
     task->action = input_action_func;
     task->data = ctx;

@@ -92,8 +92,7 @@ void read_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di,
-    ProcessStatsViewData **vd,
-    volatile ProcessInfoSharedData *prcInfoSd
+    volatile ProcessInfoData *prcInfoSd
 )
 {
     s8 ch = wgetch(win);
@@ -191,9 +190,7 @@ void read_input(
 	    
 	    return;
 	case 10:
-	    prcInfoSd->needsFetch = 1;
 	    state->infoVisible = 1;
-	    prcInfoSd->pidToFetch = vd[state->selectedIndex]->pid;
 	    
 	    return;
 	case 'b':
@@ -227,7 +224,7 @@ void read_input(
 	state->cmdBuffer = '\0';
 	state->timeoutActive = 0;
 
-	kill(vd[state->selectedIndex]->pid, SIGKILL);
+	kill(state->selectedPid, SIGKILL);
 
 	return;
     }

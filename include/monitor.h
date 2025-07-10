@@ -34,12 +34,11 @@ typedef struct _proc_info
      u32 pid;
 } ProcessInfo;
 
-typedef struct _proc_info_shared_data 
+typedef struct _proc_info_data 
 {
-    u32 needsFetch;
     u32 pidToFetch;
     ProcessInfo *info;
-} ProcessInfoSharedData;
+} ProcessInfoData;
 
 typedef struct _mem_stats
 {
@@ -156,7 +155,7 @@ ProcessStats * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 );
-void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSD);
+void get_prc_info_by_pid(volatile ProcessInfoData *prcInfoSD);
 
 #endif
 

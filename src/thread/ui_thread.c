@@ -15,30 +15,17 @@
 #include "../../include/startup.h"
 #include "../../include/task.h"
 
-
-static void _setup_list_state(
-    ProcessListState *listState,
-    ProcessStats *curPrcs,
-    const WindowData *prcWin
-);
-
 void run_ui(
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *prcQueue,
-    volatile ProcessInfoSharedData *prcInfoSd
+    volatile ProcessInfoData *prcInfoSd
 )
 {
-    u64 memTotal = 0;
     const WindowData *cpuWin = di->windows[CPU_WIN];
     const WindowData *memWin = di->windows[MEMORY_WIN];
     const WindowData *prcWin = di->windows[PRC_WIN];
     const WindowData *optWin = di->windows[OPT_WIN];
     const WindowData *container = di->windows[CONTAINER_WIN];
-    const u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
-    
-    ProcessStats *prevPrcs = NULL;
-    ProcessStats *curPrcs = NULL;
     
     // Arena stateArena = a_new(STATE_A_SZ);
     // 

@@ -5,10 +5,3 @@
 void setup_list_state(ProcessListState *listState, ProcessStats *curPrcs, const WindowData *prcWin);
 void set_start_end_idx(ProcessListState *state); 
 void adjust_state(ProcessListState *state, ProcessStats *stats);
-void read_input(
-    WINDOW *win,
-    ProcessListState *state,
-    DisplayItems *di,
-    ProcessStatsViewData **vd,
-    volatile ProcessInfoSharedData *prcInfoSd
-);

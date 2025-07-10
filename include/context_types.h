@@ -1,6 +1,7 @@
 #ifndef CONTEXT_TYPES_H
 #define CONTEXT_TYPES_H
 
+#include "monitor.h"
 #include "window.h"
 
 typedef struct _cpu_data_context 
@@ -19,15 +20,16 @@ typedef struct _mem_data_context
 
 typedef struct _prc_context
 {
+    u64 memTotal;
+    ProcessStats *prevPrcs;
     ProcessStats *curPrcs;
+    ProcessInfoData *processInfo;
     ProcessListState *listState;
-    ProcessStatsViewData **vd;
 } ProcessesContext;
 
 typedef struct _input_context
 {
     ProcessListState *listState;
-    ProcessStatsViewData **vd;
 } InputContext;
 
 #endif

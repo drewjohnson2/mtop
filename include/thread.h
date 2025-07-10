@@ -42,8 +42,7 @@ void condition_destroy();
 void run_ui(
     DisplayItems *di,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile ProcessInfoSharedData *prcInfoSd
+    volatile ProcessInfoData *prcInfoSd
 );
 
 //
@@ -53,8 +52,7 @@ void run_ui(
 void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile ProcessInfoSharedData *prcInfoSd,
+    volatile ProcessInfoData *prcInfoSd,
     WindowData **windows
 );
 #endif

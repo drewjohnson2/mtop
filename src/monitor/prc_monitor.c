@@ -151,7 +151,7 @@ ProcessStats * get_processes(
 }
 
 
-void get_prc_info_by_pid(volatile ProcessInfoSharedData *prcInfoSd)
+void get_prc_info_by_pid(volatile ProcessInfoData *prcInfoSd)
 {
     char statusPath[32];
     char statusBuffer[256];

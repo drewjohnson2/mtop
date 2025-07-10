@@ -68,11 +68,12 @@ void print_stats(
     // May need this as a debug value again someday. Leaving for now.
     //char cmd = state->cmdBuffer ? state->cmdBuffer : '0'; 
     wattron(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
-    mvwprintw(win, 
-	windowTitleY, windowTitleX, 
-	" 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, pc = %u, ap = %u",
-	state->pageStartIdx, state->pageEndIdx, state->selectedIndex,
-	state->count, state->timeoutActive, state->totalPages, state->activePage);
+ //    mvwprintw(win, 
+	// windowTitleY, windowTitleX, 
+	// " 1st idx = %u, last = %u, selectedIndex = %u, maxidx = %u, toActive = %u, pc = %u, ap = %u",
+	// state->pageStartIdx, state->pageEndIdx, state->selectedIndex,
+	// state->count, state->timeoutActive, state->totalPages, state->activePage);
+    mvwprintw(win, windowTitleY, windowTitleX, "Selected PID: %u", state->selectedPid);
 
     wattroff(win, COLOR_PAIR(MT_PAIR_PRC_HEADER));
 #else

@@ -43,22 +43,50 @@ void mem_action_function(DisplayItems *di, void *ctx)
 void process_action_func(DisplayItems *di, void *ctx)
 {
     ProcessesContext *context = (ProcessesContext *)ctx;
+    ProcessStats *prevPrcs = context->prevPrcs;
     ProcessStats *curPrcs = context->curPrcs;
     ProcessListState *listState = context->listState;
-    ProcessStatsViewData **vd = context->vd;
-    WindowData *container = di->windows[CONTAINER_WIN];
+    ProcessInfoData *prcInfo = context->processInfo;
     WindowData *prcWin = di->windows[PRC_WIN];
+    u64 memTotal = context->memTotal;
 
-    // This needs to change. Investigate how it is that we can get here
-    // but vd is null.
-    if (vd)
-    {
-	listState->selectedPid = vd[listState->selectedIndex]->pid;
-	qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), listState->sortFunc);
-    }
+    Arena scratch = a_new(
+	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
+    	sizeof(ProcessStatsViewData) +
+    	(sizeof(ProcessStatsViewData) * curPrcs->count)
+    );
+    
+    ProcessStatsViewData **vd = a_alloc(
+	&scratch,
+    	sizeof(ProcessStatsViewData *) * curPrcs->count,
+    	__alignof(ProcessStatsViewData *)
+    ); 
+    
+    set_prc_view_data(
+	&scratch,
+    	vd,
+    	curPrcs,
+    	prevPrcs,
+    	memTotal
+    );		
+
+    qsort(
+        vd,
+        curPrcs->count,
+        sizeof(ProcessStatsViewData *),
+        listState->sortFunc
+    );
+
 
     if (!listState->infoVisible)
+    {
+	listState->selectedPid = vd[listState->selectedIndex]->pid;
 	print_stats(listState, prcWin, vd, curPrcs->count);
+    }
+    else
+	show_prc_info(vd[listState->selectedIndex], prcInfo->info, prcWin);
+
+    a_free(&scratch);
 }
 
 void input_action_func(DisplayItems *di, void *ctx)
@@ -66,7 +94,6 @@ void input_action_func(DisplayItems *di, void *ctx)
     InputContext *context = (InputContext *)ctx;
     WindowData *container = di->windows[CONTAINER_WIN];
     ProcessListState *listState = context->listState;
-    ProcessStatsViewData **vd = context->vd;
 
-    read_input(container->window, listState, di, vd, NULL);
+    read_input(container->window, listState, di, NULL);
 }

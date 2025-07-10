@@ -31,16 +31,14 @@ typedef struct _ui_thread_args
 {
     DisplayItems *di;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *prcQueue;
-    volatile ProcessInfoSharedData *prcInfoSD;
+    volatile ProcessInfoData *prcInfoSD;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
     mtopArenas *arenas;
     ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *prcQueue;
-    volatile ProcessInfoSharedData *prcInfoSD;
+    volatile ProcessInfoData *prcInfoSD;
     WindowData **windows;
 } IOThreadArgs;
 
@@ -57,9 +55,8 @@ Arena general;
 Arena stateArena;
 
 ThreadSafeQueue *cpuQueue;
-ThreadSafeQueue *prcQueue;
 
-volatile ProcessInfoSharedData *prcInfoSD;
+volatile ProcessInfoData *prcInfoSD;
 
 volatile Settings *mtopSettings;
 
@@ -114,16 +111,10 @@ void run(int argc, char **argv)
     	__alignof(ThreadSafeQueue)
     );
 
-    prcQueue = a_alloc(
-    	&queueArena,
-    	sizeof(ThreadSafeQueue),
-    	__alignof(ThreadSafeQueue)
-    );
-
-    prcInfoSD = (ProcessInfoSharedData *)a_alloc(
+    prcInfoSD = (ProcessInfoData *)a_alloc(
 	&general,
-	sizeof(ProcessInfoSharedData),
-	__alignof(ProcessInfoSharedData)
+	sizeof(ProcessInfoData),
+	__alignof(ProcessInfoData)
     ); 
     prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
@@ -216,7 +207,6 @@ void run(int argc, char **argv)
     if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
     else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
 
-    prcInfoSD->needsFetch = 0;
     prcInfoSD->pidToFetch = 0;
     
     signal(SIGWINCH, _handle_resize);
@@ -228,7 +218,6 @@ void run(int argc, char **argv)
     {
     	.di = di,
     	.cpuQueue = cpuQueue,
-    	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD
     };
     
@@ -236,7 +225,6 @@ void run(int argc, char **argv)
     {
 	.arenas = arenas,
     	.cpuQueue = cpuQueue,
-	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD,
 	.windows = di->windows
     };
@@ -274,16 +262,6 @@ void cleanup()
     	free(tmp);
     }
     
-    head = prcQueue->head;
-
-    while (head)
-    {
-	tmp = head;
-    	head = head->next;
-    
-    	free(tmp);
-    }
-    
     a_free(&windowArena);
     a_free(&cpuArena);
     a_free(&memArena);
@@ -304,7 +282,6 @@ static void * _ui_thread_run(void *arg)
     run_ui(
     	args->di,
     	args->cpuQueue,
-    	args->prcQueue,
 	args->prcInfoSD
     );
     
@@ -318,7 +295,6 @@ static void * _io_thread_run(void *arg)
     run_io(
 	args->arenas,
     	args->cpuQueue,
-    	args->prcQueue,
 	args->prcInfoSD,
 	args->windows
     );

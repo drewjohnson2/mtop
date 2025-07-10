@@ -14,10 +14,8 @@
 #include "../../include/task.h"
 
 Arena taskArena;
-Arena vdArena;
 ProcessStats *prevPrcs;
 ProcessStats *curPrcs;
-ProcessStatsViewData **vd;
 
 static void _task_group_cleanup();
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
@@ -25,8 +23,7 @@ static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile ProcessInfoSharedData *prcInfoSd,
+    volatile ProcessInfoData *prcInfoSd,
     WindowData **windows
 ) 
 {
@@ -34,6 +31,7 @@ void run_io(
     Arena *procArena = arenas->prcArena;
     Arena *memArena = arenas->memArena;
     Arena *stateArena = arenas->stateArena;
+    Arena *general = arenas->general;
     Arena tgArena = a_new(sizeof(TaskGroup));
     CpuStats *prevStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
     CpuStats *curStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
@@ -42,6 +40,12 @@ void run_io(
     	sizeof(ProcessListState),
     	__alignof(ProcessListState)
     );
+    ProcessInfoData *processInfo = (ProcessInfoData *)a_alloc(
+	general,
+	sizeof(ProcessInfoData),
+	__alignof(ProcessInfoData)
+    ); 
+    processInfo->info = a_alloc(general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     prevPrcs = get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
@@ -80,11 +84,6 @@ void run_io(
 
     // Create cleanup function on task group to free this arena
     taskArena = a_new(64);
-    vdArena = a_new(
-	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
-	sizeof(ProcessStatsViewData) +
-	(sizeof(ProcessStatsViewData) * curPrcs->count)
-    );
     
     while (!SHUTDOWN_FLAG)
     {
@@ -114,29 +113,16 @@ void run_io(
 	    // That way we can perform all of our input actions,
 	    // then we can move the creation and allocation of the view
 	    // data back to the process action. Possible????
-	    vd = a_alloc(
-		&vdArena,
-		sizeof(ProcessStatsViewData *) * curPrcs->count,
-		__alignof(ProcessStatsViewData *)
-	    ); 
-    
-	    set_prc_view_data(&vdArena, vd, curPrcs, prevPrcs, memStats->memTotal);
-	    //qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), listState->sortFunc);
 
 	    adjust_state(listState, curPrcs);
 	    
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	if (prcInfoSd->needsFetch && prcInfoSd->pidToFetch > 0)
+	if (listState->infoVisible && listState->selectedPid > 0)
 	{
-	    pthread_mutex_lock(&procInfoLock);
-	    get_prc_info_by_pid(prcInfoSd); 
-
-	    prcInfoSd->needsFetch = 0;
-
-	    pthread_cond_signal(&procInfoCondition);
-	    pthread_mutex_unlock(&procInfoLock);
+	    processInfo->pidToFetch = listState->selectedPid;
+	    get_prc_info_by_pid(processInfo); 
 	}
 
 	UITask *cpuTask = build_cpu_task(&taskArena, arenas->cpuPointArena, curStats, prevStats);
@@ -144,13 +130,15 @@ void run_io(
 	UITask *prcTask = build_prc_task(
 	    &taskArena,
 	    listState,
-	    vd,
-	    curPrcs
+	    prevPrcs,
+	    curPrcs,
+	    processInfo,
+	    memStats->memTotal
 	);
-	UITask *inputTask = build_input_task(&taskArena, listState, vd);
+	UITask *inputTask = build_input_task(&taskArena, listState);
 
 	// this task order is very good.
-	// makes the task input run much
+	// makes the kb input run much
 	// faster than it ever has.
 	// Also: keep the sort function
 	// for vd in the action, much, much faster.
