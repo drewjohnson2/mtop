@@ -45,6 +45,7 @@ typedef struct _arenas
     Arena *general;
     Arena *cpuPointArena;
     Arena *memPointArena;
+    Arena *stateArena;
 } mtopArenas;
 
 extern volatile Settings *mtopSettings;

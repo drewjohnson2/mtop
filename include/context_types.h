@@ -17,4 +17,17 @@ typedef struct _mem_data_context
     Arena *arena;
 } MemoryDataContext;
 
+typedef struct _prc_context
+{
+    ProcessStats *curPrcs;
+    ProcessListState *listState;
+    ProcessStatsViewData **vd;
+} ProcessesContext;
+
+typedef struct _input_context
+{
+    ProcessListState *listState;
+    ProcessStatsViewData **vd;
+} InputContext;
+
 #endif

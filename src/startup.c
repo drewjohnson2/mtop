@@ -25,6 +25,7 @@
 #define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
 #define MEM_POINT_A_SZ sizeof(GraphPoint)
+#define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
 
 typedef struct _ui_thread_args
 {
@@ -40,6 +41,7 @@ typedef struct _io_thread_args
     ThreadSafeQueue *cpuQueue;
     ThreadSafeQueue *prcQueue;
     volatile ProcessInfoSharedData *prcInfoSD;
+    WindowData **windows;
 } IOThreadArgs;
 
 Arena windowArena;
@@ -52,7 +54,7 @@ Arena queueArena;
 Arena cpuPointArena;
 Arena memPointArena;
 Arena general;
-
+Arena stateArena;
 
 ThreadSafeQueue *cpuQueue;
 ThreadSafeQueue *prcQueue;
@@ -88,6 +90,7 @@ void run(int argc, char **argv)
     queueArena = a_new(QUEUE_A_SZ);
     cpuPointArena = a_new(CPU_POINT_A_SZ);
     memPointArena = a_new(MEM_POINT_A_SZ);
+    stateArena = a_new(STATE_A_SZ);
     general = a_new(GENERAL_A_SZ);
     
     DisplayItems *di = init_display_items(&windowArena);
@@ -103,6 +106,7 @@ void run(int argc, char **argv)
     arenas->prcArena = &prcArena;
     arenas->cpuPointArena = &cpuPointArena;
     arenas->memPointArena = &memPointArena;
+    arenas->stateArena = &stateArena;
 
     cpuQueue = a_alloc(
     	&queueArena,
@@ -234,6 +238,7 @@ void run(int argc, char **argv)
     	.cpuQueue = cpuQueue,
 	.prcQueue = prcQueue,
 	.prcInfoSD = prcInfoSD,
+	.windows = di->windows
     };
     
     pthread_t ioThread;
@@ -277,7 +282,6 @@ void cleanup()
     	head = head->next;
     
     	free(tmp);
-
     }
     
     a_free(&windowArena);
@@ -290,6 +294,7 @@ void cleanup()
     a_free(&general);
     a_free(&cpuPointArena);
     a_free(&memPointArena);
+    a_free(&stateArena);
 }
 
 static void * _ui_thread_run(void *arg)
@@ -314,7 +319,8 @@ static void * _io_thread_run(void *arg)
 	args->arenas,
     	args->cpuQueue,
     	args->prcQueue,
-	args->prcInfoSD
+	args->prcInfoSD,
+	args->windows
     );
     
     return NULL;

@@ -89,6 +89,7 @@ typedef struct _process_list_state
     u8 pageSize;
     s8 timeoutActive;
     u8 infoVisible;
+    u32 selectedPid;
     char cmdBuffer;
     SortOrder sortOrder;
     struct timespec timeoutStart;

@@ -12,11 +12,9 @@
 #include "../../include/monitor.h"
 #include "../../include/thread_safe_queue.h"
 #include "../../include/mt_colors.h"
-#include "../../include/sorting.h"
 #include "../../include/startup.h"
 #include "../../include/task.h"
 
-#define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
 
 static void _setup_list_state(
     ProcessListState *listState,
@@ -42,22 +40,22 @@ void run_ui(
     ProcessStats *prevPrcs = NULL;
     ProcessStats *curPrcs = NULL;
     
-    Arena stateArena = a_new(STATE_A_SZ);
+    // Arena stateArena = a_new(STATE_A_SZ);
+    // 
+    // // probably need to add some sort of shut down error
+    // // handling here.
+    // prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
+    // dequeue(prcQueue, &procDataLock, &procQueueCondition);
     
-    // probably need to add some sort of shut down error
-    // handling here.
-    prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
-    dequeue(prcQueue, &procDataLock, &procQueueCondition);
+    //curPrcs = prevPrcs;
     
-    curPrcs = prevPrcs;
-    
-    ProcessListState *listState = a_alloc(
-    	&stateArena,
-    	sizeof(ProcessListState),
-    	__alignof(ProcessListState)
-    );
-    
-    _setup_list_state(listState, curPrcs, prcWin);
+    // ProcessListState *listState = a_alloc(
+    // 	&stateArena,
+    // 	sizeof(ProcessListState),
+    // 	__alignof(ProcessListState)
+    // );
+    // 
+    // _setup_list_state(listState, curPrcs, prcWin);
     import_colors();
 
     if (!mtopSettings->transparencyEnabled)
@@ -76,11 +74,11 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
-	if (RESIZE)
-	{
-	    resize_win(di); 
-	    _setup_list_state(listState, curPrcs, prcWin);
-	}
+	// if (RESIZE)
+	// {
+	//     resize_win(di); 
+	//     _setup_list_state(listState, curPrcs, prcWin);
+	// }
 
 	print_uptime_ldAvg(container);
 	print_time(container);
@@ -102,69 +100,6 @@ void run_ui(
 	tg->tasksComplete = 1;
 	tg->cleanup();
     
-    	if (prcQueue->size > 0)
-    	{
-	    prevPrcs = curPrcs;
-	    curPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
-	    dequeue(prcQueue, &procDataLock, &procQueueCondition);
-	    
-	    adjust_state(listState, curPrcs);
-    	}
-    
-    	Arena scratch = a_new(
-	   (sizeof(ProcessStatsViewData *) * curPrcs->count) +
-	   sizeof(ProcessStatsViewData) +
-	   (sizeof(ProcessStatsViewData) * curPrcs->count)
-    	);
-    
-    	ProcessStatsViewData **vd = a_alloc(
-	    &scratch,
-	    sizeof(ProcessStatsViewData *) * curPrcs->count,
-	    __alignof(ProcessStatsViewData *)
-    	); 
-    	
-    	set_prc_view_data(
-	    &scratch,
-	    vd,
-	    curPrcs,
-	    prevPrcs,
-	    memTotal
-    	);		
-
-	if (prcActive)
-	{
-	    qsort(
-	        vd,
-	        curPrcs->count,
-	        sizeof(ProcessStatsViewData *),
-	        listState->sortFunc
-	    );
-	}
-
-	read_input(container->window, listState, di, vd, prcInfoSd);
-
-	if (!listState->infoVisible)
-	{
-	   print_stats(
-	       listState,
-	       prcWin,
-	       vd,
-	       curPrcs->count
-    	   );
-	}
-	else 
-	{
-	    pthread_mutex_lock(&procInfoLock);
-
-	    while (prcInfoSd->needsFetch)
-		pthread_cond_wait(&procInfoCondition, &procInfoLock);
-
-	    show_prc_info(vd[listState->selectedIndex], prcInfoSd->info, prcWin);
-	    pthread_mutex_unlock(&procInfoLock);
-	}
-    
-    	a_free(&scratch);
-    
 	// Normally I'd remove the else case and put the
 	// REFRESH_WIN(container->window) above the if statement.
 	// For whatever reason that setup causes bad flickering
@@ -182,41 +117,13 @@ void run_ui(
 	    REFRESH_WIN(container->window);
 	}
 
-	if (listState->infoVisible)
-	{
-	    prcInfoSd->needsFetch = 1;
-	}
+	// if (listState->infoVisible)
+	// {
+	//     prcInfoSd->needsFetch = 1;
+	// }
 
 	tg->tasksComplete = 1;
     
     	usleep(DISPLAY_SLEEP_TIME);
     }
-    
-    a_free(&stateArena);
-}
-
-static void _setup_list_state(
-    ProcessListState *listState,
-    ProcessStats *curPrcs,
-    const WindowData *prcWin
-)
-{
-    listState->cmdBuffer = '\0';
-    listState->timeoutActive = 0;
-    listState->selectedIndex = 0;
-    listState->pageStartIdx = 0;
-    listState->count = curPrcs->count;
-    listState->pageSize = prcWin->wHeight - 5;
-    listState->totalPages = listState->count / listState->pageSize;
-
-    if (listState->count % listState->pageSize > 0) listState->totalPages++;
-
-    listState->pageEndIdx = listState->pageSize - 1;
-
-    if (listState->pageEndIdx > listState->count)
-	listState->pageEndIdx = listState->count - 1;
-
-    listState->sortFunc = vd_name_compare_func;
-    listState->sortOrder = PRC_NAME;
-    listState->infoVisible = 0;
 }

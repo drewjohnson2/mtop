@@ -20,6 +20,29 @@ typedef enum _nav_direction
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 static void _read_input(DisplayItems *di, s8 ch);
 
+void setup_list_state(ProcessListState *listState, ProcessStats *curPrcs, const WindowData *prcWin)
+{
+    listState->cmdBuffer = '\0';
+    listState->timeoutActive = 0;
+    listState->selectedIndex = 0;
+    listState->pageStartIdx = 0;
+    listState->count = curPrcs->count;
+    listState->pageSize = prcWin->wHeight - 5;
+    listState->totalPages = listState->count / listState->pageSize;
+    listState->selectedPid = 0;
+
+    if (listState->count % listState->pageSize > 0) listState->totalPages++;
+
+    listState->pageEndIdx = listState->pageSize - 1;
+
+    if (listState->pageEndIdx > listState->count)
+	listState->pageEndIdx = listState->count - 1;
+
+    listState->sortFunc = vd_name_compare_func;
+    listState->sortOrder = PRC_NAME;
+    listState->infoVisible = 0;
+}
+
 void set_start_end_idx(ProcessListState *state) 
 {
     s8 isLastPage = state->activePage == state->totalPages - 1;

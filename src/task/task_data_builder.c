@@ -6,6 +6,7 @@
 
 GraphData *cpuGraphData = NULL;
 GraphData *memGraphData = NULL;
+ProcessListState *listState = NULL;
 
 void init_data(Arena *cpuGraphArena, Arena *memGraphArena)
 {
@@ -28,6 +29,7 @@ UITask * build_cpu_task(Arena *taskArena, Arena *actionArena, CpuStats *curStats
 
     task->action = cpu_action_function;
     task->data = ctx;
+    task->next = NULL;
 
     return task;
 }
@@ -47,6 +49,47 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
 
     task->action = mem_action_function;
     task->data = ctx;
+    task->next = NULL;
+
+    return task;
+}
+
+UITask * build_prc_task(
+    Arena *taskArena,
+    ProcessListState *listState,
+    ProcessStatsViewData **vd,
+    ProcessStats *curPrcs
+)
+{
+    UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+    ProcessesContext *ctx = a_alloc(taskArena, sizeof(ProcessesContext), __alignof(ProcessesContext));
+
+    ctx->listState = listState;
+    ctx->curPrcs = curPrcs;
+    ctx->vd = vd;
+
+    task->action = process_action_func;
+    task->data = ctx;
+    task->next = NULL;
+
+    return task;
+}
+
+UITask * build_input_task(
+    Arena *taskArena,
+    ProcessListState *listState,
+    ProcessStatsViewData **vd
+)
+{
+    UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+    InputContext *ctx = a_alloc(taskArena, sizeof(InputContext), __alignof(InputContext));
+
+    ctx->listState = listState;
+    ctx->vd = vd;
+
+    task->action = input_action_func;
+    task->data = ctx;
+    task->next = NULL;
 
     return task;
 }

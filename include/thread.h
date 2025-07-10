@@ -54,6 +54,7 @@ void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
-    volatile ProcessInfoSharedData *prcInfoSd
+    volatile ProcessInfoSharedData *prcInfoSd,
+    WindowData **windows
 );
 #endif

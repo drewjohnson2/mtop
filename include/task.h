@@ -29,6 +29,17 @@ typedef struct _task_group
 void init_data(Arena *cpuGraphArena, Arena *memGraphArena);
 UITask * build_cpu_task(Arena *taskArena, Arena *actionArena, CpuStats *curStats, CpuStats *prevStats);
 UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memStats);
+UITask  *build_prc_task(
+    Arena *taskArena,
+    ProcessListState *listState,
+    ProcessStatsViewData **vd,
+    ProcessStats *curPrcs
+);
+UITask * build_input_task(
+    Arena *taskArena,
+    ProcessListState *listState,
+    ProcessStatsViewData **vd
+);
 
 /*
 
@@ -37,4 +48,6 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
 */
 void cpu_action_function(DisplayItems *di, void *ctx);
 void mem_action_function(DisplayItems *di, void *ctx);
+void process_action_func(DisplayItems *di, void *ctx);
+void input_action_func(DisplayItems *di, void *ctx);
 #endif

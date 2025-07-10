@@ -3,15 +3,21 @@
 #include <unistd.h>
 #include <arena.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include "../../include/thread.h"
 #include "../../include/monitor.h"
 #include "../../include/thread_safe_queue.h"
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
+#include "../../include/prc_list_util.h"
 #include "../../include/task.h"
 
-Arena scratch;
+Arena taskArena;
+Arena vdArena;
+ProcessStats *prevPrcs;
+ProcessStats *curPrcs;
+ProcessStatsViewData **vd;
 
 static void _task_group_cleanup();
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
@@ -20,45 +26,65 @@ void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
     ThreadSafeQueue *procQueue,
-    volatile ProcessInfoSharedData *prcInfoSd
+    volatile ProcessInfoSharedData *prcInfoSd,
+    WindowData **windows
 ) 
 {
     Arena *cpuArena = arenas->cpuArena;
     Arena *procArena = arenas->prcArena;
     Arena *memArena = arenas->memArena;
+    Arena *stateArena = arenas->stateArena;
     Arena tgArena = a_new(sizeof(TaskGroup));
     CpuStats *prevStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
     CpuStats *curStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
+    ProcessListState *listState = a_alloc(
+    	stateArena,
+    	sizeof(ProcessListState),
+    	__alignof(ProcessListState)
+    );
 
+    prevPrcs = get_processes(procArena, prc_pid_compare);
+    curPrcs = prevPrcs;
+
+    setup_list_state(listState, curPrcs, windows[PRC_WIN]);
     fetch_cpu_stats(prevStats);
 
     MemoryStats *memStats = NULL;
     TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
 
+    memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
     tg->tasksComplete = 1;
     tg->cleanup = _task_group_cleanup;
 
-    memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
-
-    pthread_mutex_lock(&procDataLock);
-    get_processes(procArena, prc_pid_compare);  
-    pthread_mutex_unlock(&procDataLock);
+    // What is the purpose of this?
+    // This was at the top of the io loop
+    // in the previous implementation, but
+    // nothing uses the value returned by
+    // get_processes???
+    // pthread_mutex_lock(&procDataLock);
+    // get_processes(procArena, prc_pid_compare);  
+    // pthread_mutex_unlock(&procDataLock);
     
     struct timespec start, current;
     
     clock_gettime(CLOCK_REALTIME, &start);
     
-    enqueue(
-	procQueue,
-	get_processes(procArena, prc_pid_compare),
-	&procDataLock,
-	&procQueueCondition
-    );
-
+ //    enqueue(
+	// procQueue,
+	// get_processes(procArena, prc_pid_compare),
+	// &procDataLock,
+	// &procQueueCondition
+ //    );
+	//
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
     // Create cleanup function on task group to free this arena
-    scratch = a_new(sizeof(UITask));
+    taskArena = a_new(64);
+    vdArena = a_new(
+	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
+	sizeof(ProcessStatsViewData) +
+	(sizeof(ProcessStatsViewData) * curPrcs->count)
+    );
     
     while (!SHUTDOWN_FLAG)
     {
@@ -66,41 +92,39 @@ void run_io(
 	{
 	    usleep(READ_SLEEP_TIME);
 	    continue;
-	} 
+	}
 
 	fetch_cpu_stats(curStats);
-
-	UITask *cpuTask = build_cpu_task(&scratch, arenas->cpuPointArena, curStats, prevStats);
-
-	_copy_stats(prevStats, curStats);
-	
 	fetch_memory_stats(memStats);
-
-	UITask *memTask = build_mem_task(&scratch, arenas->memPointArena, memStats);
-
-	cpuTask->next = memTask;
-	memTask->next = NULL;
-
-	tg->tasks = cpuTask;
-	tg->tasksComplete = 0;
-
-	enqueue(cpuQueue, tg, &cpuQueueLock, &cpuQueueCondition);
-
-    	clock_gettime(CLOCK_REALTIME, &current);
+	clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if (totalTimeSec > PROC_WAIT_TIME_SEC)
     	{
-	    ProcessStats *stats = get_processes(procArena, prc_pid_compare);
-	    
-	    enqueue(
-		procQueue,
-		stats,
-		&procDataLock,
-		&procQueueCondition
-	    );
+	    prevPrcs = curPrcs;
+	    curPrcs = get_processes(procArena, prc_pid_compare);
 
+	    // I need some sort of way to clean up the view data stuff.
+	    // I certainly need to find a way to clean up the arena,
+	    // but I'd also like to find some way to only use the
+	    // view data. Idk, view data stuff just feels really ugly.
+	    //
+	    // Quick idea: track selected PID in the list state? 
+	    // That way we can perform all of our input actions,
+	    // then we can move the creation and allocation of the view
+	    // data back to the process action. Possible????
+	    vd = a_alloc(
+		&vdArena,
+		sizeof(ProcessStatsViewData *) * curPrcs->count,
+		__alignof(ProcessStatsViewData *)
+	    ); 
+    
+	    set_prc_view_data(&vdArena, vd, curPrcs, prevPrcs, memStats->memTotal);
+	    //qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), listState->sortFunc);
+
+	    adjust_state(listState, curPrcs);
+	    
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
@@ -114,7 +138,32 @@ void run_io(
 	    pthread_cond_signal(&procInfoCondition);
 	    pthread_mutex_unlock(&procInfoLock);
 	}
-    
+
+	UITask *cpuTask = build_cpu_task(&taskArena, arenas->cpuPointArena, curStats, prevStats);
+	UITask *memTask = build_mem_task(&taskArena, arenas->memPointArena, memStats);
+	UITask *prcTask = build_prc_task(
+	    &taskArena,
+	    listState,
+	    vd,
+	    curPrcs
+	);
+	UITask *inputTask = build_input_task(&taskArena, listState, vd);
+
+	// this task order is very good.
+	// makes the task input run much
+	// faster than it ever has.
+	// Also: keep the sort function
+	// for vd in the action, much, much faster.
+	cpuTask->next = memTask;
+	memTask->next = inputTask;
+	inputTask->next = prcTask;
+
+	tg->tasks = cpuTask;
+	tg->tasksComplete = 0;
+
+	_copy_stats(prevStats, curStats);
+
+	enqueue(cpuQueue, tg, &cpuQueueLock, &cpuQueueCondition);
 	usleep(READ_SLEEP_TIME);
     }
 
@@ -123,9 +172,9 @@ void run_io(
 
 static void _task_group_cleanup()
 {
-    a_free(&scratch);
+    a_free(&taskArena);
 
-    scratch = a_new(sizeof(UITask));
+    taskArena = a_new(64);
 }
 
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats)
