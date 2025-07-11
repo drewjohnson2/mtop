@@ -11,12 +11,13 @@ typedef struct _ui_task
 {
     void (*action)(DisplayItems *di, void *ctx);
     void *data;
-    void *next;
+    struct _ui_task *next;
 } UITask;
 
 typedef struct _task_group
 {
-    UITask *tasks;
+    UITask *head;
+    UITask *tail;
     u8 tasksComplete;
     void (*cleanup)();
 } TaskGroup;
@@ -32,8 +33,8 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
 UITask  *build_prc_task(
     Arena *taskArena,
     ProcessListState *listState,
-    ProcessStats *prevPrcs,
-    ProcessStats *curPrcs,
+    ProcessesSummary *prevPrcs,
+    ProcessesSummary *curPrcs,
     ProcessInfoData *prcInfo,
     u64 memTotal
 );

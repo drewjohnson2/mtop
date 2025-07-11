@@ -20,12 +20,12 @@ typedef struct _proc_list
     u64 vmRss;
 } ProcessList;
 
-typedef struct _proc_stats
+typedef struct _processes_summary
 {
     size_t count;
     u64 cpuTimeAtSample;
     ProcessList **processes;
-} ProcessStats;
+} ProcessesSummary;
 
 typedef struct _proc_info
 {
@@ -151,11 +151,11 @@ void fetch_memory_stats(volatile MemoryStats *memStats);
 //		prc_monitor.c
 //
 //
-ProcessStats * get_processes(
+ProcessesSummary * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 );
-void get_prc_info_by_pid(volatile ProcessInfoData *prcInfoSD);
+void get_prc_info_by_pid(ProcessInfoData *prcInfoSD);
 
 #endif
 

@@ -20,7 +20,7 @@ typedef enum _nav_direction
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 static void _read_input(DisplayItems *di, s8 ch);
 
-void setup_list_state(ProcessListState *listState, ProcessStats *curPrcs, const WindowData *prcWin)
+void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
 {
     listState->cmdBuffer = '\0';
     listState->timeoutActive = 0;
@@ -60,10 +60,8 @@ void set_start_end_idx(ProcessListState *state)
     }
 }
 
-void adjust_state(ProcessListState *state, ProcessStats *stats)
+void adjust_state(ProcessListState *state, ProcessesSummary *stats)
 {
-    if (!mtopSettings->activeWindows[PRC_WIN]) return;
-
     if (state->count == (s8)stats->count) return;
     
     state->count = stats->count;
@@ -91,8 +89,7 @@ void adjust_state(ProcessListState *state, ProcessStats *stats)
 void read_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di,
-    volatile ProcessInfoData *prcInfoSd
+    DisplayItems *di
 )
 {
     s8 ch = wgetch(win);

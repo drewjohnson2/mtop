@@ -4,7 +4,6 @@
 #include <arena.h>
 #include <pthread.h>
 
-#include "monitor.h"
 #include "startup.h"
 #include "thread_safe_queue.h"
 #include "window.h"
@@ -15,44 +14,33 @@
 #define READ_SLEEP_TIME 1000 * 100 // io thread sleep time
 
 extern pthread_mutex_t cpuQueueLock;
-extern pthread_mutex_t memQueueLock;
-extern pthread_mutex_t procDataLock;
-extern pthread_mutex_t procInfoLock;
-
 extern pthread_cond_t cpuQueueCondition;
-extern pthread_cond_t memQueueCondition;
-extern pthread_cond_t procQueueCondition;
-extern pthread_cond_t procInfoCondition;
 
 extern volatile s8 SHUTDOWN_FLAG;
 
 //
-// 		thread.c
+//	thread.c
 //
 //
 void mutex_init();
-void condition_init();
 void mutex_destroy();
-void condition_destroy();
 
 //
-//		ui_thread.c
+//	ui_thread.c
 //
 //
 void run_ui(
     DisplayItems *di,
-    ThreadSafeQueue *cpuQueue,
-    volatile ProcessInfoData *prcInfoSd
+    ThreadSafeQueue *cpuQueue
 );
 
 //
-//		io_thread.c
+//	io_thread.c
 //
 //
 void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
-    volatile ProcessInfoData *prcInfoSd,
     WindowData **windows
 );
 #endif

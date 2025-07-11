@@ -21,8 +21,8 @@ typedef struct _mem_data_context
 typedef struct _prc_context
 {
     u64 memTotal;
-    ProcessStats *prevPrcs;
-    ProcessStats *curPrcs;
+    ProcessesSummary *prevPrcs;
+    ProcessesSummary *curPrcs;
     ProcessInfoData *processInfo;
     ProcessListState *listState;
 } ProcessesContext;

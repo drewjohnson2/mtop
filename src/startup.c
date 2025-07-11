@@ -31,14 +31,12 @@ typedef struct _ui_thread_args
 {
     DisplayItems *di;
     ThreadSafeQueue *cpuQueue;
-    volatile ProcessInfoData *prcInfoSD;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
     mtopArenas *arenas;
     ThreadSafeQueue *cpuQueue;
-    volatile ProcessInfoData *prcInfoSD;
     WindowData **windows;
 } IOThreadArgs;
 
@@ -55,8 +53,6 @@ Arena general;
 Arena stateArena;
 
 ThreadSafeQueue *cpuQueue;
-
-volatile ProcessInfoData *prcInfoSD;
 
 volatile Settings *mtopSettings;
 
@@ -110,13 +106,6 @@ void run(int argc, char **argv)
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
-
-    prcInfoSD = (ProcessInfoData *)a_alloc(
-	&general,
-	sizeof(ProcessInfoData),
-	__alignof(ProcessInfoData)
-    ); 
-    prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
     mtopSettings->orientation = HORIZONTAL;
@@ -207,8 +196,6 @@ void run(int argc, char **argv)
     if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
     else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
 
-    prcInfoSD->pidToFetch = 0;
-    
     signal(SIGWINCH, _handle_resize);
     init_ncurses(di->windows[CONTAINER_WIN], screen);
     init_window_dimens(di);
@@ -218,14 +205,12 @@ void run(int argc, char **argv)
     {
     	.di = di,
     	.cpuQueue = cpuQueue,
-	.prcInfoSD = prcInfoSD
     };
     
     IOThreadArgs ioArgs = 
     {
 	.arenas = arenas,
     	.cpuQueue = cpuQueue,
-	.prcInfoSD = prcInfoSD,
 	.windows = di->windows
     };
     
@@ -234,7 +219,6 @@ void run(int argc, char **argv)
 
     // setup
     mutex_init();
-    condition_init();
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
     pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
 
@@ -242,7 +226,6 @@ void run(int argc, char **argv)
     pthread_join(ioThread, NULL);
     pthread_join(ui_thread, NULL);
     mutex_destroy();
-    condition_destroy();
     
     endwin();
     free(screen);
@@ -281,8 +264,7 @@ static void * _ui_thread_run(void *arg)
     
     run_ui(
     	args->di,
-    	args->cpuQueue,
-	args->prcInfoSD
+    	args->cpuQueue
     );
     
     return NULL;
@@ -295,7 +277,6 @@ static void * _io_thread_run(void *arg)
     run_io(
 	args->arenas,
     	args->cpuQueue,
-	args->prcInfoSD,
 	args->windows
     );
     
@@ -317,6 +298,7 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
     return *optarg != NULL;
 }
 
+// put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
     if (sig == SIGWINCH) RESIZE = 1;

@@ -13,9 +13,19 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/task.h"
 
+#define BUILD_TASK(cond, data_func, ...)	\
+    do {					\
+	if (cond)				\
+	{					\
+	    *tail = data_func(__VA_ARGS__);	\
+	    tail = &(*tail)->next;		\
+	}					\
+    } while(0)
+	
+
 Arena taskArena;
-ProcessStats *prevPrcs;
-ProcessStats *curPrcs;
+ProcessesSummary *prevPrcs;
+ProcessesSummary *curPrcs;
 
 static void _task_group_cleanup();
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
@@ -23,10 +33,12 @@ static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 void run_io(
     mtopArenas *arenas,
     ThreadSafeQueue *cpuQueue,
-    volatile ProcessInfoData *prcInfoSd,
     WindowData **windows
 ) 
 {
+    u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+    u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
     Arena *cpuArena = arenas->cpuArena;
     Arena *procArena = arenas->prcArena;
     Arena *memArena = arenas->memArena;
@@ -45,20 +57,19 @@ void run_io(
 	sizeof(ProcessInfoData),
 	__alignof(ProcessInfoData)
     ); 
-    processInfo->info = a_alloc(general, sizeof(ProcessInfo), __alignof(ProcessInfo));
-
-    prevPrcs = get_processes(procArena, prc_pid_compare);
-    curPrcs = prevPrcs;
-
-    setup_list_state(listState, curPrcs, windows[PRC_WIN]);
-    fetch_cpu_stats(prevStats);
-
     MemoryStats *memStats = NULL;
     TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
+
+    processInfo->info = a_alloc(general, sizeof(ProcessInfo), __alignof(ProcessInfo));
+    prevPrcs = get_processes(procArena, prc_pid_compare);
+    curPrcs = prevPrcs;
 
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
     tg->tasksComplete = 1;
     tg->cleanup = _task_group_cleanup;
+
+    setup_list_state(listState, curPrcs, windows[PRC_WIN]);
+    fetch_cpu_stats(prevStats);
 
     // What is the purpose of this?
     // This was at the top of the io loop
@@ -73,13 +84,6 @@ void run_io(
     
     clock_gettime(CLOCK_REALTIME, &start);
     
- //    enqueue(
-	// procQueue,
-	// get_processes(procArena, prc_pid_compare),
-	// &procDataLock,
-	// &procQueueCondition
- //    );
-	//
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
     // Create cleanup function on task group to free this arena
@@ -93,41 +97,36 @@ void run_io(
 	    continue;
 	}
 
-	fetch_cpu_stats(curStats);
-	fetch_memory_stats(memStats);
+	if (cpuActive) fetch_cpu_stats(curStats);
+	if (memActive) fetch_memory_stats(memStats);
 	clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
-    	if (totalTimeSec > PROC_WAIT_TIME_SEC)
+    	if ((totalTimeSec > PROC_WAIT_TIME_SEC) && prcActive)
     	{
 	    prevPrcs = curPrcs;
 	    curPrcs = get_processes(procArena, prc_pid_compare);
-
-	    // I need some sort of way to clean up the view data stuff.
-	    // I certainly need to find a way to clean up the arena,
-	    // but I'd also like to find some way to only use the
-	    // view data. Idk, view data stuff just feels really ugly.
-	    //
-	    // Quick idea: track selected PID in the list state? 
-	    // That way we can perform all of our input actions,
-	    // then we can move the creation and allocation of the view
-	    // data back to the process action. Possible????
 
 	    adjust_state(listState, curPrcs);
 	    
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	if (listState->infoVisible && listState->selectedPid > 0)
+	if ((listState->infoVisible && listState->selectedPid > 0) && prcActive)
 	{
 	    processInfo->pidToFetch = listState->selectedPid;
 	    get_prc_info_by_pid(processInfo); 
 	}
 
-	UITask *cpuTask = build_cpu_task(&taskArena, arenas->cpuPointArena, curStats, prevStats);
-	UITask *memTask = build_mem_task(&taskArena, arenas->memPointArena, memStats);
-	UITask *prcTask = build_prc_task(
+	UITask **tail = &tg->head;
+
+	BUILD_TASK(cpuActive, build_cpu_task, &taskArena, arenas->cpuPointArena, curStats, prevStats);
+	BUILD_TASK(memActive, build_mem_task, &taskArena, arenas->memPointArena, memStats);
+	BUILD_TASK(true, build_input_task, &taskArena, listState);
+	BUILD_TASK(
+	    prcActive,
+	    build_prc_task,
 	    &taskArena,
 	    listState,
 	    prevPrcs,
@@ -135,18 +134,8 @@ void run_io(
 	    processInfo,
 	    memStats->memTotal
 	);
-	UITask *inputTask = build_input_task(&taskArena, listState);
-
-	// this task order is very good.
-	// makes the kb input run much
-	// faster than it ever has.
-	// Also: keep the sort function
-	// for vd in the action, much, much faster.
-	cpuTask->next = memTask;
-	memTask->next = inputTask;
-	inputTask->next = prcTask;
-
-	tg->tasks = cpuTask;
+		
+	tg->tail = *tail;
 	tg->tasksComplete = 0;
 
 	_copy_stats(prevStats, curStats);

@@ -2,14 +2,12 @@
 #include <ncurses.h>
 #include <pthread.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <arena.h>
 #include <assert.h>
 
 #include "../../include/thread.h"
 #include "../../include/window.h"
-#include "../../include/monitor.h"
 #include "../../include/thread_safe_queue.h"
 #include "../../include/mt_colors.h"
 #include "../../include/startup.h"
@@ -17,8 +15,7 @@
 
 void run_ui(
     DisplayItems *di,
-    ThreadSafeQueue *cpuQueue,
-    volatile ProcessInfoData *prcInfoSd
+    ThreadSafeQueue *cpuQueue
 )
 {
     const WindowData *cpuWin = di->windows[CPU_WIN];
@@ -27,22 +24,6 @@ void run_ui(
     const WindowData *optWin = di->windows[OPT_WIN];
     const WindowData *container = di->windows[CONTAINER_WIN];
     
-    // Arena stateArena = a_new(STATE_A_SZ);
-    // 
-    // // probably need to add some sort of shut down error
-    // // handling here.
-    // prevPrcs = peek(prcQueue, &procDataLock, &procQueueCondition);
-    // dequeue(prcQueue, &procDataLock, &procQueueCondition);
-    
-    //curPrcs = prevPrcs;
-    
-    // ProcessListState *listState = a_alloc(
-    // 	&stateArena,
-    // 	sizeof(ProcessListState),
-    // 	__alignof(ProcessListState)
-    // );
-    // 
-    // _setup_list_state(listState, curPrcs, prcWin);
     import_colors();
 
     if (!mtopSettings->transparencyEnabled)
@@ -76,7 +57,7 @@ void run_ui(
 	// instead of passing in specific arena we could
 	// pass in the arenas structure? Idk if I like that,
 	// honestly.
-	UITask *task = tg->tasks;
+	UITask *task = tg->head;
 	
 	while (task)
 	{
@@ -103,11 +84,6 @@ void run_ui(
 	{
 	    REFRESH_WIN(container->window);
 	}
-
-	// if (listState->infoVisible)
-	// {
-	//     prcInfoSd->needsFetch = 1;
-	// }
 
 	tg->tasksComplete = 1;
     

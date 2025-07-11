@@ -90,7 +90,7 @@ static void _fetch_proc_pid_stat(
     fclose(statFile);
 }
 
-ProcessStats * get_processes(
+ProcessesSummary * get_processes(
     Arena *procArena,
     int (*sortFunc)(const void *, const void *)
 ) 
@@ -105,10 +105,10 @@ ProcessStats * get_processes(
 	r_free_head(procArena);
     }
     
-    ProcessStats *procStats = a_alloc(
+    ProcessesSummary *procStats = a_alloc(
 	procArena,
-    	sizeof(ProcessStats),
-    	__alignof(ProcessStats)
+    	sizeof(ProcessesSummary),
+    	__alignof(ProcessesSummary)
     );
     procStats->processes = a_alloc(
 	procArena,
@@ -151,7 +151,7 @@ ProcessStats * get_processes(
 }
 
 
-void get_prc_info_by_pid(volatile ProcessInfoData *prcInfoSd)
+void get_prc_info_by_pid(ProcessInfoData *prcInfoSd)
 {
     char statusPath[32];
     char statusBuffer[256];

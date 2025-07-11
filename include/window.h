@@ -130,8 +130,7 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor,
-    u8 winActive
+    MT_Color_Pairs headerColor
 );
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive);
 
@@ -148,17 +147,16 @@ void print_stats(
 void set_prc_view_data(
     Arena *scratch,
     ProcessStatsViewData **vd,
-    ProcessStats *curPrcs,
-    ProcessStats *prevPrcs,
+    ProcessesSummary *curPrcs,
+    ProcessesSummary *prevPrcs,
     u64 memTotal
 );
 void read_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di,
-    volatile ProcessInfoData *prcInfoSd
+    DisplayItems *di
 );
-void adjust_state(ProcessListState *state, ProcessStats *stats);
+void adjust_state(ProcessListState *state, ProcessesSummary *stats);
 void set_start_end_idx(ProcessListState *state);
 void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd);
 

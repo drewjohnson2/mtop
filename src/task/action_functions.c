@@ -17,8 +17,7 @@ void cpu_action_function(DisplayItems *di, void *ctx)
         cpuGraphData,
         cpuWin,
         MT_PAIR_CPU_GP,
-        MT_PAIR_CPU_HEADER,
-        1
+        MT_PAIR_CPU_HEADER
     );
 }
 
@@ -35,16 +34,15 @@ void mem_action_function(DisplayItems *di, void *ctx)
         memGraphData,
         memWin,
         MT_PAIR_MEM_GP,
-        MT_PAIR_MEM_HEADER,
-        1
+        MT_PAIR_MEM_HEADER
     );
 }
 
 void process_action_func(DisplayItems *di, void *ctx)
 {
     ProcessesContext *context = (ProcessesContext *)ctx;
-    ProcessStats *prevPrcs = context->prevPrcs;
-    ProcessStats *curPrcs = context->curPrcs;
+    ProcessesSummary *prevPrcs = context->prevPrcs;
+    ProcessesSummary *curPrcs = context->curPrcs;
     ProcessListState *listState = context->listState;
     ProcessInfoData *prcInfo = context->processInfo;
     WindowData *prcWin = di->windows[PRC_WIN];
@@ -95,5 +93,5 @@ void input_action_func(DisplayItems *di, void *ctx)
     WindowData *container = di->windows[CONTAINER_WIN];
     ProcessListState *listState = context->listState;
 
-    read_input(container->window, listState, di, NULL);
+    read_input(container->window, listState, di);
 }

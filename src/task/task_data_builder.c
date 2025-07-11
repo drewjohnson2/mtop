@@ -57,8 +57,8 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
 UITask * build_prc_task(
     Arena *taskArena,
     ProcessListState *listState,
-    ProcessStats *prevPrcs,
-    ProcessStats *curPrcs,
+    ProcessesSummary *prevPrcs,
+    ProcessesSummary *curPrcs,
     ProcessInfoData *prcInfo,
     u64 memTotal
 )

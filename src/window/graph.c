@@ -15,11 +15,9 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor,
-    u8 winActive
+    MT_Color_Pairs headerColor
 )
 {
-    if (!winActive) return 0;
     if (!gd->head) return 1;
     
     assert(gd && wd);

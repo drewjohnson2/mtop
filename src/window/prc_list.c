@@ -142,13 +142,11 @@ void print_stats(
 void set_prc_view_data(
     Arena *scratch,
     ProcessStatsViewData **vd,
-    ProcessStats *curPrcs,
-    ProcessStats *prevPrcs,
+    ProcessesSummary *curPrcs,
+    ProcessesSummary *prevPrcs,
     u64 memTotal
 )
 {
-    if (!mtopSettings->activeWindows[PRC_WIN]) return;
-
     for (size_t i = 0; i < curPrcs->count; i++)
     {
 	float cpuPct = 0.0;
