@@ -13,8 +13,13 @@
 #define MIN_QUEUE_SIZE 5
 #define READ_SLEEP_TIME 1000 * 100 // io thread sleep time
 
-extern pthread_mutex_t cpuQueueLock;
-extern pthread_cond_t cpuQueueCondition;
+extern pthread_mutex_t taskQueueLock;
+extern pthread_cond_t taskQueueCondition;
+// I actually don't need these
+// right now, but keeping around
+// because I think I will soon.
+extern pthread_mutex_t listStateLock;
+extern pthread_cond_t listStateCondition;
 
 extern volatile s8 SHUTDOWN_FLAG;
 
@@ -31,7 +36,7 @@ void mutex_destroy();
 //
 void run_ui(
     DisplayItems *di,
-    ThreadSafeQueue *cpuQueue
+    ThreadSafeQueue *taskQueue
 );
 
 //
@@ -40,7 +45,7 @@ void run_ui(
 //
 void run_io(
     mtopArenas *arenas,
-    ThreadSafeQueue *cpuQueue,
+    ThreadSafeQueue *taskQueue,
     WindowData **windows
 );
 #endif

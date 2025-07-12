@@ -15,7 +15,7 @@
 
 void run_ui(
     DisplayItems *di,
-    ThreadSafeQueue *cpuQueue
+    ThreadSafeQueue *taskQueue
 )
 {
     const WindowData *cpuWin = di->windows[CPU_WIN];
@@ -45,8 +45,8 @@ void run_ui(
 	print_uptime_ldAvg(container);
 	print_time(container);
 
-	TaskGroup *tg = peek(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
-	dequeue(cpuQueue, &cpuQueueLock, &cpuQueueCondition);
+	TaskGroup *tg = peek(taskQueue, &taskQueueLock, &taskQueueCondition);
+	dequeue(taskQueue, &taskQueueLock, &taskQueueCondition);
 
 	// instead of passing in specific arena we could
 	// pass in the arenas structure? Idk if I like that,

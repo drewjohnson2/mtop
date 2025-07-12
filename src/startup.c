@@ -30,13 +30,13 @@
 typedef struct _ui_thread_args
 {
     DisplayItems *di;
-    ThreadSafeQueue *cpuQueue;
+    ThreadSafeQueue *taskQueue;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
     mtopArenas *arenas;
-    ThreadSafeQueue *cpuQueue;
+    ThreadSafeQueue *taskQueue;
     WindowData **windows;
 } IOThreadArgs;
 
@@ -51,9 +51,9 @@ Arena cpuPointArena;
 Arena memPointArena;
 Arena general;
 Arena stateArena;
-
-ThreadSafeQueue *cpuQueue;
-
+DisplayItems *di;
+ThreadSafeQueue *taskQueue;
+mtopArenas *arenas;
 volatile Settings *mtopSettings;
 
 static void * _ui_thread_run(void *arg);
@@ -86,8 +86,8 @@ void run(int argc, char **argv)
     stateArena = a_new(STATE_A_SZ);
     general = a_new(GENERAL_A_SZ);
     
-    DisplayItems *di = init_display_items(&windowArena);
-    mtopArenas *arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
+    di = init_display_items(&windowArena);
+    arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
 
     arenas->general = &general;
     arenas->cpuArena = &cpuArena;
@@ -101,7 +101,7 @@ void run(int argc, char **argv)
     arenas->memPointArena = &memPointArena;
     arenas->stateArena = &stateArena;
 
-    cpuQueue = a_alloc(
+    taskQueue = a_alloc(
     	&queueArena,
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
@@ -204,27 +204,27 @@ void run(int argc, char **argv)
     UIThreadArgs uiArgs = 
     {
     	.di = di,
-    	.cpuQueue = cpuQueue,
+    	.taskQueue = taskQueue,
     };
     
     IOThreadArgs ioArgs = 
     {
 	.arenas = arenas,
-    	.cpuQueue = cpuQueue,
+    	.taskQueue = taskQueue,
 	.windows = di->windows
     };
     
     pthread_t ioThread;
-    pthread_t ui_thread;
+    pthread_t uiThread;
 
     // setup
     mutex_init();
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
-    pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
+    pthread_create(&uiThread, NULL, _ui_thread_run, (void *)&uiArgs);
 
     // tear down
     pthread_join(ioThread, NULL);
-    pthread_join(ui_thread, NULL);
+    pthread_join(uiThread, NULL);
     mutex_destroy();
     
     endwin();
@@ -235,7 +235,7 @@ void run(int argc, char **argv)
 void cleanup()
 {
     QueueNode *tmp;
-    QueueNode *head = cpuQueue->head;
+    QueueNode *head = taskQueue->head;
     
     while (head)
     {
@@ -264,7 +264,7 @@ static void * _ui_thread_run(void *arg)
     
     run_ui(
     	args->di,
-    	args->cpuQueue
+    	args->taskQueue
     );
     
     return NULL;
@@ -276,7 +276,7 @@ static void * _io_thread_run(void *arg)
     
     run_io(
 	args->arenas,
-    	args->cpuQueue,
+    	args->taskQueue,
 	args->windows
     );
     
@@ -301,5 +301,8 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
 // put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
-    if (sig == SIGWINCH) RESIZE = 1;
+    if (sig == SIGWINCH)
+    {
+	RESIZE = 1;
+    }
 }

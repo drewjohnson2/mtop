@@ -30,6 +30,7 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
     listState->pageSize = prcWin->wHeight - 5;
     listState->totalPages = listState->count / listState->pageSize;
     listState->selectedPid = 0;
+    listState->activePage = 0;
 
     if (listState->count % listState->pageSize > 0) listState->totalPages++;
 
@@ -85,7 +86,6 @@ void adjust_state(ProcessListState *state, ProcessesSummary *stats)
 // I don't like it, but I am not going
 // to rewrite it. I'm not even really sure
 // how much I could do much to improve it. 
-// (Clean is not an improvement)
 void read_input(
     WINDOW *win,
     ProcessListState *state,
@@ -237,13 +237,11 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     	    state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
     	        state->selectedIndex - 1 :
     	        state->pageEndIdx;
-    	        
 	    break;
 	case DOWN:
     	    state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
     	        state->selectedIndex + 1 : 
     	        state->pageStartIdx;
-
 	    break;
 	case RIGHT:
     	    state->activePage = state->activePage < state->totalPages - 1 ?

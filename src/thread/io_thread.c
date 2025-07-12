@@ -28,7 +28,7 @@ static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 
 void run_io(
     mtopArenas *arenas,
-    ThreadSafeQueue *cpuQueue,
+    ThreadSafeQueue *taskQueue,
     WindowData **windows
 ) 
 {
@@ -126,7 +126,7 @@ void run_io(
 
 	_copy_stats(prevStats, curStats);
 
-	enqueue(cpuQueue, tg, &cpuQueueLock, &cpuQueueCondition);
+	enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
 	usleep(READ_SLEEP_TIME);
     }
 

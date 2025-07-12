@@ -74,7 +74,6 @@ void process_action_fn(DisplayItems *di, void *ctx)
         listState->sortFn
     );
 
-
     if (!listState->infoVisible)
     {
 	listState->selectedPid = vd[listState->selectedIndex]->pid;
@@ -94,9 +93,6 @@ void input_action_fn(DisplayItems *di, void *ctx)
     read_input(container->window, context->listState, di);
 }
 
-// There's something going on here that's causing a segfault.
-// The segfault is NOT happening on the windowResizing branch,
-// so it must be sommething to do with task order etc.
 void resize_action_fn(DisplayItems *di, void *ctx)
 {
     ResizeContext *context = (ResizeContext *)ctx;
