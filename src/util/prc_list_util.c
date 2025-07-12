@@ -38,7 +38,7 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
     if (listState->pageEndIdx > listState->count)
 	listState->pageEndIdx = listState->count - 1;
 
-    listState->sortFunc = vd_name_compare_func;
+    listState->sortFn = vd_name_compare_fn;
     listState->sortOrder = PRC_NAME;
     listState->infoVisible = 0;
 }
@@ -155,7 +155,7 @@ void read_input(
 	    else sortDirection = ASC;
 
 	    state->sortOrder = PRC_NAME;
-	    state->sortFunc = vd_name_compare_func;
+	    state->sortFn = vd_name_compare_fn;
 
 	    return;
 	case 'p':
@@ -163,7 +163,7 @@ void read_input(
 	    else sortDirection = ASC;
 
 	    state->sortOrder = PID;
-	    state->sortFunc = vd_pid_compare_func;
+	    state->sortFn = vd_pid_compare_fn;
 
 	    return;
 	case 'c':
@@ -171,7 +171,7 @@ void read_input(
 	    else sortDirection = DESC;
 
 	    state->sortOrder = CPU;
-	    state->sortFunc = vd_cpu_compare_func;
+	    state->sortFn = vd_cpu_compare_fn;
 
 	    return;
 	case 'm':
@@ -179,7 +179,7 @@ void read_input(
 	    else sortDirection = DESC;
 
 	    state->sortOrder = MEM;
-	    state->sortFunc = vd_mem_compare_func;
+	    state->sortFn = vd_mem_compare_fn;
 
 	    return;
 	case 'o':

@@ -94,7 +94,7 @@ typedef struct _process_list_state
     SortOrder sortOrder;
     struct timespec timeoutStart;
 
-    int (*sortFunc)(const void *a, const void *b);
+    int (*sortFn)(const void *a, const void *b);
 } ProcessListState;
 
 extern u8 RESIZE;

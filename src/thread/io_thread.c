@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <arena.h>
 #include <time.h>
-#include <stdlib.h>
 
 #include "../../include/thread.h"
 #include "../../include/monitor.h"
@@ -13,21 +12,18 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/task.h"
 
-#define BUILD_TASK(cond, data_func, ...)	\
+#define BUILD_TASK(cond, data_fn, ...)	\
     do {					\
 	if (cond)				\
 	{					\
-	    *tail = data_func(__VA_ARGS__);	\
+	    *tail = data_fn(__VA_ARGS__);	\
 	    tail = &(*tail)->next;		\
 	}					\
     } while(0)
 	
-
-Arena taskArena;
 ProcessesSummary *prevPrcs;
 ProcessesSummary *curPrcs;
 
-static void _task_group_cleanup();
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 
 void run_io(
@@ -63,32 +59,20 @@ void run_io(
     processInfo->info = a_alloc(general, sizeof(ProcessInfo), __alignof(ProcessInfo));
     prevPrcs = get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
-
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
+    tg->a = a_new(64);
     tg->tasksComplete = 1;
-    tg->cleanup = _task_group_cleanup;
+    tg->cleanup = tg_cleanup;
 
     setup_list_state(listState, curPrcs, windows[PRC_WIN]);
     fetch_cpu_stats(prevStats);
 
-    // What is the purpose of this?
-    // This was at the top of the io loop
-    // in the previous implementation, but
-    // nothing uses the value returned by
-    // get_processes???
-    // pthread_mutex_lock(&procDataLock);
-    // get_processes(procArena, prc_pid_compare);  
-    // pthread_mutex_unlock(&procDataLock);
-    
     struct timespec start, current;
     
     clock_gettime(CLOCK_REALTIME, &start);
     
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
-    // Create cleanup function on task group to free this arena
-    taskArena = a_new(64);
-    
     while (!SHUTDOWN_FLAG)
     {
 	if (!tg->tasksComplete)
@@ -121,20 +105,22 @@ void run_io(
 
 	UITask **tail = &tg->head;
 
-	BUILD_TASK(cpuActive, build_cpu_task, &taskArena, arenas->cpuPointArena, curStats, prevStats);
-	BUILD_TASK(memActive, build_mem_task, &taskArena, arenas->memPointArena, memStats);
-	BUILD_TASK(true, build_input_task, &taskArena, listState);
+	// resize task here	
+	BUILD_TASK(cpuActive, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+	BUILD_TASK(memActive, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+	BUILD_TASK(true, build_input_task, &tg->a, listState);
 	BUILD_TASK(
 	    prcActive,
 	    build_prc_task,
-	    &taskArena,
+	    &tg->a,
 	    listState,
 	    prevPrcs,
 	    curPrcs,
 	    processInfo,
 	    memStats->memTotal
 	);
-		
+	BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+
 	tg->tail = *tail;
 	tg->tasksComplete = 0;
 
@@ -145,13 +131,6 @@ void run_io(
     }
 
     a_free(&tgArena);
-}
-
-static void _task_group_cleanup()
-{
-    a_free(&taskArena);
-
-    taskArena = a_new(64);
 }
 
 static void _copy_stats(CpuStats *prevStats, CpuStats *curStats)

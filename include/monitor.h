@@ -153,7 +153,7 @@ void fetch_memory_stats(volatile MemoryStats *memStats);
 //
 ProcessesSummary * get_processes(
     Arena *procArena,
-    int (*sortFunc)(const void *, const void *)
+    int (*sortFn)(const void *, const void *)
 );
 void get_prc_info_by_pid(ProcessInfoData *prcInfoSD);
 

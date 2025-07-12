@@ -42,12 +42,6 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
-	// if (RESIZE)
-	// {
-	//     resize_win(di); 
-	//     _setup_list_state(listState, curPrcs, prcWin);
-	// }
-
 	print_uptime_ldAvg(container);
 	print_time(container);
 
@@ -66,7 +60,7 @@ void run_ui(
 	}
 
 	tg->tasksComplete = 1;
-	tg->cleanup();
+	tg->cleanup(&tg->a);
     
 	// Normally I'd remove the else case and put the
 	// REFRESH_WIN(container->window) above the if statement.

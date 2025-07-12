@@ -92,7 +92,7 @@ static void _fetch_proc_pid_stat(
 
 ProcessesSummary * get_processes(
     Arena *procArena,
-    int (*sortFunc)(const void *, const void *)
+    int (*sortFn)(const void *, const void *)
 ) 
 {
     DIR *directory;
@@ -143,7 +143,7 @@ ProcessesSummary * get_processes(
     
     procStats->cpuTimeAtSample = cpu_time_now();
     
-    qsort(procStats->processes, procStats->count, sizeof(ProcessList *), sortFunc);
+    qsort(procStats->processes, procStats->count, sizeof(ProcessList *), sortFn);
     
     closedir(directory);
     

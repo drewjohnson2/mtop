@@ -16,10 +16,11 @@ typedef struct _ui_task
 
 typedef struct _task_group
 {
+    Arena a;
     UITask *head;
     UITask *tail;
     u8 tasksComplete;
-    void (*cleanup)();
+    void (*cleanup)(Arena *a);
 } TaskGroup;
 
 /*
@@ -42,14 +43,17 @@ UITask * build_input_task(
     Arena *taskArena,
     ProcessListState *listState
 );
-
+UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, ProcessesSummary *curPrcs);
 /*
 
     task_functions.c
 
 */
-void cpu_action_function(DisplayItems *di, void *ctx);
-void mem_action_function(DisplayItems *di, void *ctx);
-void process_action_func(DisplayItems *di, void *ctx);
-void input_action_func(DisplayItems *di, void *ctx);
+void cpu_action_fn(DisplayItems *di, void *ctx);
+void mem_action_fn(DisplayItems *di, void *ctx);
+void process_action_fn(DisplayItems *di, void *ctx);
+void input_action_fn(DisplayItems *di, void *ctx);
+void resize_action_fn(DisplayItems *di, void *ctx);
+void tg_cleanup(Arena *a);
+
 #endif

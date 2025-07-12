@@ -32,4 +32,9 @@ typedef struct _input_context
     ProcessListState *listState;
 } InputContext;
 
+typedef struct _resize_context
+{
+    ProcessListState *listState;
+    ProcessesSummary *curPrcs;
+} ResizeContext;
 #endif

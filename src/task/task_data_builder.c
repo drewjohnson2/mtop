@@ -27,7 +27,7 @@ UITask * build_cpu_task(Arena *taskArena, Arena *actionArena, CpuStats *curStats
     ctx->graphData = cpuGraphData;
     ctx->arena = actionArena;
 
-    task->action = cpu_action_function;
+    task->action = cpu_action_fn;
     task->data = ctx;
     task->next = NULL;
 
@@ -47,7 +47,7 @@ UITask * build_mem_task(Arena *taskArena, Arena *actionArena, MemoryStats *memSt
     ctx->graphData = memGraphData;
     ctx->arena = actionArena;
 
-    task->action = mem_action_function;
+    task->action = mem_action_fn;
     task->data = ctx;
     task->next = NULL;
 
@@ -72,7 +72,7 @@ UITask * build_prc_task(
     ctx->memTotal = memTotal;
     ctx->processInfo = prcInfo;
 
-    task->action = process_action_func;
+    task->action = process_action_fn;
     task->data = ctx;
     task->next = NULL;
 
@@ -89,9 +89,31 @@ UITask * build_input_task(
 
     ctx->listState = listState;
 
-    task->action = input_action_func;
+    task->action = input_action_fn;
     task->data = ctx;
     task->next = NULL;
 
     return task;
 }
+
+UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, ProcessesSummary *curPrcs)
+{
+    UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+    ResizeContext *ctx = a_alloc(taskArena, sizeof(ResizeContext), __alignof(ResizeContext));
+
+    ctx->curPrcs = curPrcs;
+    ctx->listState = listState;
+
+    task->action = resize_action_fn;
+    task->data = ctx;
+    task->next = NULL;
+
+    return task;
+}
+
+	// if (RESIZE)
+	// {
+	//     resize_win(di); 
+	//     _setup_list_state(listState, curPrcs, prcWin);
+	// }
+
