@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include <stdlib.h>
 
 #include "../../include/task.h"
@@ -19,6 +20,8 @@ void cpu_action_fn(DisplayItems *di, void *ctx)
         MT_PAIR_CPU_GP,
         MT_PAIR_CPU_HEADER
     );
+
+    wnoutrefresh(cpuWin->window);
 }
 
 void mem_action_fn(DisplayItems *di, void *ctx)
@@ -35,6 +38,8 @@ void mem_action_fn(DisplayItems *di, void *ctx)
         MT_PAIR_MEM_GP,
         MT_PAIR_MEM_HEADER
     );
+
+    wnoutrefresh(memWin->window);
 }
 
 void process_action_fn(DisplayItems *di, void *ctx)
@@ -82,6 +87,7 @@ void process_action_fn(DisplayItems *di, void *ctx)
     else
 	show_prc_info(vd[listState->selectedIndex], prcInfo->info, prcWin);
 
+    wnoutrefresh(prcWin->window);
     a_free(&scratch);
 }
 
@@ -100,6 +106,22 @@ void resize_action_fn(DisplayItems *di, void *ctx)
 
     resize_win(di);
     setup_list_state(context->listState, context->curPrcs, prcWin);
+}
+
+void refresh_action_fn(DisplayItems *di, void *ctx)
+{
+    u8 *context = (u8 *)ctx;
+    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *optWin = di->windows[OPT_WIN];
+
+    if (di->optionsVisible)
+    {
+	display_options(di);
+	wnoutrefresh(optWin->window);
+    }
+
+    wnoutrefresh(container->window);
+    doupdate();
 }
 
 void tg_cleanup(Arena *a)

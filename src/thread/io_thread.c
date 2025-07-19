@@ -81,8 +81,14 @@ void run_io(
 	    continue;
 	}
 
-	if (cpuActive) fetch_cpu_stats(curStats);
-	if (memActive) fetch_memory_stats(memStats);
+	UITask **tail = &tg->head;
+	u8 handleCpu = cpuActive && tg->tasksComplete;
+	u8 handleMem = memActive && tg->tasksComplete;
+
+	if (handleCpu) fetch_cpu_stats(curStats);
+	if (handleMem) fetch_memory_stats(memStats);
+
+	BUILD_TASK(true, build_input_task, &tg->a, listState);
 	clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
@@ -103,23 +109,12 @@ void run_io(
 	    get_prc_info_by_pid(processInfo); 
 	}
 
-	UITask **tail = &tg->head;
-
-	// resize task here	
-	BUILD_TASK(cpuActive, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-	BUILD_TASK(memActive, build_mem_task, &tg->a, arenas->memPointArena, memStats);
-	BUILD_TASK(true, build_input_task, &tg->a, listState);
-	BUILD_TASK(
-	    prcActive,
-	    build_prc_task,
-	    &tg->a,
-	    listState,
-	    prevPrcs,
-	    curPrcs,
-	    processInfo,
-	    memStats->memTotal
-	);
+	BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+	BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+	BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, processInfo,
+	    memStats->memTotal);
 	BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+	BUILD_TASK(true, build_refresh_task, &tg->a);
 
 	tg->tail = *tail;
 	tg->tasksComplete = 0;

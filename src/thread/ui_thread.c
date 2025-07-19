@@ -59,25 +59,7 @@ void run_ui(
 	    task = task->next;
 	}
 
-	tg->tasksComplete = 1;
 	tg->cleanup(&tg->a);
-    
-	// Normally I'd remove the else case and put the
-	// REFRESH_WIN(container->window) above the if statement.
-	// For whatever reason that setup causes bad flickering
-	// on some machines. I guess on faster machines display_options
-	// takes enough time between the calls to REFRESH_WIN for ncurses
-	// to repaint the screen.
-	if (di->optionsVisible)
-	{
-	    display_options(di);	    
-	    REFRESH_WIN(container->window);
-	    REFRESH_WIN(optWin->window);
-	}
-	else 
-	{
-	    REFRESH_WIN(container->window);
-	}
 
 	tg->tasksComplete = 1;
     

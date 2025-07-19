@@ -37,4 +37,5 @@ typedef struct _resize_context
     ProcessListState *listState;
     ProcessesSummary *curPrcs;
 } ResizeContext;
+
 #endif

@@ -44,6 +44,7 @@ UITask * build_input_task(
     ProcessListState *listState
 );
 UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, ProcessesSummary *curPrcs);
+UITask * build_refresh_task(Arena *taskArena);
 /*
 
     task_functions.c
@@ -54,6 +55,7 @@ void mem_action_fn(DisplayItems *di, void *ctx);
 void process_action_fn(DisplayItems *di, void *ctx);
 void input_action_fn(DisplayItems *di, void *ctx);
 void resize_action_fn(DisplayItems *di, void *ctx);
+void refresh_action_fn(DisplayItems *di, void *ctx);
 void tg_cleanup(Arena *a);
 
 #endif

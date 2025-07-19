@@ -22,7 +22,7 @@
 #define GRAPH_A_SZ sizeof(GraphData)
 #define QUEUE_A_SZ sizeof(ThreadSafeQueue)
 #define GENERAL_A_SZ 256 * 20
-#define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
+#define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList)) 
 #define CPU_POINT_A_SZ sizeof(GraphPoint)
 #define MEM_POINT_A_SZ sizeof(GraphPoint)
 #define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)

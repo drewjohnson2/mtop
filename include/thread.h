@@ -11,7 +11,7 @@
 #define DISPLAY_SLEEP_TIME 1000 * 200 // ui thread sleep time
 #define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
-#define READ_SLEEP_TIME 1000 * 100 // io thread sleep time
+#define READ_SLEEP_TIME 1000 * 200//125 // io thread sleep time
 
 extern pthread_mutex_t taskQueueLock;
 extern pthread_cond_t taskQueueCondition;

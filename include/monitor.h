@@ -31,7 +31,7 @@ typedef struct _proc_info
 {
     char procName[99];
     char stats[19][256];
-     u32 pid;
+    u32 pid;
 } ProcessInfo;
 
 typedef struct _proc_info_data 

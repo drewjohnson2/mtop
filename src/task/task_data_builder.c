@@ -111,9 +111,13 @@ UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, Proces
     return task;
 }
 
-	// if (RESIZE)
-	// {
-	//     resize_win(di); 
-	//     _setup_list_state(listState, curPrcs, prcWin);
-	// }
+UITask * build_refresh_task(Arena *taskArena)
+{
+    UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 
+    task->action = refresh_action_fn;
+    task->data = NULL;
+    task->next = NULL;
+
+    return task;
+}
