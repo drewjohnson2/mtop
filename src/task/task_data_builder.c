@@ -59,7 +59,6 @@ UITask * build_prc_task(
     ProcessListState *listState,
     ProcessesSummary *prevPrcs,
     ProcessesSummary *curPrcs,
-    ProcessInfoData *prcInfo,
     u64 memTotal
 )
 {
@@ -70,7 +69,6 @@ UITask * build_prc_task(
     ctx->prevPrcs = prevPrcs;
     ctx->curPrcs = curPrcs;
     ctx->memTotal = memTotal;
-    ctx->processInfo = prcInfo;
 
     task->action = process_action_fn;
     task->data = ctx;

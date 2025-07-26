@@ -37,19 +37,6 @@ typedef struct _processes_summary
     Process **processes;
 } ProcessesSummary;
 
-typedef struct _proc_info
-{
-    char procName[99];
-    char stats[19][256];
-    u32 pid;
-} ProcessInfo;
-
-typedef struct _proc_info_data 
-{
-    u32 pidToFetch;
-    ProcessInfo *info;
-} ProcessInfoData;
-
 typedef struct _mem_stats
 {
     u64 memTotal;

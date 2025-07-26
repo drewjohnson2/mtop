@@ -222,7 +222,7 @@ void set_prc_view_data(
     }
 }
 
-void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd) 
+void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd) 
 {
     Arena scratch = a_new(256);
     const u8 windowTitleY = 0;

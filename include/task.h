@@ -36,7 +36,6 @@ UITask  *build_prc_task(
     ProcessListState *listState,
     ProcessesSummary *prevPrcs,
     ProcessesSummary *curPrcs,
-    ProcessInfoData *prcInfo,
     u64 memTotal
 );
 UITask * build_input_task(

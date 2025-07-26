@@ -23,7 +23,6 @@ typedef struct _prc_context
     u64 memTotal;
     ProcessesSummary *prevPrcs;
     ProcessesSummary *curPrcs;
-    ProcessInfoData *processInfo;
     ProcessListState *listState;
 } ProcessesContext;
 

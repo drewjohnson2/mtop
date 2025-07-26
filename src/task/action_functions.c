@@ -49,7 +49,6 @@ void process_action_fn(DisplayItems *di, void *ctx)
     ProcessesSummary *prevPrcs = context->prevPrcs;
     ProcessesSummary *curPrcs = context->curPrcs;
     ProcessListState *listState = context->listState;
-    ProcessInfoData *prcInfo = context->processInfo;
     WindowData *prcWin = di->windows[PRC_WIN];
     u64 memTotal = context->memTotal;
 
@@ -97,7 +96,7 @@ void process_action_fn(DisplayItems *di, void *ctx)
 	    vd_find_by_pid_compare_fn
 	);
 
-	show_prc_info(*data, prcInfo->info, prcWin);
+	show_prc_info(*data, prcWin);
     }
 
     wnoutrefresh(prcWin->window);

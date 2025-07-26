@@ -40,7 +40,6 @@ void run_io(
     Arena *procArena = arenas->prcArena;
     Arena *memArena = arenas->memArena;
     Arena *stateArena = arenas->stateArena;
-    Arena *general = arenas->general;
     Arena tgArena = a_new(sizeof(TaskGroup));
     CpuStats *prevStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
     CpuStats *curStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
@@ -49,15 +48,9 @@ void run_io(
     	sizeof(ProcessListState),
     	__alignof(ProcessListState)
     );
-    ProcessInfoData *processInfo = (ProcessInfoData *)a_alloc(
-	general,
-	sizeof(ProcessInfoData),
-	__alignof(ProcessInfoData)
-    ); 
     MemoryStats *memStats = NULL;
     TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
 
-    processInfo->info = a_alloc(general, sizeof(ProcessInfo), __alignof(ProcessInfo));
     prevPrcs = get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
@@ -128,8 +121,7 @@ void run_io(
 
 	BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
 	BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
-	BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, processInfo,
-	    memStats->memTotal);
+	BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
 	BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
 	BUILD_TASK(true, build_refresh_task, &tg->a);
 

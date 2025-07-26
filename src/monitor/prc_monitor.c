@@ -1,14 +1,10 @@
 #include <arena.h>
 #include <proc/readproc.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "../../include/monitor.h"
-#include "../../include/sorting.h"
-#include "../../include/tracked_stats.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 

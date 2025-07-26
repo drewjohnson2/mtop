@@ -172,6 +172,6 @@ void read_input(
 );
 void adjust_state(ProcessListState *state, ProcessesSummary *stats);
 void set_start_end_idx(ProcessListState *state);
-void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd);
+void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd);
 
 #endif
