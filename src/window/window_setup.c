@@ -369,6 +369,8 @@ void print_uptime_ldAvg(const WindowData *wd)
 	load[2]
     );
 
+    if (strlen(displayStr) > (wd->wWidth / 2)) return;
+
     const u8 uptimeX = (wd->wWidth / 2) - (strlen(displayStr) / 2);
 
     PRINTFC(wd->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
@@ -376,9 +378,18 @@ void print_uptime_ldAvg(const WindowData *wd)
 
 void print_footer(const WindowData *wd)
 {
+    const u8 githubText = wd->wWidth - 30;
+
+    if (!mtopSettings->activeWindows[PRC_WIN])
+    {
+	PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
+	    _text[2], MT_PAIR_GITHUB);
+
+	return;
+    }
+
     const u8 killPrcCtrlX = 2;
     const u8 killPrcLabelX = killPrcCtrlX + 2;
-    const u8 githubText = wd->wWidth - 30;
     const u8 downCtrlX = 19;
     const u8 downLableX = downCtrlX + 2;
     const u8 upCtrlX = 27;
@@ -393,9 +404,6 @@ void print_footer(const WindowData *wd)
     PRINTFC(wd->window, wd->wHeight - 1, killPrcCtrlX, "%s", _text[0], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, killPrcLabelX, " %s ",
 	    _text[1], MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
-	_text[2], 
-	MT_PAIR_GITHUB);
     PRINTFC(wd->window, wd->wHeight - 1, downCtrlX, "%s", _text[3], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, downLableX, "%s", _text[4], MT_PAIR_CTRL_TXT);
     PRINTFC(wd->window, wd->wHeight - 1, upCtrlX, "%s", _text[5], MT_PAIR_CTRL);
@@ -408,6 +416,7 @@ void print_footer(const WindowData *wd)
 	    _text[30], MT_PAIR_CTRL_TXT);
     PRINTFC(wd->window, wd->wHeight - 1, optionsCtrlX, "%s", _text[7], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 1, optionsLabelX, "%s", _text[8], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", _text[2], MT_PAIR_GITHUB);
 }
 
 void display_options(DisplayItems *di)

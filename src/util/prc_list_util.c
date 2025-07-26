@@ -20,6 +20,30 @@ typedef enum _nav_direction
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 static void _read_input(DisplayItems *di, s8 ch);
 
+void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
+{
+    listState->cmdBuffer = '\0';
+    listState->timeoutActive = 0;
+    listState->selectedIndex = 0;
+    listState->pageStartIdx = 0;
+    listState->count = curPrcs->count;
+    listState->pageSize = prcWin->wHeight - 5;
+    listState->totalPages = listState->count / listState->pageSize;
+    listState->selectedPid = 0;
+    listState->activePage = 0;
+
+    if (listState->count % listState->pageSize > 0) listState->totalPages++;
+
+    listState->pageEndIdx = listState->pageSize - 1;
+
+    if (listState->pageEndIdx > listState->count)
+	listState->pageEndIdx = listState->count - 1;
+
+    listState->sortFn = vd_name_compare_fn;
+    listState->sortOrder = PRC_NAME;
+    listState->infoVisible = 0;
+}
+
 void set_start_end_idx(ProcessListState *state) 
 {
     s8 isLastPage = state->activePage == state->totalPages - 1;
@@ -37,10 +61,8 @@ void set_start_end_idx(ProcessListState *state)
     }
 }
 
-void adjust_state(ProcessListState *state, ProcessStats *stats)
+void adjust_state(ProcessListState *state, ProcessesSummary *stats)
 {
-    if (!mtopSettings->activeWindows[PRC_WIN]) return;
-
     if (state->count == (s8)stats->count) return;
     
     state->count = stats->count;
@@ -64,13 +86,10 @@ void adjust_state(ProcessListState *state, ProcessStats *stats)
 // I don't like it, but I am not going
 // to rewrite it. I'm not even really sure
 // how much I could do much to improve it. 
-// (Clean is not an improvement)
 void read_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di,
-    ProcessStatsViewData **vd,
-    volatile ProcessInfoSharedData *prcInfoSd
+    DisplayItems *di
 )
 {
     s8 ch = wgetch(win);
@@ -136,7 +155,7 @@ void read_input(
 	    else sortDirection = ASC;
 
 	    state->sortOrder = PRC_NAME;
-	    state->sortFunc = vd_name_compare_func;
+	    state->sortFn = vd_name_compare_fn;
 
 	    return;
 	case 'p':
@@ -144,7 +163,7 @@ void read_input(
 	    else sortDirection = ASC;
 
 	    state->sortOrder = PID;
-	    state->sortFunc = vd_pid_compare_func;
+	    state->sortFn = vd_pid_compare_fn;
 
 	    return;
 	case 'c':
@@ -152,7 +171,7 @@ void read_input(
 	    else sortDirection = DESC;
 
 	    state->sortOrder = CPU;
-	    state->sortFunc = vd_cpu_compare_func;
+	    state->sortFn = vd_cpu_compare_fn;
 
 	    return;
 	case 'm':
@@ -160,7 +179,7 @@ void read_input(
 	    else sortDirection = DESC;
 
 	    state->sortOrder = MEM;
-	    state->sortFunc = vd_mem_compare_func;
+	    state->sortFn = vd_mem_compare_fn;
 
 	    return;
 	case 'o':
@@ -168,9 +187,7 @@ void read_input(
 	    
 	    return;
 	case 10:
-	    prcInfoSd->needsFetch = 1;
 	    state->infoVisible = 1;
-	    prcInfoSd->pidToFetch = vd[state->selectedIndex]->pid;
 	    
 	    return;
 	case 'b':
@@ -204,7 +221,7 @@ void read_input(
 	state->cmdBuffer = '\0';
 	state->timeoutActive = 0;
 
-	kill(vd[state->selectedIndex]->pid, SIGKILL);
+	kill(state->selectedPid, SIGKILL);
 
 	return;
     }
@@ -220,13 +237,11 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     	    state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
     	        state->selectedIndex - 1 :
     	        state->pageEndIdx;
-    	        
 	    break;
 	case DOWN:
     	    state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
     	        state->selectedIndex + 1 : 
     	        state->pageStartIdx;
-
 	    break;
 	case RIGHT:
     	    state->activePage = state->activePage < state->totalPages - 1 ?

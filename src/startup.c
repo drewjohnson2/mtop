@@ -22,27 +22,22 @@
 #define GRAPH_A_SZ sizeof(GraphData)
 #define QUEUE_A_SZ sizeof(ThreadSafeQueue)
 #define GENERAL_A_SZ 256 * 20
-#define PRC_A_SZ (MAX_PROCS * sizeof(ProcessList *)) + (MAX_PROCS * sizeof(ProcessList))
+#define PRC_A_SZ (MAX_PROCS * sizeof(Process *)) + (MAX_PROCS * sizeof(Process)) 
+#define CPU_POINT_A_SZ sizeof(GraphPoint)
+#define MEM_POINT_A_SZ sizeof(GraphPoint)
+#define STATE_A_SZ sizeof(ProcessListState) + __alignof(ProcessListState)
 
 typedef struct _ui_thread_args
 {
-    Arena *graphArena;
-    Arena *memGraphArena;
     DisplayItems *di;
-    volatile MemoryStats *memStats;
-    ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *prcQueue;
-    volatile ProcessInfoSharedData *prcInfoSD;
+    ThreadSafeQueue *taskQueue;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
-    Arena *cpuArena;
-    Arena *prcArena;
-    volatile MemoryStats *memStats;
-    ThreadSafeQueue *cpuQueue;
-    ThreadSafeQueue *prcQueue;
-    volatile ProcessInfoSharedData *prcInfoSD;
+    mtopArenas *arenas;
+    ThreadSafeQueue *taskQueue;
+    WindowData **windows;
 } IOThreadArgs;
 
 Arena windowArena;
@@ -52,14 +47,13 @@ Arena cpuGraphArena;
 Arena memoryGraphArena;  
 Arena prcArena;
 Arena queueArena;
+Arena cpuPointArena;
+Arena memPointArena;
 Arena general;
-
-ThreadSafeQueue *cpuQueue;
-ThreadSafeQueue *prcQueue;
-
-volatile MemoryStats *memStats;
-volatile ProcessInfoSharedData *prcInfoSD;
-
+Arena stateArena;
+DisplayItems *di;
+ThreadSafeQueue *taskQueue;
+mtopArenas *arenas;
 volatile Settings *mtopSettings;
 
 static void * _ui_thread_run(void *arg);
@@ -87,30 +81,31 @@ void run(int argc, char **argv)
     memoryGraphArena = a_new(GRAPH_A_SZ);  
     prcArena = a_new(PRC_A_SZ);
     queueArena = a_new(QUEUE_A_SZ);
+    cpuPointArena = a_new(CPU_POINT_A_SZ);
+    memPointArena = a_new(MEM_POINT_A_SZ);
+    stateArena = a_new(STATE_A_SZ);
     general = a_new(GENERAL_A_SZ);
     
-    DisplayItems *di = init_display_items(&windowArena);
+    di = init_display_items(&windowArena);
+    arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
 
-    cpuQueue = a_alloc(
+    arenas->general = &general;
+    arenas->cpuArena = &cpuArena;
+    arenas->windowArena = &windowArena;
+    arenas->queueArena = &queueArena;
+    arenas->memArena = &memArena;
+    arenas->cpuGraphArena = &cpuGraphArena;
+    arenas->memoryGraphArena  = &memoryGraphArena;
+    arenas->prcArena = &prcArena;
+    arenas->cpuPointArena = &cpuPointArena;
+    arenas->memPointArena = &memPointArena;
+    arenas->stateArena = &stateArena;
+
+    taskQueue = a_alloc(
     	&queueArena,
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
-
-    memStats = a_alloc(&memArena, sizeof(MemoryStats), __alignof(MemoryStats));
-    
-    prcQueue = a_alloc(
-    	&queueArena,
-    	sizeof(ThreadSafeQueue),
-    	__alignof(ThreadSafeQueue)
-    );
-
-    prcInfoSD = (ProcessInfoSharedData *)a_alloc(
-	&general,
-	sizeof(ProcessInfoSharedData),
-	__alignof(ProcessInfoSharedData)
-    ); 
-    prcInfoSD->info = a_alloc(&general, sizeof(ProcessInfo), __alignof(ProcessInfo));
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
     mtopSettings->orientation = HORIZONTAL;
@@ -201,9 +196,6 @@ void run(int argc, char **argv)
     if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
     else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
 
-    prcInfoSD->needsFetch = 0;
-    prcInfoSD->pidToFetch = 0;
-    
     signal(SIGWINCH, _handle_resize);
     init_ncurses(di->windows[CONTAINER_WIN], screen);
     init_window_dimens(di);
@@ -211,39 +203,29 @@ void run(int argc, char **argv)
     
     UIThreadArgs uiArgs = 
     {
-    	.graphArena = &cpuGraphArena,
     	.di = di,
-    	.cpuQueue = cpuQueue,
-	.memStats = memStats,
-    	.memGraphArena = &memoryGraphArena,
-    	.prcQueue = prcQueue,
-	.prcInfoSD = prcInfoSD
+    	.taskQueue = taskQueue,
     };
     
     IOThreadArgs ioArgs = 
     {
-    	.cpuArena = &cpuArena,
-    	.prcArena = &prcArena,
-	.memStats = memStats,
-    	.cpuQueue = cpuQueue,
-	.prcQueue = prcQueue,
-	.prcInfoSD = prcInfoSD
+	.arenas = arenas,
+    	.taskQueue = taskQueue,
+	.windows = di->windows
     };
     
     pthread_t ioThread;
-    pthread_t ui_thread;
+    pthread_t uiThread;
 
     // setup
     mutex_init();
-    condition_init();
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
-    pthread_create(&ui_thread, NULL, _ui_thread_run, (void *)&uiArgs);
+    pthread_create(&uiThread, NULL, _ui_thread_run, (void *)&uiArgs);
 
     // tear down
     pthread_join(ioThread, NULL);
-    pthread_join(ui_thread, NULL);
+    pthread_join(uiThread, NULL);
     mutex_destroy();
-    condition_destroy();
     
     endwin();
     free(screen);
@@ -253,7 +235,7 @@ void run(int argc, char **argv)
 void cleanup()
 {
     QueueNode *tmp;
-    QueueNode *head = cpuQueue->head;
+    QueueNode *head = taskQueue->head;
     
     while (head)
     {
@@ -261,17 +243,6 @@ void cleanup()
     	head = head->next;
     
     	free(tmp);
-    }
-    
-    head = prcQueue->head;
-
-    while (head)
-    {
-	tmp = head;
-    	head = head->next;
-    
-    	free(tmp);
-
     }
     
     a_free(&windowArena);
@@ -282,6 +253,9 @@ void cleanup()
     a_free(&prcArena);
     a_free(&queueArena);
     a_free(&general);
+    a_free(&cpuPointArena);
+    a_free(&memPointArena);
+    a_free(&stateArena);
 }
 
 static void * _ui_thread_run(void *arg)
@@ -289,13 +263,8 @@ static void * _ui_thread_run(void *arg)
     UIThreadArgs *args = (UIThreadArgs *)arg;
     
     run_ui(
-	args->graphArena,
-    	args->memGraphArena,
     	args->di,
-    	args->cpuQueue,
-    	args->prcQueue,
-	args->memStats,
-	args->prcInfoSD
+    	args->taskQueue
     );
     
     return NULL;
@@ -306,12 +275,9 @@ static void * _io_thread_run(void *arg)
     IOThreadArgs *args = (IOThreadArgs *)arg;
     
     run_io(
-    	args->cpuArena,
-    	args->prcArena,
-    	args->cpuQueue,
-    	args->prcQueue,
-	args->memStats,
-	args->prcInfoSD
+	args->arenas,
+    	args->taskQueue,
+	args->windows
     );
     
     return NULL;
@@ -332,7 +298,11 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
     return *optarg != NULL;
 }
 
+// put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
-    if (sig == SIGWINCH) RESIZE = 1;
+    if (sig == SIGWINCH)
+    {
+	RESIZE = 1;
+    }
 }

@@ -1,5 +1,6 @@
 #include <bits/time.h>
 #include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <arena.h>
 #include <time.h>
@@ -9,85 +10,144 @@
 #include "../../include/thread_safe_queue.h"
 #include "../../include/thread.h"
 #include "../../include/sorting.h"
-#include "../../include/startup.h"
+#include "../../include/prc_list_util.h"
+#include "../../include/task.h"
+
+#define BUILD_TASK(cond, data_fn, ...)	\
+    do {					\
+	if (cond)				\
+	{					\
+	    *tail = data_fn(__VA_ARGS__);	\
+	    tail = &(*tail)->next;		\
+	}					\
+    } while(0)
+	
+ProcessesSummary *prevPrcs;
+ProcessesSummary *curPrcs;
+
+static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
 
 void run_io(
-    Arena *cpuArena,
-    Arena *procArena,
-    ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
-    volatile ProcessInfoSharedData *prcInfoSd
+    mtopArenas *arenas,
+    ThreadSafeQueue *taskQueue,
+    WindowData **windows
 ) 
 {
-    pthread_mutex_lock(&procDataLock);
-    get_processes(procArena, prc_pid_compare);  
-    pthread_mutex_unlock(&procDataLock);
-    
+    u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+    u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
+    Arena *cpuArena = arenas->cpuArena;
+    Arena *procArena = arenas->prcArena;
+    Arena *memArena = arenas->memArena;
+    Arena *stateArena = arenas->stateArena;
+    Arena tgArena = a_new(sizeof(TaskGroup));
+    CpuStats *prevStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
+    CpuStats *curStats = a_alloc(cpuArena, sizeof(CpuStats), __alignof(CpuStats));
+    ProcessListState *listState = a_alloc(
+    	stateArena,
+    	sizeof(ProcessListState),
+    	__alignof(ProcessListState)
+    );
+    MemoryStats *memStats = NULL;
+    TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
+
+    prevPrcs = get_processes(procArena, prc_pid_compare);
+    curPrcs = prevPrcs;
+    memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
+    tg->a = a_new(64);
+    tg->tasksComplete = 1;
+    tg->cleanup = tg_cleanup;
+
+    setup_list_state(listState, curPrcs, windows[PRC_WIN]);
+    fetch_cpu_stats(prevStats);
+
     struct timespec start, current;
     
     clock_gettime(CLOCK_REALTIME, &start);
     
-    enqueue(
-	procQueue,
-	get_processes(procArena, prc_pid_compare),
-	&procDataLock,
-	&procQueueCondition
-    );
-    
+    init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
+
     while (!SHUTDOWN_FLAG)
     {
-    	// This check prevents lag between the read and display of stats
-    	// without it the points on the graph can be several seconds behind.
-    	const u8 minimumMet = cpuQueue->size < MIN_QUEUE_SIZE;
-    
-    	if (minimumMet) 
-    	{
-	    CpuStats *cpuStats = fetch_cpu_stats(cpuArena);
-	    
-	    enqueue(cpuQueue, cpuStats, &cpuQueueLock, &cpuQueueCondition);
+	if (!tg->tasksComplete)
+	{
+	    usleep(READ_SLEEP_TIME);
+	    continue;
+	}
 
-	    pthread_mutex_lock(&memQueueLock);
+	UITask **tail = &tg->head;
+	u8 handleCpu = cpuActive && tg->tasksComplete;
+	u8 handleMem = memActive && tg->tasksComplete;
 
-	    MEM_UPDATING = 1;
-	    
-	    fetch_memory_stats(memStats);
+	if (handleCpu) fetch_cpu_stats(curStats);
+	if (handleMem) fetch_memory_stats(memStats);
 
-	    MEM_UPDATING = 0;
-
-	    pthread_cond_signal(&memQueueCondition);
-	    pthread_mutex_unlock(&memQueueLock);
-    	}
-
-    	clock_gettime(CLOCK_REALTIME, &current);
+	BUILD_TASK(true, build_input_task, &tg->a, listState);
+	clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
-    	if (totalTimeSec > PROC_WAIT_TIME_SEC)
+    	if ((totalTimeSec > PROC_WAIT_TIME_SEC) && prcActive)
     	{
-	    ProcessStats *stats = get_processes(procArena, prc_pid_compare);
-	    
-	    enqueue(
-		procQueue,
-		stats,
-		&procDataLock,
-		&procQueueCondition
-	    );
+	    prevPrcs = curPrcs;
+	    curPrcs = get_processes(procArena, prc_pid_compare);
 
+	    adjust_state(listState, curPrcs);
+	    
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	if (prcInfoSd->needsFetch && prcInfoSd->pidToFetch > 0)
+	// I really like the stats to update quickly when
+	// on the process info page, so that's why this is here.
+	if (listState->infoVisible)
 	{
-	    pthread_mutex_lock(&procInfoLock);
-	    get_prc_info_by_pid(prcInfoSd); 
+	    qsort(
+		curPrcs->processes,
+		curPrcs->count,
+		sizeof(ProcessesSummary *),
+		prc_pid_compare_without_direction_fn
+	    );
 
-	    prcInfoSd->needsFetch = 0;
+	    Process **prc = bsearch(
+		&listState->selectedPid,
+		curPrcs->processes,
+		curPrcs->count,
+		sizeof(Process *),
+		prc_find_by_pid_compare_fn
+	    );
 
-	    pthread_cond_signal(&procInfoCondition);
-	    pthread_mutex_unlock(&procInfoLock);
+	    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
 	}
-    
+
+	BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+	BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+	BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
+	BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+	BUILD_TASK(true, build_refresh_task, &tg->a);
+
+	tg->tail = *tail;
+	tg->tasksComplete = 0;
+
+	_copy_stats(prevStats, curStats);
+
+	enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
 	usleep(READ_SLEEP_TIME);
     }
+
+    a_free(&tgArena);
+}
+
+static void _copy_stats(CpuStats *prevStats, CpuStats *curStats)
+{
+    prevStats->cpuNumber = curStats->cpuNumber;
+    prevStats->guest = curStats->guest;
+    prevStats->guestNice = curStats->guestNice;
+    prevStats->nice = curStats->nice;
+    prevStats->idle = curStats->idle;
+    prevStats->ioWait = curStats->ioWait;
+    prevStats->irq = curStats->irq;
+    prevStats->softIrq = curStats->softIrq;
+    prevStats->steal = curStats->steal;
+    prevStats->system = curStats->system;
+    prevStats->user = curStats->user;
 }

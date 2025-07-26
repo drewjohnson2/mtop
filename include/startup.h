@@ -2,6 +2,7 @@
 #define STARTUP_H
 
 #include <pthread.h>
+#include <arena.h>
 
 #include "mt_type_defs.h"
 
@@ -31,6 +32,21 @@ typedef struct _mtop_settings
     Layout layout;
     LayoutOrientation orientation;
 } Settings;
+
+typedef struct _arenas 
+{
+    Arena *windowArena;
+    Arena *cpuArena;
+    Arena *memArena; 
+    Arena *cpuGraphArena;     
+    Arena *memoryGraphArena;  
+    Arena *prcArena;
+    Arena *queueArena;
+    Arena *general;
+    Arena *cpuPointArena;
+    Arena *memPointArena;
+    Arena *stateArena;
+} mtopArenas;
 
 extern volatile Settings *mtopSettings;
 
