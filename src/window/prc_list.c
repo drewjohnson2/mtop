@@ -1,6 +1,5 @@
 #include <arena.h>
 #include <bits/time.h>
-#include <ctype.h>
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -13,7 +12,6 @@
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
 #include "../../include/static_text.h"
-#include "../../include/tracked_stats.h"
 #include "../../include/startup.h"
 
 #define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 		\
@@ -311,11 +309,4 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd)
     );
 
     a_free(&scratch);
-}
-
-static char * _trim_lws(char *str)
-{
-    while (*str && isspace((unsigned char)*str)) str++;
-
-    return str;
 }
