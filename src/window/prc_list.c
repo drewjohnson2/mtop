@@ -16,7 +16,29 @@
 #include "../../include/tracked_stats.h"
 #include "../../include/startup.h"
 
-static char * _trim_lws(char *str);
+#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 		\
+    do {							\
+	if (*y >= wd->wHeight - 4) 				\
+    	{							\
+    	    *y = 4;						\
+    	    *x = wd->wWidth / 2;				\
+    	}							\
+								\
+	PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);	\
+    } while (0)
+
+#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 	\
+    do {							\
+	if (*y >= wd->wHeight - 4) 				\
+    	{							\
+    	    *y = 4;						\
+    	    *x = wd->wWidth / 2;				\
+    	}							\
+								\
+	u8 valuePos = padding + *x + 2;				\
+								\
+	PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
+    } while (0)
 
 void print_stats(
     ProcessListState *state,
@@ -152,13 +174,13 @@ void set_prc_view_data(
 	float cpuPct = 0.0;
 	float memPct = 0.0;
 	
-	ProcessList *target;
-	ProcessList *cur = curPrcs->processes[i];
-	ProcessList **match = bsearch(
+	Process *target;
+	Process *cur = curPrcs->processes[i];
+	Process **match = bsearch(
 	    &cur,
 	    prevPrcs->processes,
 	    prevPrcs->count,
-	    sizeof(ProcessList *),
+	    sizeof(Process *),
 	    prc_pid_compare	
 	);
 	
@@ -186,6 +208,17 @@ void set_prc_view_data(
 	vd[i]->command = cur->procName;
 	vd[i]->cpuPercentage = cpuPct;
 	vd[i]->memPercentage = memPct;	
+	vd[i]->state = cur->state;
+	vd[i]->ppid = cur->ppid;
+	vd[i]->threads = cur->threads;
+	vd[i]->vmRss = cur->vmRss;
+	vd[i]->vmSize = cur->vmSize;
+	vd[i]->vmLock = cur->vmLock;
+	vd[i]->vmData = cur->vmData;
+	vd[i]->vmStack = cur->vmStack;
+	vd[i]->vmSwap = cur->vmSwap;
+	vd[i]->vmExe = cur->vmExe;
+	vd[i]->vmLib = cur->vmLib;
     }
 }
 
@@ -195,7 +228,7 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
     const u8 dataOffsetX = 2;
-    const u8 maxTitleLength = strlen(trackedStats[1]);
+    const u8 valuePaddingLeft = 10;
     char prcInfoHeader[50];
     u8 posY = 2;
     u8 posX = 3;
@@ -206,8 +239,8 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 	prcInfoHeader,
 	sizeof(prcInfoHeader),
 	_text[38],
-	info->pid,
-	info->procName
+	vd->pid,
+	vd->command
     );
 
     wattron(wd->window, A_BOLD);
@@ -224,38 +257,44 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
     wattron(wd->window, A_BOLD);
     PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->cpuPercentage,
+    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->cpuPercentage,
 	    MT_PAIR_PRC_STAT_VAL);
 
     wattron(wd->window, A_BOLD);
     PRINTFC(wd->window, posY, posX, "%s", _text[41], MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, maxTitleLength + posX + 2, "%.2f", vd->memPercentage,
+    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->memPercentage,
 	    MT_PAIR_PRC_STAT_VAL);
 
-    for (size_t i = 0; i < 19; i++)
-    {
-	if (posY >= wd->wHeight - 4)
-	{
-	    posY = 4;
-	    posX = wd->wWidth / 2;
-	}
+    wattron(wd->window, A_BOLD);
 
-	char *str = a_strdup(&scratch, info->stats[i]);
-	char *title = strtok(str, "\t");
-	char *value = strtok(NULL, "\t");
-	u8 valuePos = maxTitleLength + posX + 2;
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[42], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[43], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[44], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[45], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[46], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[47], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[48], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[49], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[50], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[51], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[52], MT_PAIR_PRC_STAT_NM);
 
-	if (!title || !value) continue;
+    wattroff(wd->window, A_BOLD);
 
-	value = _trim_lws(value);
+    posY = 6;
 
-	wattron(wd->window, A_BOLD);
-	PRINTFC(wd->window, posY, posX, "%s\t", title, MT_PAIR_PRC_STAT_NM);
-	wattroff(wd->window, A_BOLD);
-	PRINTFC(wd->window, posY++, valuePos, "%s", value, MT_PAIR_PRC_STAT_VAL);
-    }
-
+    PRINT_VALUEFC(wd, &posY, &posX, "%c", vd->state, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%d", vd->threads, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%hu", vd->ppid, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmRss, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSize, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLock, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmData, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmStack, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSwap, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmExe, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLib, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
     PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", _text[36], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", _text[37], MT_PAIR_CTRL_TXT);
     SET_COLOR(wd->window, MT_PAIR_BOX);
@@ -273,7 +312,6 @@ void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData
 
     a_free(&scratch);
 }
-
 
 static char * _trim_lws(char *str)
 {

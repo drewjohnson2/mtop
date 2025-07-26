@@ -13,18 +13,28 @@ extern volatile u8 MEM_UPDATING;
 
 typedef struct _proc_list
 {
-    u32 pid;
     char procName[99];
+    char state;
+    s32 ppid;
+    s32 threads;
+    u32 pid;
     u64 utime;
     u64 stime;
     u64 vmRss;
-} ProcessList;
+    u64 vmSize;
+    u64 vmLock;
+    u64 vmData;
+    u64 vmStack;
+    u64 vmSwap;
+    u64 vmExe;
+    u64 vmLib;
+} Process;
 
 typedef struct _processes_summary
 {
     size_t count;
     u64 cpuTimeAtSample;
-    ProcessList **processes;
+    Process **processes;
 } ProcessesSummary;
 
 typedef struct _proc_info
@@ -155,7 +165,7 @@ ProcessesSummary * get_processes(
     Arena *procArena,
     int (*sortFn)(const void *, const void *)
 );
-void get_prc_info_by_pid(ProcessInfoData *prcInfoSD);
+void get_prc_info_by_pid(u32 pid, Process *prc);
 
 #endif
 

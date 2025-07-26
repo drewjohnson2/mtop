@@ -1,6 +1,8 @@
 #ifndef TRACKED_STATS_H
 #define TRACKED_STATS_H
 
+#include <proc/readproc.h>
+
 static const char *trackedStats[19] = 
 {
     "Cpus_allowed",

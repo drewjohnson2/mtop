@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -MMD -MP
-LIBS = -lncurses -lpthread -L/usr/lib -larena
+LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
 
 SRC_DIRS = src src/window src/monitor src/thread src/util src/colors src/task
 OBJ_DIR = obj

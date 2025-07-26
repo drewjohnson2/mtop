@@ -72,10 +72,24 @@ typedef struct _graph_data
 
 typedef struct _stats_view_data 
 {
-    u32 pid;
     float cpuPercentage;
     float memPercentage;
     char *command;
+    char state;
+    s32 ppid;
+    s32 threads;
+    u32 pid;
+    u64 utime;
+    u64 stime;
+    u64 vmRss;
+    u64 vmSize;
+    u64 vmLock;
+    u64 vmData;
+    u64 vmStack;
+    u64 vmSwap;
+    u64 vmExe;
+    u64 vmLib;
+
 } ProcessStatsViewData;
 
 typedef struct _process_list_state

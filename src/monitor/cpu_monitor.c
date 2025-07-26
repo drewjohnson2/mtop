@@ -1,5 +1,6 @@
 #include <arena.h>
 #include <stdio.h>
+#include <proc/readproc.h>
 
 #include "../../include/monitor.h"
 
@@ -10,14 +11,6 @@ void fetch_cpu_stats(CpuStats *stat)
     FILE *f = fopen("/proc/stat", "r");
     char buffer[512];
 
- //    if (arena->regionsAllocated > MAX_CPU_REGIONS_ALLOCD) r_free_head(arena);
- //    
- //    CpuStats *stat = a_alloc(
-	// arena,
-	// sizeof(CpuStats),
-	// __alignof(CpuStats) 
- //    );
-    
     fgets(buffer, sizeof(buffer), f);
     
     sscanf(buffer, 

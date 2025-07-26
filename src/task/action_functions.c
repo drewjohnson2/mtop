@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ncurses.h>
 #include <stdlib.h>
 
@@ -85,7 +86,19 @@ void process_action_fn(DisplayItems *di, void *ctx)
 	print_stats(listState, prcWin, vd, curPrcs->count);
     }
     else
-	show_prc_info(vd[listState->selectedIndex], prcInfo->info, prcWin);
+    {	
+	qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), vd_pid_compare_without_direction_fn);
+
+	ProcessStatsViewData **data = bsearch(
+	    &listState->selectedPid,
+	    vd,
+	    curPrcs->count,
+	    sizeof(ProcessStatsViewData *),
+	    vd_find_by_pid_compare_fn
+	);
+
+	show_prc_info(*data, prcInfo->info, prcWin);
+    }
 
     wnoutrefresh(prcWin->window);
     a_free(&scratch);

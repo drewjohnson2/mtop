@@ -1,5 +1,6 @@
 #include <bits/time.h>
 #include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <arena.h>
 #include <time.h>
@@ -103,10 +104,26 @@ void run_io(
 	    clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	if ((listState->infoVisible && listState->selectedPid > 0) && prcActive)
+	// I really like the stats to update quickly when
+	// on the process info page, so that's why this is here.
+	if (listState->infoVisible)
 	{
-	    processInfo->pidToFetch = listState->selectedPid;
-	    get_prc_info_by_pid(processInfo); 
+	    qsort(
+		curPrcs->processes,
+		curPrcs->count,
+		sizeof(ProcessesSummary *),
+		prc_pid_compare_without_direction_fn
+	    );
+
+	    Process **prc = bsearch(
+		&listState->selectedPid,
+		curPrcs->processes,
+		curPrcs->count,
+		sizeof(Process *),
+		prc_find_by_pid_compare_fn
+	    );
+
+	    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
 	}
 
 	BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
