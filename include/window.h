@@ -55,6 +55,7 @@ typedef struct _display_items
     size_t windowCount;
     u8 optionsVisible;
     WindowData **windows;
+    mt_Window selectedWindows[3]; 
 } DisplayItems;
 
 typedef struct _graph_point
@@ -71,10 +72,24 @@ typedef struct _graph_data
 
 typedef struct _stats_view_data 
 {
-    u32 pid;
     float cpuPercentage;
     float memPercentage;
     char *command;
+    char state;
+    s32 ppid;
+    s32 threads;
+    u32 pid;
+    u64 utime;
+    u64 stime;
+    u64 vmRss;
+    u64 vmSize;
+    u64 vmLock;
+    u64 vmData;
+    u64 vmStack;
+    u64 vmSwap;
+    u64 vmExe;
+    u64 vmLib;
+
 } ProcessStatsViewData;
 
 typedef struct _process_list_state
@@ -88,12 +103,15 @@ typedef struct _process_list_state
     u8 pageSize;
     s8 timeoutActive;
     u8 infoVisible;
+    u32 selectedPid;
     char cmdBuffer;
     SortOrder sortOrder;
     struct timespec timeoutStart;
 
-    int (*sortFunc)(const void *a, const void *b);
+    int (*sortFn)(const void *a, const void *b);
 } ProcessListState;
+
+extern u8 RESIZE;
 
 //
 //		window_setup.c
@@ -101,7 +119,7 @@ typedef struct _process_list_state
 //
 DisplayItems * init_display_items(Arena *arena);
 void init_windows(DisplayItems *di);
-void init_window_dimens(DisplayItems *di, mt_Window selectedWins[3]);
+void init_window_dimens(DisplayItems *di);
 void init_ncurses(WindowData *wd, SCREEN *screen);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
@@ -115,6 +133,7 @@ void set_bg_colors(
     WINDOW *prcWin,
     WINDOW *optWin
 );
+void resize_win(DisplayItems *di);
 
 //
 //		graph.c
@@ -125,8 +144,7 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor,
-    u8 winActive
+    MT_Color_Pairs headerColor
 );
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive);
 
@@ -143,19 +161,17 @@ void print_stats(
 void set_prc_view_data(
     Arena *scratch,
     ProcessStatsViewData **vd,
-    ProcessStats *curPrcs,
-    ProcessStats *prevPrcs,
+    ProcessesSummary *curPrcs,
+    ProcessesSummary *prevPrcs,
     u64 memTotal
 );
 void read_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di,
-    ProcessStatsViewData **vd,
-    volatile ProcessInfoSharedData *prcInfoSd
+    DisplayItems *di
 );
-void adjust_state(ProcessListState *state, ProcessStats *stats);
+void adjust_state(ProcessListState *state, ProcessesSummary *stats);
 void set_start_end_idx(ProcessListState *state);
-void show_prc_info(ProcessStatsViewData *vd, ProcessInfo *info, const WindowData *wd);
+void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd);
 
 #endif

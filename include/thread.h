@@ -4,60 +4,48 @@
 #include <arena.h>
 #include <pthread.h>
 
-#include "monitor.h"
+#include "startup.h"
 #include "thread_safe_queue.h"
 #include "window.h"
 
 #define DISPLAY_SLEEP_TIME 1000 * 200 // ui thread sleep time
 #define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
-#define READ_SLEEP_TIME 1000 * 100 // io thread sleep time
+#define READ_SLEEP_TIME 1000 * 200//125 // io thread sleep time
 
-extern pthread_mutex_t cpuQueueLock;
-extern pthread_mutex_t memQueueLock;
-extern pthread_mutex_t procDataLock;
-extern pthread_mutex_t procInfoLock;
-
-extern pthread_cond_t cpuQueueCondition;
-extern pthread_cond_t memQueueCondition;
-extern pthread_cond_t procQueueCondition;
-extern pthread_cond_t procInfoCondition;
+extern pthread_mutex_t taskQueueLock;
+extern pthread_cond_t taskQueueCondition;
+// I actually don't need these
+// right now, but keeping around
+// because I think I will soon.
+extern pthread_mutex_t listStateLock;
+extern pthread_cond_t listStateCondition;
 
 extern volatile s8 SHUTDOWN_FLAG;
 
 //
-// 		thread.c
+//	thread.c
 //
 //
 void mutex_init();
-void condition_init();
 void mutex_destroy();
-void condition_destroy();
 
 //
-//		ui_thread.c
+//	ui_thread.c
 //
 //
 void run_ui(
-    Arena *graphArena,
-    Arena *memGraphArena,
     DisplayItems *di,
-    ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
-    volatile ProcessInfoSharedData *prcInfoSd
+    ThreadSafeQueue *taskQueue
 );
 
 //
-//		io_thread.c
+//	io_thread.c
 //
 //
 void run_io(
-    Arena *cpuArena,
-    Arena *procArena,
-    ThreadSafeQueue *cpuQueue,
-    ThreadSafeQueue *procQueue,
-    volatile MemoryStats *memStats,
-    volatile ProcessInfoSharedData *prcInfoSd
+    mtopArenas *arenas,
+    ThreadSafeQueue *taskQueue,
+    WindowData **windows
 );
 #endif

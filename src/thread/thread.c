@@ -1,56 +1,32 @@
 #include <assert.h>
+#include <pthread.h>
 
 #include "../../include/thread.h"
 
-pthread_mutex_t cpuQueueLock;
-pthread_mutex_t memQueueLock;
-pthread_mutex_t procDataLock;
-pthread_mutex_t procInfoLock;
-
-pthread_cond_t cpuQueueCondition;
-pthread_cond_t memQueueCondition;
-pthread_cond_t procQueueCondition;
-pthread_cond_t procInfoCondition;
+pthread_mutex_t taskQueueLock;
+pthread_cond_t taskQueueCondition;
+pthread_mutex_t listStateLock;
+pthread_cond_t listStateCondition;
 
 volatile s8 SHUTDOWN_FLAG = 0;
 
 void mutex_init()
 {
-    pthread_mutex_init(&cpuQueueLock, NULL);
-    pthread_mutex_init(&memQueueLock, NULL);
-    pthread_mutex_init(&procDataLock, NULL);
-    pthread_mutex_init(&procInfoLock, NULL);
+    pthread_mutex_init(&taskQueueLock, NULL);
+    pthread_mutex_init(&listStateLock, NULL);
+    pthread_cond_init(&listStateCondition, NULL);
+    pthread_cond_init(&taskQueueCondition, NULL);
     
-    assert(&cpuQueueLock);
-    assert(&memQueueLock);
-    assert(&procDataLock);
-    assert(&procInfoLock);
-}
-
-void condition_init()
-{
-    pthread_cond_init(&cpuQueueCondition, NULL);
-    pthread_cond_init(&memQueueCondition, NULL);
-    pthread_cond_init(&procQueueCondition, NULL);
-    pthread_cond_init(&procInfoCondition, NULL);
-    
-    assert(&cpuQueueCondition);
-    assert(&memQueueCondition);
-    assert(&procQueueCondition);
+    assert(&taskQueueLock);
+    assert(&listStateLock);
+    assert(&taskQueueCondition);
+    assert(&listStateCondition);
 }
 
 void mutex_destroy()
 {
-    pthread_mutex_destroy(&cpuQueueLock);
-    pthread_mutex_destroy(&memQueueLock);
-    pthread_mutex_destroy(&procDataLock);
-    pthread_mutex_destroy(&procInfoLock);
-}
-
-void condition_destroy()
-{
-    pthread_cond_destroy(&cpuQueueCondition);
-    pthread_cond_destroy(&memQueueCondition);
-    pthread_cond_destroy(&procQueueCondition);
-    pthread_cond_destroy(&procInfoCondition);
+    pthread_mutex_destroy(&taskQueueLock);
+    pthread_mutex_destroy(&listStateLock);
+    pthread_cond_destroy(&taskQueueCondition);
+    pthread_cond_destroy(&listStateCondition);
 }
