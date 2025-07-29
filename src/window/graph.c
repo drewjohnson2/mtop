@@ -15,7 +15,8 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor
+    MT_Color_Pairs headerColor,
+    u8 winSelected
 )
 {
     if (!gd->head) return 1;
@@ -27,6 +28,7 @@ s8 graph_render(
     GraphPoint *last = current;
     s16 posX = wd->wWidth - gd->graphPointCount - 2;
     s16 posY = wd->wHeight - 2;
+    const MT_Color_Pairs boxPair = winSelected ? MT_PAIR_SEL_WIN : MT_PAIR_BOX;
     
     if (posX < 2) posX = 2;
     
@@ -56,7 +58,8 @@ s8 graph_render(
 	posY = wd->wHeight - 2;
 	posX++;
 
-	SET_COLOR(wd->window, MT_PAIR_BOX);
+	SET_COLOR(wd->window, boxPair);
+
 	box(win, 0, 0);
 
 #ifdef DEBUG

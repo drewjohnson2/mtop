@@ -37,16 +37,18 @@ typedef enum _mt_window
 #undef DEFINE_WINDOWS
 } mt_Window;
 
+typedef enum _window_mode
+{
+    NORMAL,
+    ARRANGE
+} WindowMode;
 
 typedef struct _window_data
 {
     WINDOW *window;
     u16 wHeight, wWidth;
     u16 windowX, windowY;
-    u16 paddingTop;
-    u16 paddingBottom;
-    u16 paddingRight;
-    u16 paddingLeft;
+    u8 active;
     const char *windowTitle;
 } WindowData;
 
@@ -55,7 +57,9 @@ typedef struct _display_items
     size_t windowCount;
     u8 optionsVisible;
     WindowData **windows;
-    mt_Window selectedWindows[3]; 
+    mt_Window windowOrder[3]; 
+    WindowMode mode;
+    mt_Window selectedWindow;
 } DisplayItems;
 
 typedef struct _graph_point
@@ -134,6 +138,7 @@ void set_bg_colors(
     WINDOW *optWin
 );
 void resize_win(DisplayItems *di);
+void remove_win(DisplayItems *di, mt_Window winToRemove);
 
 //
 //		graph.c
@@ -144,7 +149,8 @@ s8 graph_render(
     GraphData *gd,
     const WindowData *wd,
     MT_Color_Pairs gpColor,
-    MT_Color_Pairs headerColor
+    MT_Color_Pairs headerColor,
+    u8 windowSelected
 );
 s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive);
 
@@ -156,7 +162,8 @@ void print_stats(
     ProcessListState *state,
     const WindowData *wd,
     ProcessStatsViewData **vd,
-    s16 count
+    s16 count,
+    u8 winSelected
 );
 void set_prc_view_data(
     Arena *scratch,
@@ -165,13 +172,19 @@ void set_prc_view_data(
     ProcessesSummary *prevPrcs,
     u64 memTotal
 );
-void read_input(
+void adjust_state(ProcessListState *state, ProcessesSummary *stats);
+void set_start_end_idx(ProcessListState *state);
+void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelected);
+
+//
+//		input.c
+//
+//
+void read_normal_input(
     WINDOW *win,
     ProcessListState *state,
     DisplayItems *di
 );
-void adjust_state(ProcessListState *state, ProcessesSummary *stats);
-void set_start_end_idx(ProcessListState *state);
-void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd);
+void read_arrange_input(DisplayItems *di);
 
 #endif

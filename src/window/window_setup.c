@@ -72,6 +72,7 @@ static void _setup_duo(
     const u8 heightEven,
     const LayoutOrientation orientation
 );
+static void _reinit_window(DisplayItems * di);
 
 u8 RESIZE = 0;
 
@@ -83,9 +84,9 @@ DisplayItems * init_display_items(Arena *arena)
     
     di->windowCount = 5;
     di->optionsVisible = 0;
-    di->selectedWindows[0] = WINDOW_ID_MAX;
-    di->selectedWindows[1] = WINDOW_ID_MAX;
-    di->selectedWindows[2] = WINDOW_ID_MAX;
+    di->windowOrder[0] = WINDOW_ID_MAX;
+    di->windowOrder[1] = WINDOW_ID_MAX;
+    di->windowOrder[2] = WINDOW_ID_MAX;
     
     di->windows = a_alloc(
     	arena,
@@ -122,6 +123,7 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     use_default_colors();
     start_color();
     raw();
+    keypad(stdscr, TRUE);
     getmaxyx(stdscr, wd->wHeight, wd->wWidth);
     noecho();
     curs_set(0);
@@ -134,12 +136,16 @@ void init_window_dimens(DisplayItems *di)
     const Layout layout = mtopSettings->layout;
     const u8 winCount = mtopSettings->activeWindowCount;
     WindowData *container = di->windows[CONTAINER_WIN];
-    WindowData *winOne = di->windows[di->selectedWindows[0]];
-    WindowData *winTwo = winCount >= 2 ? di->windows[di->selectedWindows[1]] : NULL;
-    WindowData *winThree = winCount == 3 ? di->windows[di->selectedWindows[2]] : NULL;
+    WindowData *winOne = di->windows[di->windowOrder[0]];
+    WindowData *winTwo = winCount >= 2 ? di->windows[di->windowOrder[1]] : NULL;
+    WindowData *winThree = winCount == 3 ? di->windows[di->windowOrder[2]] : NULL;
     WindowData *optWin = di->windows[OPT_WIN];
     const u8 widthEven = container->wWidth % 2 == 0;
     const u8 heightEven = container->wHeight % 2 == 0;
+
+    winOne->active = 1;
+    if (winTwo) winTwo->active = 1;
+    if (winThree) winThree->active = 1;
 
     container->windowX = 0;
     container->windowY = 0;
@@ -214,7 +220,7 @@ void init_window_dimens(DisplayItems *di)
 	    winOne->wHeight = FULL_HEIGHT(container);
 	    winOne->windowX = POS_X_START;
 	    winOne->windowY = POS_Y_START;
-	    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+	    winOne->windowTitle = _text[di->windowOrder[0] + 20];
 
 	    break;
 	default:
@@ -443,7 +449,6 @@ void resize_win(DisplayItems *di)
 {
     WindowData *container = di->windows[CONTAINER_WIN];
     WindowData *optWin = di->windows[OPT_WIN];
-    u8 winCount = mtopSettings->activeWindowCount;
 
     endwin();
     wrefresh(container->window);
@@ -453,24 +458,45 @@ void resize_win(DisplayItems *di)
     init_window_dimens(di);
     wresize(container->window, container->wHeight, container->wWidth);
 
-    mt_Window winType = di->selectedWindows[0];
-
-    for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
-    {
-	WindowData *win = di->windows[winType];
-
-	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
-	winType = di->selectedWindows[++i];
-    }
-
-    optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
-
-    REFRESH_WIN(container->window);
-
-    print_header(container);
-    print_footer(container);
+    _reinit_window(di);
     
     RESIZE = 0;
+}
+
+void remove_win(DisplayItems *di, mt_Window winToRemove)
+{
+    u8 removedIndex = -1;
+
+    mtopSettings->activeWindowCount--;
+    mtopSettings->activeWindows[winToRemove] = 0;
+
+    di->windows[winToRemove]->active = 0;
+
+    for (size_t i = 0; i < 3; i++)
+    {
+	if (di->windowOrder[i] == winToRemove) 
+	{
+	    di->windowOrder[i] = WINDOW_ID_MAX;
+	    removedIndex = i;
+	}
+    }
+
+    for (size_t i = removedIndex; i < 2; i++)
+    {
+	di->windowOrder[i] = di->windowOrder[i + 1];
+    }
+
+    di->windowOrder[2] = WINDOW_ID_MAX;
+
+    u8 winCount = mtopSettings->activeWindowCount;
+
+    if (winCount == 2) mtopSettings->layout = DUO;
+    else if (winCount == 1) mtopSettings->layout = SINGLE;
+
+    di->selectedWindow = di->windowOrder[0];
+
+    init_window_dimens(di);
+    _reinit_window(di); 
 }
 
 static void _setup_opt_win(WindowData *container, WindowData *optWin)
@@ -499,7 +525,7 @@ static void _setup_quarters_left(
     winOne->wHeight = HALF_HEIGHT(container);
     winOne->windowX = POS_X_START;
     winOne->windowY = POS_Y_START;
-    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+    winOne->windowTitle = _text[di->windowOrder[0] + 20];
     
     winTwo->wWidth = widthEven ?
         HALF_WIDTH(container) :
@@ -507,7 +533,7 @@ static void _setup_quarters_left(
     winTwo->wHeight = FULL_HEIGHT(container);
     winTwo->windowX = POS_X_END(container, winTwo);
     winTwo->windowY = POS_X_START;
-    winTwo->windowTitle = _text[di->selectedWindows[1] + 20];
+    winTwo->windowTitle = _text[di->windowOrder[1] + 20];
     
     winThree->wWidth = HALF_WIDTH(container);
     winThree->wHeight = heightEven ? 
@@ -515,7 +541,7 @@ static void _setup_quarters_left(
         HALF_HEIGHT(container) + 1;
     winThree->windowX = POS_X_START;
     winThree->windowY = POS_Y_BOTTOM(container, winThree);
-    winThree->windowTitle = _text[di->selectedWindows[2] + 20];
+    winThree->windowTitle = _text[di->windowOrder[2] + 20];
 }
 
 static void _setup_quarters_right(
@@ -534,13 +560,13 @@ static void _setup_quarters_right(
     winOne->wHeight = FULL_HEIGHT(container);
     winOne->windowX = POS_X_START;
     winOne->windowY = POS_Y_START;
-    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+    winOne->windowTitle = _text[di->windowOrder[0] + 20];
     
     winTwo->wWidth = HALF_WIDTH(container); 
     winTwo->wHeight = HALF_HEIGHT(container);
     winTwo->windowX = POS_X_END(container, winTwo);
     winTwo->windowY = POS_Y_START; 
-    winTwo->windowTitle = _text[di->selectedWindows[1] + 20];
+    winTwo->windowTitle = _text[di->windowOrder[1] + 20];
     
     winThree->wWidth = HALF_WIDTH(container);
     winThree->wHeight = heightEven ?
@@ -548,7 +574,7 @@ static void _setup_quarters_right(
         HALF_HEIGHT(container) + 1;
     winThree->windowX = POS_X_END(container, winThree);
     winThree->windowY = POS_Y_BOTTOM(container, winThree);
-    winThree->windowTitle = _text[di->selectedWindows[2] + 20];
+    winThree->windowTitle = _text[di->windowOrder[2] + 20];
 }
 
 static void _setup_quarters_top(
@@ -565,7 +591,7 @@ static void _setup_quarters_top(
     winOne->wHeight = HALF_HEIGHT(container);
     winOne->windowX = POS_X_START;
     winOne->windowY = POS_Y_START;
-    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+    winOne->windowTitle = _text[di->windowOrder[0] + 20];
     
     winTwo->wWidth = widthEven ?
         HALF_WIDTH(container) :
@@ -573,7 +599,7 @@ static void _setup_quarters_top(
     winTwo->wHeight = HALF_HEIGHT(container);
     winTwo->windowX = POS_X_END(container, winTwo);
     winTwo->windowY = POS_Y_START;
-    winTwo->windowTitle = _text[di->selectedWindows[1] + 20];
+    winTwo->windowTitle = _text[di->windowOrder[1] + 20];
     
     winThree->wWidth = FULL_WIDTH(container);
     winThree->wHeight = heightEven ?
@@ -581,7 +607,7 @@ static void _setup_quarters_top(
         HALF_HEIGHT(container) + 1;
     winThree->windowX = POS_X_START;
     winThree->windowY = POS_Y_BOTTOM(container, winThree);
-    winThree->windowTitle = _text[di->selectedWindows[2] + 20];
+    winThree->windowTitle = _text[di->windowOrder[2] + 20];
 }
 
 static void _setup_quarters_bottom(
@@ -600,13 +626,13 @@ static void _setup_quarters_bottom(
         HALF_HEIGHT(container) + 1;
     winOne->windowX = POS_X_START;
     winOne->windowY = POS_Y_START;
-    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+    winOne->windowTitle = _text[di->windowOrder[0] + 20];
     
     winTwo->wWidth = HALF_WIDTH(container);
     winTwo->wHeight = HALF_HEIGHT(container);
     winTwo->windowX = POS_X_START;
     winTwo->windowY = POS_Y_BOTTOM(container, winTwo); 
-    winTwo->windowTitle = _text[di->selectedWindows[1] + 20];
+    winTwo->windowTitle = _text[di->windowOrder[1] + 20];
     
     winThree->wWidth = widthEven ?
         HALF_WIDTH(container) :
@@ -614,7 +640,7 @@ static void _setup_quarters_bottom(
     winThree->wHeight = HALF_HEIGHT(container); 
     winThree->windowX = POS_X_END(container, winThree);
     winThree->windowY = POS_Y_BOTTOM(container, winThree);
-    winThree->windowTitle = _text[di->selectedWindows[2] + 20];
+    winThree->windowTitle = _text[di->windowOrder[2] + 20];
 }
 
 static void _setup_duo(
@@ -640,11 +666,34 @@ static void _setup_duo(
     winOne->wHeight = heightOne;
     winOne->windowX = POS_X_START;
     winOne->windowY = POS_Y_START;
-    winOne->windowTitle = _text[di->selectedWindows[0] + 20];
+    winOne->windowTitle = _text[di->windowOrder[0] + 20];
                           
     winTwo->wWidth = widthTwo;
     winTwo->wHeight = heightTwo;
     winTwo->windowX = isHzl ? POS_X_START : POS_X_END(container, winTwo);
     winTwo->windowY = isHzl ? POS_Y_BOTTOM(container, winTwo) : POS_Y_START;
-    winTwo->windowTitle = _text[di->selectedWindows[1] + 20];
+    winTwo->windowTitle = _text[di->windowOrder[1] + 20];
+}
+
+static void _reinit_window(DisplayItems * di)
+{
+    u8 winCount = mtopSettings->activeWindowCount;
+    mt_Window winType = di->windowOrder[0];
+    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *optWin = di->windows[OPT_WIN];
+
+    for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
+    {
+	WindowData *win = di->windows[winType];
+
+	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
+	winType = di->windowOrder[++i];
+    }
+
+    optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
+
+    REFRESH_WIN(container->window);
+
+    print_header(container);
+    print_footer(container);
 }
