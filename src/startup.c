@@ -58,7 +58,7 @@ volatile Settings *mtopSettings;
 
 static void * _ui_thread_run(void *arg);
 static void * _io_thread_run(void *arg);
-static void _set_active_window(mt_Window *windows, mt_Window winToAdd);
+static void _set_window_in_order(mt_Window *windows, mt_Window winToAdd);
 static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc, u8 optind);
 
 void _handle_resize(int sig);
@@ -88,6 +88,8 @@ void run(int argc, char **argv)
     
     di = init_display_items(&windowArena);
     arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
+
+    di->mode = NORMAL;
 
     arenas->general = &general;
     arenas->cpuArena = &cpuArena;
@@ -135,15 +137,15 @@ void run(int argc, char **argv)
     	        break;
 	    case 'c':
 		mtopSettings->activeWindows[CPU_WIN] = 1;
-		_set_active_window(di->selectedWindows, CPU_WIN);
+		_set_window_in_order(di->windowOrder, CPU_WIN);
 		break;
 	    case 'm':
 		mtopSettings->activeWindows[MEMORY_WIN] = 1;
-		_set_active_window(di->selectedWindows, MEMORY_WIN);
+		_set_window_in_order(di->windowOrder, MEMORY_WIN);
 		break;
 	    case 'p':
 		mtopSettings->activeWindows[PRC_WIN] = 1;
-		_set_active_window(di->selectedWindows, PRC_WIN);
+		_set_window_in_order(di->windowOrder, PRC_WIN);
 		break;
 	    case 'h':
 		mtopSettings->orientation = HORIZONTAL;
@@ -177,16 +179,16 @@ void run(int argc, char **argv)
     }
 
     if (
-	di->selectedWindows[0] == WINDOW_ID_MAX && 
-	di->selectedWindows[1] == WINDOW_ID_MAX && 
-	di->selectedWindows[2] == WINDOW_ID_MAX
+	di->windowOrder[0] == WINDOW_ID_MAX && 
+	di->windowOrder[1] == WINDOW_ID_MAX && 
+	di->windowOrder[2] == WINDOW_ID_MAX
     )
     {
 	mtopSettings->activeWindowCount = 3;
 
-	di->selectedWindows[0] = CPU_WIN;
-	di->selectedWindows[1] = MEMORY_WIN;
-	di->selectedWindows[2] = PRC_WIN;
+	di->windowOrder[0] = CPU_WIN;
+	di->windowOrder[1] = MEMORY_WIN;
+	di->windowOrder[2] = PRC_WIN;
 
 	mtopSettings->activeWindows[CPU_WIN] = 1;
 	mtopSettings->activeWindows[MEMORY_WIN] = 1;
@@ -283,7 +285,7 @@ static void * _io_thread_run(void *arg)
     return NULL;
 }
 
-static void _set_active_window(mt_Window *windows, mt_Window winToAdd)
+static void _set_window_in_order(mt_Window *windows, mt_Window winToAdd)
 {
     windows[mtopSettings->activeWindowCount++] = winToAdd; 
 }
@@ -301,8 +303,5 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
 // put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
-    if (sig == SIGWINCH)
-    {
-	RESIZE = 1;
-    }
+    if (sig == SIGWINCH) RESIZE = 1;
 }

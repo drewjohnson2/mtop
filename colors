@@ -18,3 +18,5 @@ githubText = [90, 148, 163]
 prcStatNm = [11, 85, 99]
 prcStatVal = [112, 131, 149]
 prcStatTableHeader = [11, 85, 99]
+selectedWindowBox = [112, 131, 149]
+

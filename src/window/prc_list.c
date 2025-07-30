@@ -42,7 +42,8 @@ void print_stats(
     ProcessListState *state,
     const WindowData *wd,
     ProcessStatsViewData **vd,
-    s16 count
+    s16 count,
+    u8 winSelected
 )
 {
     if (vd == NULL || !mtopSettings->activeWindows[PRC_WIN]) return;
@@ -56,6 +57,7 @@ void print_stats(
     const u16 prcTblHeaderY = 2;
     const u16 windowTitleX = 3;
     const u16 windowTitleY = 0;
+    const MT_Color_Pairs boxPair = winSelected ? MT_PAIR_SEL_WIN : MT_PAIR_BOX;
     
     u16 pidPosX = wd->wWidth * .60;
     u16 cpuPosX = pidPosX + (wd->wWidth * .14);
@@ -78,7 +80,7 @@ void print_stats(
     //			Render Box and Header
     //
     //
-    SET_COLOR(win, MT_PAIR_BOX);
+    SET_COLOR(win, boxPair);
     
     werase(win);
     box(win, 0, 0);
@@ -220,13 +222,14 @@ void set_prc_view_data(
     }
 }
 
-void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd) 
+void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelected) 
 {
     Arena scratch = a_new(256);
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
     const u8 dataOffsetX = 2;
     const u8 valuePaddingLeft = 10;
+    const MT_Color_Pairs boxPair = winSelected ? MT_PAIR_SEL_WIN : MT_PAIR_BOX;
     char prcInfoHeader[50];
     u8 posY = 2;
     u8 posX = 3;
@@ -295,7 +298,7 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd)
     PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLib, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
     PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", _text[36], MT_PAIR_CTRL);
     PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", _text[37], MT_PAIR_CTRL_TXT);
-    SET_COLOR(wd->window, MT_PAIR_BOX);
+    SET_COLOR(wd->window, boxPair);
 
     box(wd->window, 0, 0);
 

@@ -33,9 +33,6 @@ void run_io(
     WindowData **windows
 ) 
 {
-    u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
-    u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
-    u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
     Arena *cpuArena = arenas->cpuArena;
     Arena *procArena = arenas->prcArena;
     Arena *memArena = arenas->memArena;
@@ -76,6 +73,9 @@ void run_io(
 	}
 
 	UITask **tail = &tg->head;
+	u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+    	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
 	u8 handleCpu = cpuActive && tg->tasksComplete;
 	u8 handleMem = memActive && tg->tasksComplete;
 

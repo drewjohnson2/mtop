@@ -13,13 +13,16 @@ void cpu_action_fn(DisplayItems *di, void *ctx)
     Arena *a = context->arena;
     WindowData *cpuWin = di->windows[CPU_WIN];
 
+    u8 winSelected = di->mode == ARRANGE && di->selectedWindow == CPU_WIN;
+
     add_graph_point(a, context->graphData, context->cpuPercentage, 1);
     graph_render(
         a,
         context->graphData,
         cpuWin,
         MT_PAIR_CPU_GP,
-        MT_PAIR_CPU_HEADER
+        MT_PAIR_CPU_HEADER,
+	winSelected
     );
 
     wnoutrefresh(cpuWin->window);
@@ -30,6 +33,7 @@ void mem_action_fn(DisplayItems *di, void *ctx)
     MemoryDataContext *context = (MemoryDataContext *)ctx;
     Arena *a = context->arena;
     WindowData *memWin = di->windows[MEMORY_WIN];
+    u8 winSelected = di->mode == ARRANGE && di->selectedWindow == MEMORY_WIN;
 
     add_graph_point(a, context->graphData, context->memPercentage, 1);
     graph_render(
@@ -37,7 +41,8 @@ void mem_action_fn(DisplayItems *di, void *ctx)
 	context->graphData,
         memWin,
         MT_PAIR_MEM_GP,
-        MT_PAIR_MEM_HEADER
+        MT_PAIR_MEM_HEADER,
+	winSelected
     );
 
     wnoutrefresh(memWin->window);
@@ -51,6 +56,7 @@ void process_action_fn(DisplayItems *di, void *ctx)
     ProcessListState *listState = context->listState;
     WindowData *prcWin = di->windows[PRC_WIN];
     u64 memTotal = context->memTotal;
+    u8 winSelected = di->mode == ARRANGE && di->selectedWindow == PRC_WIN;
 
     Arena scratch = a_new(
 	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
@@ -82,7 +88,7 @@ void process_action_fn(DisplayItems *di, void *ctx)
     if (!listState->infoVisible)
     {
 	listState->selectedPid = vd[listState->selectedIndex]->pid;
-	print_stats(listState, prcWin, vd, curPrcs->count);
+	print_stats(listState, prcWin, vd, curPrcs->count, winSelected);
     }
     else
     {	
@@ -96,7 +102,7 @@ void process_action_fn(DisplayItems *di, void *ctx)
 	    vd_find_by_pid_compare_fn
 	);
 
-	show_prc_info(*data, prcWin);
+	show_prc_info(*data, prcWin, winSelected);
     }
 
     wnoutrefresh(prcWin->window);
@@ -108,7 +114,8 @@ void input_action_fn(DisplayItems *di, void *ctx)
     InputContext *context = (InputContext *)ctx;
     WindowData *container = di->windows[CONTAINER_WIN];
 
-    read_input(container->window, context->listState, di);
+    if (di->mode == NORMAL) read_normal_input(container->window, context->listState, di);
+    else read_arrange_input(di);
 }
 
 void resize_action_fn(DisplayItems *di, void *ctx)
