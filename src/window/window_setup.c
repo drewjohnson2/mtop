@@ -486,6 +486,7 @@ void remove_win(DisplayItems *di, mt_Window winToRemove)
 	di->windowOrder[i] = di->windowOrder[i + 1];
     }
 
+    // Probably need a better way of doing this
     di->windowOrder[2] = WINDOW_ID_MAX;
 
     u8 winCount = mtopSettings->activeWindowCount;
