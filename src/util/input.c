@@ -18,8 +18,7 @@ typedef enum _nav_direction
 typedef u16 (*compareFn)(WindowData *cmp, WindowData *cur);
 
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
-static void _read_input(DisplayItems *di, s8 ch);
-static mt_Window _get_selected_window(mt_Window current, DisplayItems *di, compareFn cmp);
+static mt_Window _get_selected_window(DisplayItems *di, compareFn cmp);
 static u16 _compare_above(WindowData *cmp, WindowData *cur);
 static u16 _compare_below(WindowData *cmp, WindowData *cur);
 static u16 _compare_left(WindowData *cmp, WindowData *cur);
@@ -40,19 +39,19 @@ void read_arrange_input(DisplayItems *di)
 	    
 	    return;
 	case 'j':
-	    di->selectedWindow = _get_selected_window(di->selectedWindow, di, _compare_below);
+	    di->selectedWindow = _get_selected_window(di, _compare_below);
 
 	    return;
 	case 'k':
-	    di->selectedWindow = _get_selected_window(di->selectedWindow, di, _compare_above);
+	    di->selectedWindow = _get_selected_window(di, _compare_above);
 
 	    return;
 	case 'l':
-	    di->selectedWindow = _get_selected_window(di->selectedWindow, di, _compare_right);
+	    di->selectedWindow = _get_selected_window(di, _compare_right);
 
 	    return;
 	case 'h':
-	    di->selectedWindow = _get_selected_window(di->selectedWindow, di, _compare_left);
+	    di->selectedWindow = _get_selected_window(di, _compare_left);
 
 	    return;
 	case 'd':
@@ -272,25 +271,10 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);
 }
 
-static void _read_input(DisplayItems *di, s8 ch)
-{
-    switch (ch)
-    {
-	case 'o':
-	    di->optionsVisible = !di->optionsVisible;
-	    
-	    return;
-    	case 'q':
-	    SHUTDOWN_FLAG = 1;
-	    return;
-	default:
-	    return;
-    }
-}
-
-static mt_Window _get_selected_window(mt_Window current, DisplayItems *di, compareFn cmp)
+static mt_Window _get_selected_window(DisplayItems *di, compareFn cmp)
 {
     mt_Window windows[3] = { CPU_WIN, MEMORY_WIN, PRC_WIN };
+    mt_Window current = di->selectedWindow;
     mt_Window selectedWindow = current;
     WindowData *cur = di->windows[current];
 
