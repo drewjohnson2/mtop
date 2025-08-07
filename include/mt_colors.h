@@ -7,14 +7,14 @@
 
 #define TO_NC_COLOR(rgbVal) (rgbVal = (unsigned short)((double)(rgbVal) * 3.92156))
 
-typedef struct _mt_color 
+typedef struct
 {
     u16 red;
     u16 green;
     u16 blue;
 } MT_Color;
 
-typedef enum _ui_colors
+typedef enum
 {
 #define DEF_COLORS(color, colEnumVal, memberName) color = colEnumVal,
 #include "tables/color_table.h"
@@ -22,7 +22,7 @@ typedef enum _ui_colors
 #undef DEF_COLORS
 } UI_Colors;
 
-typedef enum _mt_color_pairs
+typedef enum
 {
 #define DEF_PAIRS(pair,fg, bg) pair,
     MT_PAIR_BACKGROUND = 1,
@@ -31,7 +31,7 @@ typedef enum _mt_color_pairs
 #undef DEF_PAIRS
 } MT_Color_Pairs;
 
-typedef struct _mt_ui_theme 
+typedef struct
 {
 #define DEF_COLORS(color, colEnumVal, memberName) \
     MT_Color *memberName;

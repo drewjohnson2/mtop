@@ -11,7 +11,7 @@
 
 extern volatile u8 MEM_UPDATING;
 
-typedef struct _proc_list
+typedef struct
 {
     char procName[99];
     char state;
@@ -30,14 +30,14 @@ typedef struct _proc_list
     u64 vmLib;
 } Process;
 
-typedef struct _processes_summary
+typedef struct
 {
     size_t count;
     u64 cpuTimeAtSample;
     Process **processes;
 } ProcessesSummary;
 
-typedef struct _mem_stats
+typedef struct
 {
     u64 memTotal;
     u64 memFree;
@@ -47,7 +47,7 @@ typedef struct _mem_stats
     u64 buffers;
 } MemoryStats;
 
-typedef struct _cpu_stats 
+typedef struct
 {
     u8 cpuNumber;
     u64 user;

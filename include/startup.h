@@ -6,13 +6,13 @@
 
 #include "mt_type_defs.h"
 
-typedef enum _layout_orientation
+typedef enum
 {
     HORIZONTAL,
     VERTICAL,
 } LayoutOrientation;
 
-typedef enum _layout
+typedef enum
 {
     QUARTERS_LEFT,
     QUARTERS_RIGHT,
@@ -22,7 +22,7 @@ typedef enum _layout
     SINGLE
 } Layout;
 
-typedef struct _mtop_settings
+typedef struct
 {
     // only 3 active windows are possible, but I'm indexing with enum value
     // so I have to account for the container window. 
@@ -33,7 +33,7 @@ typedef struct _mtop_settings
     LayoutOrientation orientation;
 } Settings;
 
-typedef struct _arenas 
+typedef struct
 {
     Arena *windowArena;
     Arena *cpuArena;

@@ -14,15 +14,16 @@
 #include "../../include/task.h"
 
 void run_ui(
-    DisplayItems *di,
+    UIData *ui,
     ThreadSafeQueue *taskQueue
 )
 {
-    const WindowData *cpuWin = di->windows[CPU_WIN];
-    const WindowData *memWin = di->windows[MEMORY_WIN];
-    const WindowData *prcWin = di->windows[PRC_WIN];
-    const WindowData *optWin = di->windows[OPT_WIN];
-    const WindowData *container = di->windows[CONTAINER_WIN];
+    const WindowData *cpuWin = ui->windows[CPU_WIN];
+    const WindowData *memWin = ui->windows[MEMORY_WIN];
+    const WindowData *prcWin = ui->windows[PRC_WIN];
+    const WindowData *optWin = ui->windows[OPT_WIN];
+    const WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    const WindowData *container = ui->windows[CONTAINER_WIN];
     
     import_colors();
 
@@ -33,7 +34,8 @@ void run_ui(
 	    cpuWin->window,
 	    memWin->window,
 	    prcWin->window,
-	    optWin->window
+	    optWin->window,
+	    statTypeWin->window
 	);
     }
 
@@ -55,7 +57,7 @@ void run_ui(
 	
 	while (task)
 	{
-	    task->action(di, task->data);
+	    task->action(ui, task->data);
 	    task = task->next;
 	}
 

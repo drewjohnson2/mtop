@@ -15,47 +15,58 @@ typedef enum _nav_direction
     JUMP_UP
 } NavDirection;
 
-typedef u16 (*compareFn)(WindowData *cmp, WindowData *cur);
-
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
-static mt_Window _get_selected_window(DisplayItems *di, compareFn cmp);
+static void _read_add_win_menu_input(UIData *ui, u8 ch);
 static u16 _compare_above(WindowData *cmp, WindowData *cur);
 static u16 _compare_below(WindowData *cmp, WindowData *cur);
 static u16 _compare_left(WindowData *cmp, WindowData *cur);
 static u16 _compare_right(WindowData *cmp, WindowData *cur);
 
-void read_arrange_input(DisplayItems *di)
+void read_arrange_input(UIData *ui)
 {
-    WindowData *container = di->windows[CONTAINER_WIN];
+    WindowData *container = ui->windows[CONTAINER_WIN];
     s8 ch = wgetch(container->window);
 
     flushinp();
 
+    if (ui->statTypesVisible)
+    {
+	_read_add_win_menu_input(ui, ch);
+	return;
+    }
+
     switch (ch)
     {
 	case 'q':
-	    di->mode = NORMAL;
-	    di->selectedWindow = 0;
+	    ui->mode = NORMAL;
+	    ui->selectedWindow = 0;
 	    
+	    if (ui->statTypesVisible) ui->statTypesVisible = 0;
 	    return;
 	case 'j':
-	    di->selectedWindow = _get_selected_window(di, _compare_below);
+	    ui->selectedWindow = get_selected_window(ui, _compare_below);
 
 	    return;
 	case 'k':
-	    di->selectedWindow = _get_selected_window(di, _compare_above);
+	    ui->selectedWindow = get_selected_window(ui, _compare_above);
 
 	    return;
 	case 'l':
-	    di->selectedWindow = _get_selected_window(di, _compare_right);
+	    ui->selectedWindow = get_selected_window(ui, _compare_right);
 
 	    return;
 	case 'h':
-	    di->selectedWindow = _get_selected_window(di, _compare_left);
+	    ui->selectedWindow = get_selected_window(ui, _compare_left);
 
 	    return;
 	case 'd':
-	    remove_win(di, di->selectedWindow);
+	    remove_win(ui, ui->selectedWindow);
+
+	    return;
+	case 'a':
+	    ui->statTypesVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
+
+	    init_menu_idx(ui->items);
 
 	    return;
 	default:
@@ -70,7 +81,7 @@ void read_arrange_input(DisplayItems *di)
 void read_normal_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di
+    UIData *ui
 )
 {
     s8 ch = wgetch(win);
@@ -101,8 +112,8 @@ void read_normal_input(
 
     if (ch == ('a' & 0x1F)) // ctrl+a
     {
-	di->mode = ARRANGE;
-	di->selectedWindow = di->windowOrder[0];
+	ui->mode = ARRANGE;
+	ui->selectedWindow = ui->windowOrder[0];
 	return;
     }
     
@@ -169,7 +180,7 @@ void read_normal_input(
 
 	    return;
 	case 'o':
-	    di->optionsVisible = !di->optionsVisible;
+	    ui->optionsVisible = !ui->optionsVisible;
 	    
 	    return;
 	case 'b':
@@ -271,37 +282,33 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);
 }
 
-static mt_Window _get_selected_window(DisplayItems *di, compareFn cmp)
+static void _read_add_win_menu_input(UIData *ui, u8 ch)
 {
-    mt_Window windows[3] = { CPU_WIN, MEMORY_WIN, PRC_WIN };
-    mt_Window current = di->selectedWindow;
-    mt_Window selectedWindow = current;
-    WindowData *cur = di->windows[current];
-
-    s32 best = 10000000;
-
-    for (size_t i = 0; i < 3; i++)
+    switch (ch)
     {
-	WindowData *win = di->windows[windows[i]];
+	case 'j':
+	    toggle_add_win_opts(ui->items);
 
-	if (win == cur || win == NULL) continue;
+	    break;
+	case 'a':
+	    ui->statTypesVisible = 0;
 
-	if (cmp(win, cur) && win->active)
-	{
-	    int dx = win->windowX - cur->windowX;
-	    int dy = win->windowY - cur->windowY;
+	    reset_menu_idx(ui->items);
+	    
+	    break;
+	case 10:
+	    mt_Window winToAdd = get_add_menu_selection(ui->items);
 
-	    s32 distance = dx * dx + dy * dy;
+	    if (winToAdd == WINDOW_ID_MAX) return;
 
-	    if (distance < best)
-	    {
-		selectedWindow = windows[i];
-		best = distance;
-	    }
-	}
+	    add_win(ui, winToAdd);
+
+	    ui->statTypesVisible = 0;
+
+	    break;
+	default:
+	    break;
     }
-
-    return selectedWindow;
 }
 
 static u16 _compare_above(WindowData *cmp, WindowData *cur)
