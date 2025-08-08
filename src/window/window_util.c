@@ -387,24 +387,23 @@ mt_Window get_selected_window(UIData *ui, compareFn cmp)
 
     s32 best = S32_MAX;
 
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
 	WindowData *win = ui->windows[windows[i]];
 
 	if (win == cur || win == NULL) continue;
+	else if (!(cmp(win, cur) && win->active)) continue;
 
-	if (cmp(win, cur) && win->active)
+	s16 dx = abs(win->windowX - cur->windowX);
+	s16 dy = abs(win->windowY - cur->windowY);
+	s16 dh = win->wHeight - cur->wHeight;
+	s16 dw = win->wWidth - cur->wWidth;
+	s32 distance = dx + dy + dh + dw;
+
+	if (distance < best)
 	{
-	    int dx = win->windowX - cur->windowX;
-	    int dy = win->windowY - cur->windowY;
-
-	    s32 distance = dx * dx + dy * dy;
-
-	    if (distance < best)
-	    {
-		selectedWindow = windows[i];
-		best = distance;
-	    }
+	    selectedWindow = windows[i];
+	    best = distance;
 	}
     }
 

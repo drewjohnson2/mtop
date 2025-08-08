@@ -11,6 +11,9 @@
 #include "../../include/startup.h"
 #include "../../include/text.h"
 
+#define MIN_UTIL_WIN_WIDTH 55
+#define MIN_UTIL_WIN_HEIGHT 17
+
 #define FULL_WIDTH(container) ((container)->wWidth - 2)
 #define HALF_WIDTH(container) ((FULL_WIDTH(container)) / 2)
 
@@ -286,22 +289,11 @@ static void _setup_util_win(
     win->wWidth = width;
     win->wHeight = height;
 
-    if (win->wHeight < 16 && enforceMinH) win->wHeight = 17;
-    if (win->wWidth < 50 && enforceMinW) win->wWidth = 55;
+    if (win->wHeight < MIN_UTIL_WIN_HEIGHT && enforceMinH) win->wHeight = MIN_UTIL_WIN_HEIGHT;
+    if (win->wWidth < MIN_UTIL_WIN_WIDTH && enforceMinW) win->wWidth = MIN_UTIL_WIN_WIDTH;
 
     win->windowX = (container->wWidth / 2) - (win->wWidth / 2);
     win->windowY = (container->wHeight / 2) - (win->wHeight / 2);
-}
-
-static void _setup_stat_type_win(WindowData *container, WindowData *statTypeWin)
-{
-    statTypeWin->wWidth = container->wWidth / 4;
-    statTypeWin->wHeight = 5;
-
-    if (statTypeWin->wWidth < 50) statTypeWin->wWidth = 55;
-
-    statTypeWin->windowX = (container->wWidth / 2) - (statTypeWin->wWidth / 2);
-    statTypeWin->windowY = (container->wHeight / 2) - (statTypeWin->wHeight / 2);
 }
 
 static void _setup_quarters_left(
