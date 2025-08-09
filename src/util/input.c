@@ -180,6 +180,7 @@ void read_normal_input(
 
 	    return;
 	case 'o':
+	    if (!mtopSettings->activeWindows[PRC_WIN]) return;
 	    ui->optionsVisible = !ui->optionsVisible;
 	    
 	    return;

@@ -145,6 +145,12 @@ void refresh_action_fn(UIData *ui, void *ctx)
 	wnoutrefresh(statTypeWin->window);
     }
 
+    // this is literally just so the compiler won't
+    // complain. I know it kinda defeats the purpose
+    // of some of the compiler flags, but this task
+    // really didn't need any context data.
+    context++;
+
     wnoutrefresh(container->window);
     doupdate();
 }

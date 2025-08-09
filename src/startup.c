@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include <getopt.h>
 #include <unistd.h>
 #include <ncurses.h>
@@ -220,12 +218,9 @@ void run(int argc, char **argv)
     pthread_t ioThread;
     pthread_t uiThread;
 
-    // setup
     mutex_init();
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
     pthread_create(&uiThread, NULL, _ui_thread_run, (void *)&uiArgs);
-
-    // tear down
     pthread_join(ioThread, NULL);
     pthread_join(uiThread, NULL);
     mutex_destroy();

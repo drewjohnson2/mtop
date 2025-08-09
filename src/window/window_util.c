@@ -272,6 +272,7 @@ void remove_win(UIData *ui, mt_Window winToRemove)
 
     ui->selectedWindow = ui->windowOrder[0];
 
+    wclear(ui->windows[CONTAINER_WIN]->window);
     init_window_dimens(ui);
     _reinit_window(ui); 
 }
@@ -302,6 +303,7 @@ void add_win(UIData *ui, mt_Window winToAdd)
 
     ui->windows[winToAdd]->active = 1;
 
+    wclear(ui->windows[CONTAINER_WIN]->window);
     init_window_dimens(ui);
     _reinit_window(ui);
 }
@@ -396,9 +398,8 @@ mt_Window get_selected_window(UIData *ui, compareFn cmp)
 
 	s16 dx = abs(win->windowX - cur->windowX);
 	s16 dy = abs(win->windowY - cur->windowY);
-	s16 dh = win->wHeight - cur->wHeight;
-	s16 dw = win->wWidth - cur->wWidth;
-	s32 distance = dx + dy + dh + dw;
+
+	s32 distance = dx + dy;
 
 	if (distance < best)
 	{
