@@ -29,6 +29,14 @@
 #define UTIL_W_DEFAULT(container) container->wWidth / 4
 #define UTIL_H_DEFAULT(container) container->wHeight / 4
 
+typedef void (*LayoutHandler)(UIData *ui);
+
+static void _setup_quarters_left(UIData *ui);
+static void _setup_quarters_right(UIData *ui);
+static void _setup_quarters_top(UIData *ui);
+static void _setup_quarters_bottom(UIData *ui);
+static void _setup_duo(UIData *ui);
+static void _setup_single(UIData *ui);
 static void _setup_util_win(
     WindowData *container, 
     WindowData *win,
@@ -37,51 +45,15 @@ static void _setup_util_win(
     u8 enforceMinH,
     u8 enforceMinW
 );
-static void _setup_quarters_left(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-);
-static void _setup_quarters_right(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-);
-static void _setup_quarters_top(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-);
-static void _setup_quarters_bottom(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-);
-static void _setup_duo(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven,
-    const LayoutOrientation orientation
-);
+
+LayoutHandler layout_fn_table[] = {
+    _setup_quarters_left,
+    _setup_quarters_right,
+    _setup_quarters_top,
+    _setup_quarters_bottom,
+    _setup_duo,
+    _setup_single
+};
 
 UIData * init_display_items(Arena *arena) 
 {
@@ -146,101 +118,20 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
 // need to fix full screen duo vertical. It's all messed up for some reason.
 void init_window_dimens(UIData *ui)
 {
-    const LayoutOrientation orientation = mtopSettings->orientation;    
     const Layout layout = mtopSettings->layout;
     const u8 winCount = mtopSettings->activeWindowCount;
     WindowData *container = ui->windows[CONTAINER_WIN];
-    WindowData *winOne = ui->windows[ui->windowOrder[0]];
-    WindowData *winTwo = winCount >= 2 ? ui->windows[ui->windowOrder[1]] : NULL;
-    WindowData *winThree = winCount == 3 ? ui->windows[ui->windowOrder[2]] : NULL;
     WindowData *optWin = ui->windows[OPT_WIN];
     WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
-    const u8 widthEven = container->wWidth % 2 == 0;
-    const u8 heightEven = container->wHeight % 2 == 0;
 
-    winOne->active = 1;
-    if (winTwo) winTwo->active = 1;
-    if (winThree) winThree->active = 1;
+    ui->windows[ui->windowOrder[0]]->active = 1;
+    if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = 1;
+    if (winCount == 3) ui->windows[ui->windowOrder[2]]->active = 1;
 
     container->windowX = 0;
     container->windowY = 0;
 
-    // I don't like this. This is really stupid.
-    // Find a better way
-    switch (layout) 
-    {
-	case QUARTERS_LEFT:
-	    _setup_quarters_left(
-		container,
-		winOne,
-		winTwo,
-		winThree,
-		ui,
-		widthEven,
-		heightEven
-	    );	   
-
-	    break;
-	case QUARTERS_RIGHT:
-	    _setup_quarters_right(
-		container,
-		winOne,
-		winTwo,
-		winThree,
-		ui,
-		widthEven,
-		heightEven
-	    );
-	    
-	    break;
-	case QUARTERS_TOP: 
-	    _setup_quarters_top(
-		container,
-		winOne,
-		winTwo,
-		winThree,
-		ui,
-		widthEven,
-		heightEven
-	    );
-
-	    break;
-	case QUARTERS_BOTTOM:
-	    _setup_quarters_bottom(
-		container,
-		winOne,
-		winTwo,
-		winThree,
-		ui,
-		widthEven,
-		heightEven
-	    );
-
-	    break;
-	case DUO:
-	    _setup_duo(
-		container,
-		winOne,
-		winTwo,
-		ui,
-		widthEven,
-		heightEven,
-		orientation
-	    );
-
-	    break;
-
-	case SINGLE:
-	    winOne->wWidth = FULL_WIDTH(container);
-	    winOne->wHeight = FULL_HEIGHT(container);
-	    winOne->windowX = POS_X_START;
-	    winOne->windowY = POS_Y_START;
-	    winOne->windowTitle = text(ui->windowOrder[0] + 19);
-
-	    break;
-	default:
-	    exit(0);
-    }
+    layout_fn_table[layout](ui);
 
     _setup_util_win(container, optWin, UTIL_H_DEFAULT(container), UTIL_W_DEFAULT(container), 1, 1);
     _setup_util_win(container, statTypeWin, STAT_WIN_COUNT + 2, UTIL_W_DEFAULT(container), 0, 1);
@@ -296,16 +187,15 @@ static void _setup_util_win(
     win->windowY = (container->wHeight / 2) - (win->wHeight / 2);
 }
 
-static void _setup_quarters_left(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-)
+static void _setup_quarters_left(UIData *ui)
 {
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *winOne = ui->windows[ui->windowOrder[0]];
+    WindowData *winTwo = ui->windows[ui->windowOrder[1]];
+    WindowData *winThree = ui->windows[ui->windowOrder[2]];
+    const u8 widthEven = container->wWidth % 2 == 0;
+    const u8 heightEven = container->wHeight % 2 == 0;
+
     winOne->wWidth = HALF_WIDTH(container);
     winOne->wHeight = HALF_HEIGHT(container);
     winOne->windowX = POS_X_START;
@@ -329,16 +219,15 @@ static void _setup_quarters_left(
     winThree->windowTitle = text(ui->windowOrder[2] + 19);
 }
 
-static void _setup_quarters_right(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-)
+static void _setup_quarters_right(UIData *ui)
 {
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *winOne = ui->windows[ui->windowOrder[0]];
+    WindowData *winTwo = ui->windows[ui->windowOrder[1]];
+    WindowData *winThree = ui->windows[ui->windowOrder[2]];
+    const u8 widthEven = container->wWidth % 2 == 0;
+    const u8 heightEven = container->wHeight % 2 == 0;
+
     winOne->wWidth = widthEven ?
         HALF_WIDTH(container) :
         HALF_WIDTH(container) + 1;
@@ -362,16 +251,15 @@ static void _setup_quarters_right(
     winThree->windowTitle = text(ui->windowOrder[2] + 19);
 }
 
-static void _setup_quarters_top(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-)
+static void _setup_quarters_top(UIData *ui)
 {
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *winOne = ui->windows[ui->windowOrder[0]];
+    WindowData *winTwo = ui->windows[ui->windowOrder[1]];
+    WindowData *winThree = ui->windows[ui->windowOrder[2]];
+    const u8 widthEven = container->wWidth % 2 == 0;
+    const u8 heightEven = container->wHeight % 2 == 0;
+
     winOne->wWidth = HALF_WIDTH(container);
     winOne->wHeight = HALF_HEIGHT(container);
     winOne->windowX = POS_X_START;
@@ -395,16 +283,15 @@ static void _setup_quarters_top(
     winThree->windowTitle = text(ui->windowOrder[2] + 19);
 }
 
-static void _setup_quarters_bottom(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    WindowData *winThree,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven
-)
+static void _setup_quarters_bottom(UIData *ui)
 {
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *winOne = ui->windows[ui->windowOrder[0]];
+    WindowData *winTwo = ui->windows[ui->windowOrder[1]];
+    WindowData *winThree = ui->windows[ui->windowOrder[2]];
+    const u8 widthEven = container->wWidth % 2 == 0;
+    const u8 heightEven = container->wHeight % 2 == 0;
+
     winOne->wWidth = FULL_WIDTH(container);
     winOne->wHeight = heightEven ?
         HALF_HEIGHT(container) :
@@ -428,16 +315,14 @@ static void _setup_quarters_bottom(
     winThree->windowTitle = text(ui->windowOrder[2] + 19);
 }
 
-static void _setup_duo(
-    WindowData *container,
-    WindowData *winOne,
-    WindowData *winTwo,
-    UIData *ui,
-    const u8 widthEven,
-    const u8 heightEven,
-    const LayoutOrientation orientation
-)
+static void _setup_duo(UIData *ui)
 {
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *winOne = ui->windows[ui->windowOrder[0]];
+    WindowData *winTwo = ui->windows[ui->windowOrder[1]];
+    const u8 widthEven = container->wWidth % 2 == 0;
+    const u8 heightEven = container->wHeight % 2 == 0;
+    LayoutOrientation orientation = mtopSettings->orientation;
     u8 isHzl = orientation == HORIZONTAL;
     u8 widthOne = isHzl ? FULL_WIDTH(container) : HALF_WIDTH(container);
     u8 widthTwo = isHzl ? FULL_WIDTH(container) : HALF_WIDTH(container);
@@ -458,4 +343,16 @@ static void _setup_duo(
     winTwo->windowX = isHzl ? POS_X_START : POS_X_END(container, winTwo);
     winTwo->windowY = isHzl ? POS_Y_BOTTOM(container, winTwo) : POS_Y_START;
     winTwo->windowTitle = text(ui->windowOrder[1] + 19);
+}
+
+static void _setup_single(UIData *ui)
+{
+    WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *window = ui->windows[ui->windowOrder[0]];
+
+    window->wWidth = FULL_WIDTH(container);
+    window->wHeight = FULL_HEIGHT(container);
+    window->windowX = POS_X_START;
+    window->windowY = POS_Y_START;
+    window->windowTitle = text(ui->windowOrder[0] + 19);
 }
