@@ -29,7 +29,7 @@ void read_arrange_input(UIData *ui)
 
     flushinp();
 
-    if (ui->statTypesVisible) 
+    if (ui->statTypesVisible)
     {
 	_read_add_win_menu_input(ui, ch);
 	return;
