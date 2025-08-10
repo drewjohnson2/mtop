@@ -35,7 +35,7 @@ void mutex_destroy();
 //
 //
 void run_ui(
-    DisplayItems *di,
+    UIData *ui,
     ThreadSafeQueue *taskQueue
 );
 

@@ -12,7 +12,7 @@ typedef struct _queue_node
     struct _queue_node *next;
 } QueueNode;
 
-typedef struct _shared_queue
+typedef struct
 {
     QueueNode *head, *tail;
     size_t size;

@@ -11,6 +11,7 @@
 #include "mt_colors.h"
 
 #define INPUT_TIMEOUT_MS 575
+#define STAT_WIN_COUNT 3
 
 #define REFRESH_WIN(win) 	\
     do { 			\
@@ -37,13 +38,20 @@ typedef enum _mt_window
 #undef DEFINE_WINDOWS
 } mt_Window;
 
-typedef enum _window_mode
+typedef enum 
 {
     NORMAL,
     ARRANGE
 } WindowMode;
 
-typedef struct _window_data
+typedef struct
+{
+    const char *displayString;
+    mt_Window windowType;
+    u8 isSelected;
+} AddWindowMenuItem;
+
+typedef struct
 {
     WINDOW *window;
     u16 wHeight, wWidth;
@@ -52,15 +60,16 @@ typedef struct _window_data
     const char *windowTitle;
 } WindowData;
 
-typedef struct _display_items
+typedef struct
 {
-    size_t windowCount;
     u8 optionsVisible;
+    u8 statTypesVisible;
     WindowData **windows;
     mt_Window windowOrder[3]; 
     WindowMode mode;
     mt_Window selectedWindow;
-} DisplayItems;
+    AddWindowMenuItem **items;
+} UIData;
 
 typedef struct _graph_point
 {
@@ -68,13 +77,13 @@ typedef struct _graph_point
     struct _graph_point *next;
 } GraphPoint;
 
-typedef struct _graph_data 
+typedef struct
 {
     size_t graphPointCount;
     GraphPoint *head;
 } GraphData;
 
-typedef struct _stats_view_data 
+typedef struct
 {
     float cpuPercentage;
     float memPercentage;
@@ -96,7 +105,7 @@ typedef struct _stats_view_data
 
 } ProcessStatsViewData;
 
-typedef struct _process_list_state
+typedef struct
 {
     s8 selectedIndex;
     s8 pageStartIdx;
@@ -115,30 +124,18 @@ typedef struct _process_list_state
     int (*sortFn)(const void *a, const void *b);
 } ProcessListState;
 
+typedef u16 (*compareFn)(WindowData *cmp, WindowData *cur);
+
 extern u8 RESIZE;
 
 //
 //		window_setup.c
 //
 //
-DisplayItems * init_display_items(Arena *arena);
-void init_windows(DisplayItems *di);
-void init_window_dimens(DisplayItems *di);
+UIData * init_display_items(Arena *arena);
+void init_windows(UIData *ui);
+void init_window_dimens(UIData *ui);
 void init_ncurses(WindowData *wd, SCREEN *screen);
-void print_header(const WindowData *wd);
-void print_time(const WindowData *wd);
-void print_uptime_ldAvg(const WindowData *wd);
-void print_footer(const WindowData *wd);
-void display_options(DisplayItems *di);
-void set_bg_colors(
-    WINDOW *container,
-    WINDOW *cpuWin,
-    WINDOW *memWin,
-    WINDOW *prcWin,
-    WINDOW *optWin
-);
-void resize_win(DisplayItems *di);
-void remove_win(DisplayItems *di, mt_Window winToRemove);
 
 //
 //		graph.c
@@ -183,8 +180,36 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
 void read_normal_input(
     WINDOW *win,
     ProcessListState *state,
-    DisplayItems *di
+    UIData *ui
 );
-void read_arrange_input(DisplayItems *di);
+void read_arrange_input(UIData *ui);
+
+//
+//		window_util.c
+//
+//
+void init_stat_menu_items(AddWindowMenuItem **items);
+void print_header(const WindowData *wd);
+void print_time(const WindowData *wd);
+void print_uptime_ldAvg(const WindowData *wd);
+void print_footer(const WindowData *wd);
+void display_options(UIData *ui);
+void display_stat_types(UIData *ui);
+void set_bg_colors(
+    WINDOW *container,
+    WINDOW *cpuWin,
+    WINDOW *memWin,
+    WINDOW *prcWin,
+    WINDOW *optWin,
+    WINDOW *statTypeWin
+);
+void resize_win(UIData *ui);
+void remove_win(UIData *ui, mt_Window winToRemove);
+void add_win(UIData *ui, mt_Window winToAdd);
+void init_menu_idx(AddWindowMenuItem **items);
+void reset_menu_idx(AddWindowMenuItem **items);
+void toggle_add_win_opts(AddWindowMenuItem **items);
+mt_Window get_selected_window(UIData *ui, compareFn cmp);
+mt_Window get_add_menu_selection(AddWindowMenuItem **items);
 
 #endif

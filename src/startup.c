@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include <getopt.h>
 #include <unistd.h>
 #include <ncurses.h>
@@ -29,7 +27,7 @@
 
 typedef struct _ui_thread_args
 {
-    DisplayItems *di;
+    UIData *ui;
     ThreadSafeQueue *taskQueue;
 } UIThreadArgs;
 
@@ -51,7 +49,7 @@ Arena cpuPointArena;
 Arena memPointArena;
 Arena general;
 Arena stateArena;
-DisplayItems *di;
+UIData *ui;
 ThreadSafeQueue *taskQueue;
 mtopArenas *arenas;
 volatile Settings *mtopSettings;
@@ -86,10 +84,10 @@ void run(int argc, char **argv)
     stateArena = a_new(STATE_A_SZ);
     general = a_new(GENERAL_A_SZ);
     
-    di = init_display_items(&windowArena);
+    ui = init_display_items(&windowArena);
     arenas = a_alloc(&general, sizeof(mtopArenas), __alignof(mtopArenas));
 
-    di->mode = NORMAL;
+    ui->mode = NORMAL;
 
     arenas->general = &general;
     arenas->cpuArena = &cpuArena;
@@ -137,15 +135,15 @@ void run(int argc, char **argv)
     	        break;
 	    case 'c':
 		mtopSettings->activeWindows[CPU_WIN] = 1;
-		_set_window_in_order(di->windowOrder, CPU_WIN);
+		_set_window_in_order(ui->windowOrder, CPU_WIN);
 		break;
 	    case 'm':
 		mtopSettings->activeWindows[MEMORY_WIN] = 1;
-		_set_window_in_order(di->windowOrder, MEMORY_WIN);
+		_set_window_in_order(ui->windowOrder, MEMORY_WIN);
 		break;
 	    case 'p':
 		mtopSettings->activeWindows[PRC_WIN] = 1;
-		_set_window_in_order(di->windowOrder, PRC_WIN);
+		_set_window_in_order(ui->windowOrder, PRC_WIN);
 		break;
 	    case 'h':
 		mtopSettings->orientation = HORIZONTAL;
@@ -179,16 +177,16 @@ void run(int argc, char **argv)
     }
 
     if (
-	di->windowOrder[0] == WINDOW_ID_MAX && 
-	di->windowOrder[1] == WINDOW_ID_MAX && 
-	di->windowOrder[2] == WINDOW_ID_MAX
+	ui->windowOrder[0] == WINDOW_ID_MAX && 
+	ui->windowOrder[1] == WINDOW_ID_MAX && 
+	ui->windowOrder[2] == WINDOW_ID_MAX
     )
     {
 	mtopSettings->activeWindowCount = 3;
 
-	di->windowOrder[0] = CPU_WIN;
-	di->windowOrder[1] = MEMORY_WIN;
-	di->windowOrder[2] = PRC_WIN;
+	ui->windowOrder[0] = CPU_WIN;
+	ui->windowOrder[1] = MEMORY_WIN;
+	ui->windowOrder[2] = PRC_WIN;
 
 	mtopSettings->activeWindows[CPU_WIN] = 1;
 	mtopSettings->activeWindows[MEMORY_WIN] = 1;
@@ -199,13 +197,14 @@ void run(int argc, char **argv)
     else if (mtopSettings->activeWindowCount == 1) mtopSettings->layout = SINGLE;
 
     signal(SIGWINCH, _handle_resize);
-    init_ncurses(di->windows[CONTAINER_WIN], screen);
-    init_window_dimens(di);
-    init_windows(di);
+    init_ncurses(ui->windows[CONTAINER_WIN], screen);
+    init_window_dimens(ui);
+    init_windows(ui);
+    init_stat_menu_items(ui->items);
     
     UIThreadArgs uiArgs = 
     {
-    	.di = di,
+    	.ui = ui,
     	.taskQueue = taskQueue,
     };
     
@@ -213,18 +212,15 @@ void run(int argc, char **argv)
     {
 	.arenas = arenas,
     	.taskQueue = taskQueue,
-	.windows = di->windows
+	.windows = ui->windows
     };
     
     pthread_t ioThread;
     pthread_t uiThread;
 
-    // setup
     mutex_init();
     pthread_create(&ioThread, NULL, _io_thread_run, (void *)&ioArgs);
     pthread_create(&uiThread, NULL, _ui_thread_run, (void *)&uiArgs);
-
-    // tear down
     pthread_join(ioThread, NULL);
     pthread_join(uiThread, NULL);
     mutex_destroy();
@@ -265,7 +261,7 @@ static void * _ui_thread_run(void *arg)
     UIThreadArgs *args = (UIThreadArgs *)arg;
     
     run_ui(
-    	args->di,
+    	args->ui,
     	args->taskQueue
     );
     

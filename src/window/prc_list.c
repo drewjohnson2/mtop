@@ -11,8 +11,8 @@
 #include "../../include/mt_colors.h"
 #include "../../include/monitor.h"
 #include "../../include/sorting.h"
-#include "../../include/static_text.h"
 #include "../../include/startup.h"
+#include "../../include/text.h"
 
 #define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 		\
     do {							\
@@ -48,10 +48,10 @@ void print_stats(
 {
     if (vd == NULL || !mtopSettings->activeWindows[PRC_WIN]) return;
         
-    const char *commandTitle = _text[24];
-    const char *pidTitle = _text[25];
-    const char *cpuTitle = _text[26];
-    const char *memTitle = _text[27];
+    const char *commandTitle = text(TXT_COMMAND);
+    const char *pidTitle = text(TXT_PID);
+    const char *cpuTitle = text(TXT_CPU);
+    const char *memTitle = text(TXT_MEM);
     const u8 dataOffsetY = 4;
     const u16 dataOffsetX = 2;
     const u16 prcTblHeaderY = 2;
@@ -142,6 +142,7 @@ void print_stats(
     	{
 	    pair = MT_PAIR_PRC_SEL_TEXT;
 
+	    // TODO: using y as a value here is confusing.
 	    for (size_t y = dataOffsetX; y < (size_t)(wd->wWidth - dataOffsetX); y++)
 		PRINTFC(win, posY, y, "%c", ' ', pair);
     	}
@@ -239,7 +240,7 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     snprintf(
 	prcInfoHeader,
 	sizeof(prcInfoHeader),
-	_text[38],
+	text(TXT_PRC_STAT_FMT),
 	vd->pid,
 	vd->command
     );
@@ -256,30 +257,30 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     posY++;
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", _text[40], MT_PAIR_PRC_STAT_NM);
+    PRINTFC(wd->window, posY, posX, "%s", text(TXT_CPU_PCT_COL), MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
     PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->cpuPercentage,
 	    MT_PAIR_PRC_STAT_VAL);
 
     wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", _text[41], MT_PAIR_PRC_STAT_NM);
+    PRINTFC(wd->window, posY, posX, "%s", text(TXT_MEM_PCT_COL), MT_PAIR_PRC_STAT_NM);
     wattroff(wd->window, A_BOLD);
     PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->memPercentage,
 	    MT_PAIR_PRC_STAT_VAL);
 
     wattron(wd->window, A_BOLD);
 
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[42], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[43], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[44], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[45], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[46], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[47], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[48], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[49], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[50], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[51], MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", _text[52], MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_STATE), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_THREADS), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_PPID), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMRSS), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSIZE), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMLOCK), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMDATA), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSTACK), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSWAP), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMEXE), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMLIB), MT_PAIR_PRC_STAT_NM);
 
     wattroff(wd->window, A_BOLD);
 
@@ -296,8 +297,8 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSwap, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
     PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmExe, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
     PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLib, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", _text[36], MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", _text[37], MT_PAIR_CTRL_TXT);
+    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", text(TXT_RET_LIST_CTRL), MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", text(TXT_RET_LIST), MT_PAIR_CTRL_TXT);
     SET_COLOR(wd->window, boxPair);
 
     box(wd->window, 0, 0);

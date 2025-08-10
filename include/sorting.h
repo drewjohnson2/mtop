@@ -3,13 +3,13 @@
 
 #define EPSILON 1e-9
 
-typedef enum _sort_dir 
+typedef enum
 {
     ASC,
     DESC
 } SortDirection;
 
-typedef enum _sort_order
+typedef enum
 {
     CPU,
     MEM,

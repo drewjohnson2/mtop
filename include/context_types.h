@@ -4,21 +4,21 @@
 #include "monitor.h"
 #include "window.h"
 
-typedef struct _cpu_data_context 
+typedef struct 
 {
     float cpuPercentage;
     GraphData *graphData;
     Arena *arena;
 } CpuDataContext;
 
-typedef struct _mem_data_context
+typedef struct 
 {
     float memPercentage;
     GraphData *graphData;
     Arena *arena;
 } MemoryDataContext;
 
-typedef struct _prc_context
+typedef struct 
 {
     u64 memTotal;
     ProcessesSummary *prevPrcs;
@@ -26,12 +26,12 @@ typedef struct _prc_context
     ProcessListState *listState;
 } ProcessesContext;
 
-typedef struct _input_context
+typedef struct 
 {
     ProcessListState *listState;
 } InputContext;
 
-typedef struct _resize_context
+typedef struct
 {
     ProcessListState *listState;
     ProcessesSummary *curPrcs;

@@ -9,12 +9,12 @@
 
 typedef struct _ui_task
 {
-    void (*action)(DisplayItems *di, void *ctx);
+    void (*action)(UIData *ui, void *ctx);
     void *data;
     struct _ui_task *next;
 } UITask;
 
-typedef struct _task_group
+typedef struct
 {
     Arena a;
     UITask *head;
@@ -49,12 +49,12 @@ UITask * build_refresh_task(Arena *taskArena);
     task_functions.c
 
 */
-void cpu_action_fn(DisplayItems *di, void *ctx);
-void mem_action_fn(DisplayItems *di, void *ctx);
-void process_action_fn(DisplayItems *di, void *ctx);
-void input_action_fn(DisplayItems *di, void *ctx);
-void resize_action_fn(DisplayItems *di, void *ctx);
-void refresh_action_fn(DisplayItems *di, void *ctx);
+void cpu_action_fn(UIData *ui, void *ctx);
+void mem_action_fn(UIData *ui, void *ctx);
+void process_action_fn(UIData *ui, void *ctx);
+void input_action_fn(UIData *ui, void *ctx);
+void resize_action_fn(UIData *ui, void *ctx);
+void refresh_action_fn(UIData *ui, void *ctx);
 void tg_cleanup(Arena *a);
 
 #endif

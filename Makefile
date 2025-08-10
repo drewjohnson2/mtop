@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -MMD -MP
+CFLAGS = -Wall -Wextra -MMD -MP -std=c23 -D_GNU_SOURCE
 LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
 
 SRC_DIRS = src src/window src/monitor src/thread src/util src/colors src/task
