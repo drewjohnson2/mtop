@@ -380,7 +380,7 @@ mt_Window get_add_menu_selection(AddWindowMenuItem **items)
     return WINDOW_ID_MAX;
 }
 
-mt_Window get_selected_window(UIData *ui, compareFn cmp)
+mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp)
 {
     mt_Window windows[3] = { CPU_WIN, MEMORY_WIN, PRC_WIN };
     mt_Window current = ui->selectedWindow;
@@ -398,7 +398,6 @@ mt_Window get_selected_window(UIData *ui, compareFn cmp)
 
 	s16 dx = abs(win->windowX - cur->windowX);
 	s16 dy = abs(win->windowY - cur->windowY);
-
 	s32 distance = dx + dy;
 
 	if (distance < best)
@@ -411,7 +410,29 @@ mt_Window get_selected_window(UIData *ui, compareFn cmp)
     return selectedWindow;
 }
 
-static void _reinit_window(UIData * ui)
+void swap_windows(UIData *ui, mt_Window windowToSwap)
+{
+    mt_Window current = ui->selectedWindow;
+    s8 idxCurrent = -1;
+    s8 idxSwap = -1;
+
+    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
+    {
+	if (ui->windowOrder[i] == current) idxCurrent = i;
+	else if (ui->windowOrder[i] == windowToSwap) idxSwap = i;
+    }
+
+    if (idxCurrent == -1 || idxSwap == -1) return;
+
+    mt_Window hold = ui->windowOrder[idxCurrent];
+    ui->windowOrder[idxCurrent] = ui->windowOrder[idxSwap];
+    ui->windowOrder[idxSwap] = hold;
+
+    init_window_dimens(ui);
+    _reinit_window(ui);
+}
+
+static void _reinit_window(UIData *ui)
 {
     u8 winCount = mtopSettings->activeWindowCount;
     mt_Window winType = ui->windowOrder[0];

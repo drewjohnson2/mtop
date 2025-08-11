@@ -124,7 +124,7 @@ typedef struct
     int (*sortFn)(const void *a, const void *b);
 } ProcessListState;
 
-typedef u16 (*compareFn)(WindowData *cmp, WindowData *cur);
+typedef u8 (*WinPosComparisonFn)(WindowData *cmp, WindowData *cur);
 
 extern u8 RESIZE;
 
@@ -209,7 +209,8 @@ void add_win(UIData *ui, mt_Window winToAdd);
 void init_menu_idx(AddWindowMenuItem **items);
 void reset_menu_idx(AddWindowMenuItem **items);
 void toggle_add_win_opts(AddWindowMenuItem **items);
-mt_Window get_selected_window(UIData *ui, compareFn cmp);
+void swap_windows(UIData *ui, mt_Window windowToSwap);
+mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp);
 mt_Window get_add_menu_selection(AddWindowMenuItem **items);
 
 #endif
