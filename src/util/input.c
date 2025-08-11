@@ -17,10 +17,11 @@ typedef enum _nav_direction
 
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 static void _read_add_win_menu_input(UIData *ui, u8 ch);
-static u16 _compare_above(WindowData *cmp, WindowData *cur);
-static u16 _compare_below(WindowData *cmp, WindowData *cur);
-static u16 _compare_left(WindowData *cmp, WindowData *cur);
-static u16 _compare_right(WindowData *cmp, WindowData *cur);
+static void _swap_windows(UIData *ui, WinPosComparisonFn cmp);
+static u8 _compare_above(WindowData *cmp, WindowData *cur);
+static u8 _compare_below(WindowData *cmp, WindowData *cur);
+static u8 _compare_left(WindowData *cmp, WindowData *cur);
+static u8 _compare_right(WindowData *cmp, WindowData *cur);
 
 void read_arrange_input(UIData *ui)
 {
@@ -32,6 +33,31 @@ void read_arrange_input(UIData *ui)
     if (ui->statTypesVisible)
     {
 	_read_add_win_menu_input(ui, ch);
+	return;
+    }
+
+    if (ch == ('j' & 0x1F)) // ctrl+j
+    {
+	_swap_windows(ui, _compare_below);
+
+	return;
+    }
+    else if (ch == ('k' & 0x1F)) // ctrl+k
+    {
+	_swap_windows(ui, _compare_above);
+
+	return;
+    }
+    else if (ch == ('h' & 0x1F)) // ctrl+h
+    {
+	_swap_windows(ui, _compare_left);
+
+	return;
+    }
+    else if (ch == ('l' & 0x1F)) // ctrl+l
+    {
+	_swap_windows(ui, _compare_right);
+
 	return;
     }
 
@@ -312,22 +338,31 @@ static void _read_add_win_menu_input(UIData *ui, u8 ch)
     }
 }
 
-static u16 _compare_above(WindowData *cmp, WindowData *cur)
+static void _swap_windows(UIData *ui, WinPosComparisonFn cmp)
+{
+    mt_Window windowToSwap = get_selected_window(ui, cmp);
+    
+    if (ui->selectedWindow == windowToSwap) return;
+    
+    swap_windows(ui, windowToSwap);
+}
+
+static u8 _compare_above(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowY < cur->windowY;
 }
 
-static u16 _compare_below(WindowData *cmp, WindowData *cur)
+static u8 _compare_below(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowY > cur->windowY;
 }
 
-static u16 _compare_left(WindowData *cmp, WindowData *cur)
+static u8 _compare_left(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowX < cur->windowX;
 }
 
-static u16 _compare_right(WindowData *cmp, WindowData *cur)
+static u8 _compare_right(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowX > cur->windowX;
 }
