@@ -111,9 +111,9 @@ void run(int argc, char **argv)
     mtopSettings->orientation = HORIZONTAL;
     mtopSettings->layout = QUARTERS_BOTTOM;
     mtopSettings->activeWindowCount = 0;
-    mtopSettings->activeWindows[CPU_WIN] = 0;
-    mtopSettings->activeWindows[MEMORY_WIN] = 0;
-    mtopSettings->activeWindows[PRC_WIN] = 0;
+    mtopSettings->activeWindows[CPU_WIN] = false;
+    mtopSettings->activeWindows[MEMORY_WIN] = false;
+    mtopSettings->activeWindows[PRC_WIN] = false;
 
     static struct option long_options[] = 
     {
@@ -131,18 +131,18 @@ void run(int argc, char **argv)
 	switch (arg) 
     	{
     	    case 't':
-		mtopSettings->transparencyEnabled = 1;
+		mtopSettings->transparencyEnabled = true;
     	        break;
 	    case 'c':
-		mtopSettings->activeWindows[CPU_WIN] = 1;
+		mtopSettings->activeWindows[CPU_WIN] = true;
 		_set_window_in_order(ui->windowOrder, CPU_WIN);
 		break;
 	    case 'm':
-		mtopSettings->activeWindows[MEMORY_WIN] = 1;
+		mtopSettings->activeWindows[MEMORY_WIN] = true;
 		_set_window_in_order(ui->windowOrder, MEMORY_WIN);
 		break;
 	    case 'p':
-		mtopSettings->activeWindows[PRC_WIN] = 1;
+		mtopSettings->activeWindows[PRC_WIN] = true;
 		_set_window_in_order(ui->windowOrder, PRC_WIN);
 		break;
 	    case 'h':
@@ -188,9 +188,9 @@ void run(int argc, char **argv)
 	ui->windowOrder[1] = MEMORY_WIN;
 	ui->windowOrder[2] = PRC_WIN;
 
-	mtopSettings->activeWindows[CPU_WIN] = 1;
-	mtopSettings->activeWindows[MEMORY_WIN] = 1;
-	mtopSettings->activeWindows[PRC_WIN] = 1;
+	mtopSettings->activeWindows[CPU_WIN] = true;
+	mtopSettings->activeWindows[MEMORY_WIN] = true;
+	mtopSettings->activeWindows[PRC_WIN] = true;
     }
 
     if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
@@ -200,7 +200,6 @@ void run(int argc, char **argv)
     init_ncurses(ui->windows[CONTAINER_WIN], screen);
     init_window_dimens(ui);
     init_windows(ui);
-    init_stat_menu_items(ui->items);
     
     UIThreadArgs uiArgs = 
     {
@@ -299,5 +298,5 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
 // put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
-    if (sig == SIGWINCH) RESIZE = 1;
+    if (sig == SIGWINCH) RESIZE = true;
 }

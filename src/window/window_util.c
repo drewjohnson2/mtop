@@ -12,7 +12,7 @@
 
 static void _reinit_window(UIData * di);
 
-u8 RESIZE = 0;
+u8 RESIZE = false;
 
 void print_header(const WindowData *wd)
 {
@@ -192,7 +192,7 @@ void display_stat_types(UIData *ui)
 	AddWindowMenuItem *item = ui->items[i];
 	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
 
-	if (mtopSettings->activeWindows[item->windowType]) continue;
+	if (mtopSettings->activeWindows[item->returnValue.windowType]) continue;
 
 	if (item->isSelected)
 	{
@@ -243,7 +243,7 @@ void resize_win(UIData *ui)
 
     _reinit_window(ui);
     
-    RESIZE = 0;
+    RESIZE = false;
 }
 
 void remove_win(UIData *ui, mt_Window winToRemove)
@@ -251,9 +251,9 @@ void remove_win(UIData *ui, mt_Window winToRemove)
     if (mtopSettings->activeWindowCount == 1) return;
 
     mtopSettings->activeWindowCount--;
-    mtopSettings->activeWindows[winToRemove] = 0;
+    mtopSettings->activeWindows[winToRemove] = false;
 
-    ui->windows[winToRemove]->active = 0;
+    ui->windows[winToRemove]->active = false;
 
     size_t i, j = 0;
 
@@ -282,7 +282,7 @@ void add_win(UIData *ui, mt_Window winToAdd)
     if (mtopSettings->activeWindowCount == 3) return;
 
     u8 winCount = ++mtopSettings->activeWindowCount;
-    mtopSettings->activeWindows[winToAdd] = 1;
+    mtopSettings->activeWindows[winToAdd] = true;
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
@@ -301,7 +301,7 @@ void add_win(UIData *ui, mt_Window winToAdd)
 	    QUARTERS_LEFT;
     }
 
-    ui->windows[winToAdd]->active = 1;
+    ui->windows[winToAdd]->active = true;
 
     wclear(ui->windows[CONTAINER_WIN]->window);
     init_window_dimens(ui);
@@ -311,42 +311,42 @@ void add_win(UIData *ui, mt_Window winToAdd)
 void init_stat_menu_items(AddWindowMenuItem **items)
 {
     items[0]->displayString = text(TXT_CPU);
-    items[0]->windowType = CPU_WIN;
-    items[0]->isSelected = 0;
+    items[0]->returnValue.windowType = CPU_WIN;
+    items[0]->isSelected = false;
     items[1]->displayString = text(TXT_MEM);
-    items[1]->windowType = MEMORY_WIN;
-    items[1]->isSelected = 0;
+    items[1]->returnValue.windowType = MEMORY_WIN;
+    items[1]->isSelected = false;
     items[2]->displayString = text(TXT_PRC);
-    items[2]->windowType = PRC_WIN;
-    items[2]->isSelected = 0;
+    items[2]->returnValue.windowType = PRC_WIN;
+    items[2]->isSelected = false;
 }
 
-void init_menu_idx(AddWindowMenuItem **items)
+void init_menu_idx(AddWindowMenuItem **items, InitMenuIdxCondFn predicate, u8 itemCount)
 {
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
+    for (size_t i = 0; i < itemCount; i++)
     {
 	AddWindowMenuItem *item = items[i];
 
-	if (!mtopSettings->activeWindows[item->windowType])
+	if (predicate(item))
 	{
-	    item->isSelected = 1;
+	    item->isSelected = true;
 	    return;
 	}
     }
 }
 
-void reset_menu_idx(AddWindowMenuItem **items)
+void reset_menu_idx(AddWindowMenuItem **items, u8 itemCount)
 {
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++) items[i]->isSelected = 0;
+    for (size_t i = 0; i < itemCount; i++) items[i]->isSelected = false;
 }
 
-void toggle_add_win_opts(AddWindowMenuItem **items)
+void toggle_add_win_opts(AddWindowMenuItem **items, u8 winCount)
 {
     if (mtopSettings->activeWindowCount > 1) return;
     
     AddWindowMenuItem *selectedItem = NULL;
     
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
+    for (size_t i = 0; i < winCount; i++)
     {
         if (items[i]->isSelected)
         {
@@ -355,13 +355,13 @@ void toggle_add_win_opts(AddWindowMenuItem **items)
         }
     }
     
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
+    for (size_t i = 0; i < winCount; i++)
     {
         if (items[i] == selectedItem) continue;
-        else if (mtopSettings->activeWindows[items[i]->windowType]) continue;
+        else if (mtopSettings->activeWindows[items[i]->returnValue.windowType]) continue;
     
-        items[i]->isSelected = 1;
-        selectedItem->isSelected = 0;
+        items[i]->isSelected = true;
+        selectedItem->isSelected = false;
     }
 }
 
@@ -371,9 +371,9 @@ mt_Window get_add_menu_selection(AddWindowMenuItem **items)
     {
 	if (items[i]->isSelected)
 	{
-	    items[i]->isSelected = 0;
+	    items[i]->isSelected = false;
 
-	    return items[i]->windowType;
+	    return items[i]->returnValue.windowType;
 	}
     }
 

@@ -6,7 +6,7 @@
 void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
 {
     listState->cmdBuffer = '\0';
-    listState->timeoutActive = 0;
+    listState->timeoutActive = false;
     listState->selectedIndex = 0;
     listState->pageStartIdx = 0;
     listState->count = curPrcs->count;
@@ -24,7 +24,7 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
 
     listState->sortFn = vd_name_compare_fn;
     listState->sortOrder = PRC_NAME;
-    listState->infoVisible = 0;
+    listState->infoVisible = false;
 }
 
 void set_start_end_idx(ProcessListState *state) 

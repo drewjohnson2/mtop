@@ -9,6 +9,7 @@
 #include "monitor.h"
 #include "sorting.h"
 #include "mt_colors.h"
+#include "startup.h"
 
 #define INPUT_TIMEOUT_MS 575
 #define STAT_WIN_COUNT 3
@@ -47,7 +48,12 @@ typedef enum
 typedef struct
 {
     const char *displayString;
-    mt_Window windowType;
+    union 
+    {
+	mt_Window windowType;
+	Layout layout;
+	LayoutOrientation orientation;
+    } returnValue;
     u8 isSelected;
 } AddWindowMenuItem;
 
@@ -125,6 +131,7 @@ typedef struct
 } ProcessListState;
 
 typedef u8 (*WinPosComparisonFn)(WindowData *cmp, WindowData *cur);
+typedef u8 (*InitMenuIdxCondFn)(AddWindowMenuItem *item);
 
 extern u8 RESIZE;
 
@@ -206,9 +213,9 @@ void set_bg_colors(
 void resize_win(UIData *ui);
 void remove_win(UIData *ui, mt_Window winToRemove);
 void add_win(UIData *ui, mt_Window winToAdd);
-void init_menu_idx(AddWindowMenuItem **items);
-void reset_menu_idx(AddWindowMenuItem **items);
-void toggle_add_win_opts(AddWindowMenuItem **items);
+void init_menu_idx(AddWindowMenuItem **items, InitMenuIdxCondFn predicate, u8 itemCount);
+void reset_menu_idx(AddWindowMenuItem **items, u8 itemCount);
+void toggle_add_win_opts(AddWindowMenuItem **items, u8 itemCount);
 void swap_windows(UIData *ui, mt_Window windowToSwap);
 mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp);
 mt_Window get_add_menu_selection(AddWindowMenuItem **items);

@@ -22,6 +22,7 @@ static u8 _compare_above(WindowData *cmp, WindowData *cur);
 static u8 _compare_below(WindowData *cmp, WindowData *cur);
 static u8 _compare_left(WindowData *cmp, WindowData *cur);
 static u8 _compare_right(WindowData *cmp, WindowData *cur);
+static u8 _init_windowType_idx(AddWindowMenuItem *item);
 
 void read_arrange_input(UIData *ui)
 {
@@ -65,7 +66,7 @@ void read_arrange_input(UIData *ui)
     {
 	case 'q':
 	    ui->mode = NORMAL;
-	    ui->selectedWindow = 0;
+	    ui->selectedWindow = false;
 	    
 	    if (ui->statTypesVisible) ui->statTypesVisible = 0;
 	    return;
@@ -92,7 +93,8 @@ void read_arrange_input(UIData *ui)
 	case 'a':
 	    ui->statTypesVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
 
-	    init_menu_idx(ui->items);
+	    init_stat_menu_items(ui->items);
+	    init_menu_idx(ui->items, _init_windowType_idx, STAT_WIN_COUNT);
 
 	    return;
 	default:
@@ -130,7 +132,7 @@ void read_normal_input(
     	if (timeElapsedMs > INPUT_TIMEOUT_MS)
     	{
 	    state->cmdBuffer = '\0';
-	    state->timeoutActive = 0;
+	    state->timeoutActive = false;
     	}
     }
     
@@ -170,7 +172,7 @@ void read_normal_input(
 
 	    return;
 	case 10: // Enter
-	    if (mtopSettings->activeWindows[PRC_WIN]) state->infoVisible = 1;
+	    if (mtopSettings->activeWindows[PRC_WIN]) state->infoVisible = true;
 	    
 	    return;
 	case 'n':
@@ -215,7 +217,7 @@ void read_normal_input(
 
 	    return;
     	case 'q':
-	    SHUTDOWN_FLAG = 1;
+	    SHUTDOWN_FLAG = true;
 	    return;
     	default:
 	    break;
@@ -224,7 +226,7 @@ void read_normal_input(
     if (!state->cmdBuffer)
     {
 	state->cmdBuffer = ch;
-	state->timeoutActive = 1;
+	state->timeoutActive = true;
 	clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
 	    
 	return;
@@ -314,13 +316,13 @@ static void _read_add_win_menu_input(UIData *ui, u8 ch)
     switch (ch)
     {
 	case 'j':
-	    toggle_add_win_opts(ui->items);
+	    toggle_add_win_opts(ui->items, STAT_WIN_COUNT);
 
 	    break;
 	case 'a':
 	    ui->statTypesVisible = 0;
 
-	    reset_menu_idx(ui->items);
+	    reset_menu_idx(ui->items, STAT_WIN_COUNT);
 	    
 	    break;
 	case 10:
@@ -365,4 +367,9 @@ static u8 _compare_left(WindowData *cmp, WindowData *cur)
 static u8 _compare_right(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowX > cur->windowX;
+}
+
+static u8 _init_windowType_idx(AddWindowMenuItem *item)
+{
+    return !mtopSettings->activeWindows[item->returnValue.windowType];
 }

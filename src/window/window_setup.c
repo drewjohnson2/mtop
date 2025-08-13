@@ -61,7 +61,7 @@ UIData * init_display_items(Arena *arena)
     
     assert(ui);
     
-    ui->optionsVisible = 0;
+    ui->optionsVisible = false;
     ui->windowOrder[0] = WINDOW_ID_MAX;
     ui->windowOrder[1] = WINDOW_ID_MAX;
     ui->windowOrder[2] = WINDOW_ID_MAX;
@@ -93,10 +93,11 @@ UIData * init_display_items(Arena *arena)
 #include "../../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
 
-    ui->items = a_alloc(arena, sizeof(AddWindowMenuItem *) * STAT_WIN_COUNT,
+    // remove magic number when I have a solid number nailed down.
+    ui->items = a_alloc(arena, sizeof(AddWindowMenuItem *) * 10,
 	__alignof(AddWindowMenuItem)); 
 
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++) 
+    for (size_t i = 0; i < 10; i++) 
 	 ui->items[i] = a_alloc(arena, sizeof(AddWindowMenuItem), __alignof(AddWindowMenuItem));
 
     return ui;
@@ -124,9 +125,9 @@ void init_window_dimens(UIData *ui)
     WindowData *optWin = ui->windows[OPT_WIN];
     WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
 
-    ui->windows[ui->windowOrder[0]]->active = 1;
-    if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = 1;
-    if (winCount == 3) ui->windows[ui->windowOrder[2]]->active = 1;
+    ui->windows[ui->windowOrder[0]]->active = true;
+    if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = true;
+    if (winCount == 3) ui->windows[ui->windowOrder[2]]->active = true;
 
     container->windowX = 0;
     container->windowY = 0;

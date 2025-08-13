@@ -9,8 +9,6 @@
 
 #define MAX_PROCS 150 
 
-extern volatile u8 MEM_UPDATING;
-
 typedef struct
 {
     char procName[99];

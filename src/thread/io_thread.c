@@ -52,7 +52,7 @@ void run_io(
     curPrcs = prevPrcs;
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
     tg->a = a_new(64);
-    tg->tasksComplete = 1;
+    tg->tasksComplete = true;
     tg->cleanup = tg_cleanup;
 
     setup_list_state(listState, curPrcs, windows[PRC_WIN]);
@@ -126,7 +126,7 @@ void run_io(
 	BUILD_TASK(true, build_refresh_task, &tg->a);
 
 	tg->tail = *tail;
-	tg->tasksComplete = 0;
+	tg->tasksComplete = false;
 
 	_copy_stats(prevStats, curStats);
 
