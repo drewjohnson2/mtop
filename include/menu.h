@@ -7,6 +7,7 @@ void init_menu(
     UIData *ui,
     u8 isVisible,
     u8 itemCount,
+    const char *windowTitle,
     void (*onSelect)(UIData *, MenuItemValue),
     void (*initMenuItems)(MenuItem **)
 );

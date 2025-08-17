@@ -80,6 +80,7 @@ typedef struct
     u8 isVisible;
     u8 menuItemCount;
     MenuItem **items;
+    char *windowTitle;
     void (*on_select)(UIData *, MenuItemValue);
 } MenuData;
 

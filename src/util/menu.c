@@ -9,6 +9,7 @@ void init_menu(
     UIData *ui,
     u8 isVisible,
     u8 itemCount,
+    const char *windowTitle,
     void (*onSelect)(UIData *, MenuItemValue),
     void (*initMenuItems)(MenuItem **)
 )
@@ -19,6 +20,7 @@ void init_menu(
     ui->menu->isVisible = isVisible;
     ui->menu->menuItemCount = itemCount;
     ui->menu->on_select = onSelect; 
+    ui->menu->windowTitle = windowTitle;
 
     size_floating_win(container, menu, ui->menu->menuItemCount + 2, FLOAT_WIN_DEFAULT_W(container));
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
@@ -122,7 +124,7 @@ void display_menu_options(UIData *ui)
     werase(statTypeWin->window);
     SET_COLOR(statTypeWin->window, MT_PAIR_BOX);
     box(statTypeWin->window, 0, 0);
-    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", text(TXT_ADD_WINDOW), MT_PAIR_CTRL_TXT);
+    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", ui->menu->windowTitle, MT_PAIR_CTRL_TXT);
 
     for (size_t i = 0; i < ui->menu->menuItemCount; i++) 
     {

@@ -6,6 +6,7 @@
 #include "../../include/startup.h"
 #include "../../include/menu.h"
 #include "../../include/util.h"
+#include "../../include/text.h"
 
 typedef enum _nav_direction
 {
@@ -90,6 +91,7 @@ void read_arrange_input(UIData *ui)
 	case 'u':
 	    void (*onSelect)(UIData *, MenuItemValue);
 	    void (*items)(MenuItem **);
+	    const char *title;
 	    u8 itemCount;
 
 	    // TODO: Magic numbers
@@ -97,23 +99,26 @@ void read_arrange_input(UIData *ui)
 	    {
 		onSelect = handle_change_layout;
 		items = init_layout_menu_items;
+		title = text(TXT_CHOOSE_LAYOUT);
 		itemCount = 4;
 	    }
 	    else if (mtopSettings->activeWindowCount == 2)
 	    {
 		onSelect = handle_change_duo_orientation;
 		items = init_orienation_menu_items;
+		title = text(TXT_CHOOSE_ORIENTATION);
 		itemCount = 2;
 	    }
 	    else return;
 
-	    init_menu(ui, !ui->menu->isVisible, itemCount, onSelect, items);
+	    init_menu(ui, !ui->menu->isVisible, itemCount, title, onSelect, items);
 
 	    return;
 	case 'a':
 	    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
 
-	    init_menu(ui, isVisible, STAT_WIN_COUNT, handle_add_window, init_stat_menu_items);
+	    init_menu(ui, isVisible, STAT_WIN_COUNT,
+	       text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
 
 	    return;
 	default:
