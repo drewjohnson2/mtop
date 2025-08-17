@@ -88,26 +88,26 @@ void read_arrange_input(UIData *ui)
 
 	    return;
 	case 'u':
-	    void (*handler)(UIData *, MenuItemValue);
+	    void (*onSelect)(UIData *, MenuItemValue);
 	    void (*items)(MenuItem **);
 	    u8 itemCount;
 
 	    // TODO: Magic numbers
 	    if (mtopSettings->activeWindowCount == 3)
 	    {
-		handler = handle_change_layout;
+		onSelect = handle_change_layout;
 		items = init_layout_menu_items;
 		itemCount = 4;
 	    }
 	    else if (mtopSettings->activeWindowCount == 2)
 	    {
-		handler = handle_change_duo_orientation;
+		onSelect = handle_change_duo_orientation;
 		items = init_orienation_menu_items;
 		itemCount = 2;
 	    }
 	    else return;
 
-	    init_menu(ui, !ui->menu->isVisible, itemCount, handler, items);
+	    init_menu(ui, !ui->menu->isVisible, itemCount, onSelect, items);
 
 	    return;
 	case 'a':

@@ -27,55 +27,40 @@ void init_menu(
     _init_menu_idx(ui->menu->items, itemCount);
 }
 
-// let's do so macro magic instead of this shit
 void init_stat_menu_items(MenuItem **items) 
 {
-    items[0]->displayString = text(TXT_CPU);
-    items[0]->returnValue.windowType = CPU_WIN;
-    items[0]->isSelected = false;
-    items[0]->isHidden = mtopSettings->activeWindows[CPU_WIN];
-    items[1]->displayString = text(TXT_MEM);
-    items[1]->returnValue.windowType = MEMORY_WIN;
-    items[1]->isSelected = false;
-    items[1]->isHidden = mtopSettings->activeWindows[MEMORY_WIN];
-    items[2]->displayString = text(TXT_PRC);
-    items[2]->returnValue.windowType = PRC_WIN;
-    items[2]->isSelected = false;
-    items[2]->isHidden = mtopSettings->activeWindows[PRC_WIN];
+#define DEF_MENU_ITEMS(idx, txt, win) 				\
+    items[idx]->displayString = text(txt); 			\
+    items[idx]->returnValue.windowType = win; 			\
+    items[idx]->isSelected = false; 				\
+    items[idx]->isHidden = mtopSettings->activeWindows[win]; 	
+
+#include "../../include/tables/stat_menu_item_table.h"
+#undef DEF_MENU_ITEMS
 }
 
 void init_layout_menu_items(MenuItem **items) 
 {
-    items[0]->displayString = text(TXT_LO_QTS_LEFT);
-    items[0]->returnValue.layout = QUARTERS_LEFT;
-    items[0]->isSelected = false;
-    items[0]->isHidden = false;
-    items[1]->displayString = text(TXT_LO_QTS_RIGHT);
-    items[1]->returnValue.layout = QUARTERS_RIGHT;
-    items[1]->isSelected = false;
-    items[1]->isHidden = false;
-    items[2]->displayString = text(TXT_LO_QTS_TOP);
-    items[2]->returnValue.layout = QUARTERS_TOP;
-    items[2]->isSelected = false;
-    items[2]->isHidden = false;
-    items[3]->displayString = text(TXT_LO_QTS_BOTTOM);
-    items[3]->returnValue.layout = QUARTERS_BOTTOM;
-    items[3]->isSelected = false;
-    items[3]->isHidden = false;
-    
-    return;
+#define DEF_MENU_ITEMS(idx, txt, lyt) 		\
+    items[idx]->displayString = text(txt); 	\
+    items[idx]->returnValue.layout = lyt; 	\
+    items[idx]->isSelected = false;		\
+    items[idx]->isHidden = false;		
+
+#include "../../include/tables/layout_menu_items.h"
+#undef DEF_MENU_ITEMS
 }
 
 void init_orienation_menu_items(MenuItem **items)
 {
-    items[0]->displayString = text(TXT_OR_HORZ);
-    items[0]->returnValue.orientation = HORIZONTAL;
-    items[0]->isSelected = false;
-    items[0]->isHidden = false;
-    items[1]->displayString = text(TXT_OR_VERT);
-    items[1]->returnValue.orientation = VERTICAL;
-    items[1]->isSelected = false;
-    items[1]->isHidden = false;
+#define DEF_MENU_ITEMS(idx, txt, ort) 		\
+    items[idx]->displayString = text(txt); 	\
+    items[idx]->returnValue.orientation = ort; 	\
+    items[idx]->isSelected = false;		\
+    items[idx]->isHidden = false;		
+
+#include "../../include/tables/orientation_menu_items.h"
+#undef DEF_MENU_ITEMS
 }
 
 void reset_menu_idx(MenuItem **items, u8 itemCount) 
