@@ -6,6 +6,7 @@
 #include "../../include/window.h"
 #include "../../include/context_types.h"
 #include "../../include/prc_list_util.h"
+#include "../../include/menu.h"
 
 void cpu_action_fn(UIData *ui, void *ctx)
 {
@@ -139,9 +140,9 @@ void refresh_action_fn(UIData *ui, void *ctx)
 	display_options(ui);
 	wnoutrefresh(optWin->window);
     }
-    else if (ui->statTypesVisible)
+    else if (ui->menu->isVisible)
     {
-	display_stat_types(ui);
+	display_menu_options(ui);
 	wnoutrefresh(statTypeWin->window);
     }
 

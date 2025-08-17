@@ -4,6 +4,8 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/thread.h"
 #include "../../include/startup.h"
+#include "../../include/menu.h"
+#include "../../include/util.h"
 
 typedef enum _nav_direction
 {
@@ -18,11 +20,6 @@ typedef enum _nav_direction
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
 static void _read_add_win_menu_input(UIData *ui, u8 ch);
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp);
-static u8 _compare_above(WindowData *cmp, WindowData *cur);
-static u8 _compare_below(WindowData *cmp, WindowData *cur);
-static u8 _compare_left(WindowData *cmp, WindowData *cur);
-static u8 _compare_right(WindowData *cmp, WindowData *cur);
-static u8 _init_windowType_idx(AddWindowMenuItem *item);
 
 void read_arrange_input(UIData *ui)
 {
@@ -31,7 +28,7 @@ void read_arrange_input(UIData *ui)
 
     flushinp();
 
-    if (ui->statTypesVisible)
+    if (ui->menu->isVisible)
     {
 	_read_add_win_menu_input(ui, ch);
 	return;
@@ -39,25 +36,25 @@ void read_arrange_input(UIData *ui)
 
     if (ch == ('j' & 0x1F)) // ctrl+j
     {
-	_swap_windows(ui, _compare_below);
+	_swap_windows(ui, win_compare_below);
 
 	return;
     }
     else if (ch == ('k' & 0x1F)) // ctrl+k
     {
-	_swap_windows(ui, _compare_above);
+	_swap_windows(ui, win_compare_above);
 
 	return;
     }
     else if (ch == ('h' & 0x1F)) // ctrl+h
     {
-	_swap_windows(ui, _compare_left);
+	_swap_windows(ui, win_compare_left);
 
 	return;
     }
     else if (ch == ('l' & 0x1F)) // ctrl+l
     {
-	_swap_windows(ui, _compare_right);
+	_swap_windows(ui, win_compare_right);
 
 	return;
     }
@@ -68,33 +65,55 @@ void read_arrange_input(UIData *ui)
 	    ui->mode = NORMAL;
 	    ui->selectedWindow = false;
 	    
-	    if (ui->statTypesVisible) ui->statTypesVisible = 0;
+	    if (ui->menu->isVisible) ui->menu->isVisible = false;
 	    return;
 	case 'j':
-	    ui->selectedWindow = get_selected_window(ui, _compare_below);
+	    ui->selectedWindow = get_selected_window(ui, win_compare_below);
 
 	    return;
 	case 'k':
-	    ui->selectedWindow = get_selected_window(ui, _compare_above);
+	    ui->selectedWindow = get_selected_window(ui, win_compare_above);
 
 	    return;
 	case 'l':
-	    ui->selectedWindow = get_selected_window(ui, _compare_right);
+	    ui->selectedWindow = get_selected_window(ui, win_compare_right);
 
 	    return;
 	case 'h':
-	    ui->selectedWindow = get_selected_window(ui, _compare_left);
+	    ui->selectedWindow = get_selected_window(ui, win_compare_left);
 
 	    return;
 	case 'd':
 	    remove_win(ui, ui->selectedWindow);
 
 	    return;
-	case 'a':
-	    ui->statTypesVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
+	case 'u':
+	    void (*handler)(UIData *, MenuItemValue);
+	    void (*items)(MenuItem **);
+	    u8 itemCount;
 
-	    init_stat_menu_items(ui->items);
-	    init_menu_idx(ui->items, _init_windowType_idx, STAT_WIN_COUNT);
+	    // TODO: Magic numbers
+	    if (mtopSettings->activeWindowCount == 3)
+	    {
+		handler = handle_change_layout;
+		items = init_layout_menu_items;
+		itemCount = 4;
+	    }
+	    else if (mtopSettings->activeWindowCount == 2)
+	    {
+		handler = handle_change_duo_orientation;
+		items = init_orienation_menu_items;
+		itemCount = 2;
+	    }
+	    else return;
+
+	    init_menu(ui, !ui->menu->isVisible, itemCount, handler, items);
+
+	    return;
+	case 'a':
+	    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
+
+	    init_menu(ui, isVisible, STAT_WIN_COUNT, handle_add_window, init_stat_menu_items);
 
 	    return;
 	default:
@@ -249,6 +268,39 @@ void read_normal_input(
     }
 }
 
+static void _read_add_win_menu_input(UIData *ui, u8 ch)
+{
+    switch (ch)
+    {
+	case 'j':
+	    select_next_menu_item(ui->menu->items, ui->menu->menuItemCount);
+
+	    break;
+	case 'a':
+	    ui->menu->isVisible = false;
+
+	    reset_menu_idx(ui->menu->items, STAT_WIN_COUNT);
+	    
+	    break;
+	case 'u':
+	    ui->menu->isVisible = false;
+
+	    reset_menu_idx(ui->menu->items, 4);
+
+	    break;
+	case 10:
+	    // create a function pointer on UIData that we can set
+	    // when a menu is opened.
+	    MenuItemValue selection = get_menu_selection(ui->menu->items, ui->menu->menuItemCount);
+
+	    ui->menu->on_select(ui, selection);
+	    
+	    break;
+	default:
+	    break;
+    }
+}
+
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
 {
     if (!mtopSettings->activeWindows[PRC_WIN]) return;
@@ -311,35 +363,6 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);
 }
 
-static void _read_add_win_menu_input(UIData *ui, u8 ch)
-{
-    switch (ch)
-    {
-	case 'j':
-	    toggle_add_win_opts(ui->items, STAT_WIN_COUNT);
-
-	    break;
-	case 'a':
-	    ui->statTypesVisible = 0;
-
-	    reset_menu_idx(ui->items, STAT_WIN_COUNT);
-	    
-	    break;
-	case 10:
-	    mt_Window winToAdd = get_add_menu_selection(ui->items);
-
-	    if (winToAdd == WINDOW_ID_MAX) return;
-
-	    add_win(ui, winToAdd);
-
-	    ui->statTypesVisible = 0;
-
-	    break;
-	default:
-	    break;
-    }
-}
-
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp)
 {
     mt_Window windowToSwap = get_selected_window(ui, cmp);
@@ -347,29 +370,4 @@ static void _swap_windows(UIData *ui, WinPosComparisonFn cmp)
     if (ui->selectedWindow == windowToSwap) return;
     
     swap_windows(ui, windowToSwap);
-}
-
-static u8 _compare_above(WindowData *cmp, WindowData *cur)
-{
-    return cmp->windowY < cur->windowY;
-}
-
-static u8 _compare_below(WindowData *cmp, WindowData *cur)
-{
-    return cmp->windowY > cur->windowY;
-}
-
-static u8 _compare_left(WindowData *cmp, WindowData *cur)
-{
-    return cmp->windowX < cur->windowX;
-}
-
-static u8 _compare_right(WindowData *cmp, WindowData *cur)
-{
-    return cmp->windowX > cur->windowX;
-}
-
-static u8 _init_windowType_idx(AddWindowMenuItem *item)
-{
-    return !mtopSettings->activeWindows[item->returnValue.windowType];
 }
