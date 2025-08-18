@@ -79,7 +79,7 @@ ProcessesSummary * get_processes(
 
 void get_prc_info_by_pid(u32 pid, Process *prc)
 {
-    PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM | PROC_FILLARG);
+    PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM);
 
     if (!proc) return;
 

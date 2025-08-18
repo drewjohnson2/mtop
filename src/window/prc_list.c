@@ -142,9 +142,8 @@ void print_stats(
     	{
 	    pair = MT_PAIR_PRC_SEL_TEXT;
 
-	    // TODO: using y as a value here is confusing.
-	    for (size_t y = dataOffsetX; y < (size_t)(wd->wWidth - dataOffsetX); y++)
-		PRINTFC(win, posY, y, "%c", ' ', pair);
+	    for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
+		PRINTFC(win, posY, j, "%c", ' ', pair);
     	}
     
     	SET_COLOR(win, pair);

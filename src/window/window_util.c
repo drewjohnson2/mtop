@@ -344,6 +344,8 @@ void reinit_window(UIData *ui)
     optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
     statTypeWin->window = subwin(container->window, statTypeWin->wHeight, statTypeWin->wWidth, statTypeWin->windowY, statTypeWin->windowX);
 
+    ui->reinitListState = true;
+
     REFRESH_WIN(container->window);
 
     print_header(container);

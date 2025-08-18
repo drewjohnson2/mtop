@@ -15,6 +15,7 @@ void init_stat_menu_items(MenuItem **items);
 void init_layout_menu_items(MenuItem **items);
 void init_orienation_menu_items(MenuItem **items);
 void reset_menu_idx(MenuItem **items, u8 itemCount);
+void select_previous_menu_item(MenuItem **items, u8 itemCount);
 void select_next_menu_item(MenuItem **items, u8 itemCount);
 void display_menu_options(UIData *ui);
 void handle_add_window(UIData *ui, MenuItemValue selection);

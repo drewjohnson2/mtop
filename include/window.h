@@ -80,18 +80,18 @@ typedef struct
     u8 isVisible;
     u8 menuItemCount;
     MenuItem **items;
-    char *windowTitle;
     void (*on_select)(UIData *, MenuItemValue);
 } MenuData;
 
 struct UIData
 {
     u8 optionsVisible;
-    WindowData **windows;
-    mt_Window windowOrder[3]; 
-    WindowMode mode;
+    u8 reinitListState;
     mt_Window selectedWindow;
+    mt_Window windowOrder[3]; 
     MenuData *menu; 
+    WindowData **windows;
+    WindowMode mode;
 };
 
 typedef struct _graph_point

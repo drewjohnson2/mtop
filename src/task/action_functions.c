@@ -59,12 +59,17 @@ void process_action_fn(UIData *ui, void *ctx)
     u64 memTotal = context->memTotal;
     u8 winSelected = ui->mode == ARRANGE && ui->selectedWindow == PRC_WIN;
 
+    if (ui->reinitListState)
+    {
+	setup_list_state(listState, curPrcs, prcWin);
+	ui->reinitListState = false;
+    }
+
     Arena scratch = a_new(
 	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
     	sizeof(ProcessStatsViewData) +
     	(sizeof(ProcessStatsViewData) * curPrcs->count)
     );
-    
     ProcessStatsViewData **vd = a_alloc(
 	&scratch,
     	sizeof(ProcessStatsViewData *) * curPrcs->count,
@@ -78,7 +83,6 @@ void process_action_fn(UIData *ui, void *ctx)
     	prevPrcs,
     	memTotal
     );		
-
     qsort(
         vd,
         curPrcs->count,

@@ -281,6 +281,10 @@ static void _read_add_win_menu_input(UIData *ui, u8 ch)
 	    select_next_menu_item(ui->menu->items, ui->menu->menuItemCount);
 
 	    break;
+	case 'k':
+	    select_previous_menu_item(ui->menu->items, ui->menu->menuItemCount);
+
+	    break;
 	case 'a':
 	    ui->menu->isVisible = false;
 

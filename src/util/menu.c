@@ -20,7 +20,7 @@ void init_menu(
     ui->menu->isVisible = isVisible;
     ui->menu->menuItemCount = itemCount;
     ui->menu->on_select = onSelect; 
-    ui->menu->windowTitle = windowTitle;
+    menu->windowTitle = windowTitle;
 
     size_floating_win(container, menu, ui->menu->menuItemCount + 2, FLOAT_WIN_DEFAULT_W(container));
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
@@ -70,26 +70,61 @@ void reset_menu_idx(MenuItem **items, u8 itemCount)
     for (size_t i = 0; i < itemCount; i++) items[i]->isSelected = false;
 }
 
-void select_next_menu_item(MenuItem **items, u8 winCount) 
+void select_previous_menu_item(MenuItem **items, u8 itemCount)
 {
     s8 selectedIdx = -1;
 
-    for (s8 i = 0; i < winCount; i++) 
+    for (s8 i = 0; i < itemCount; i++)
     {
-	if (items[i]->isSelected) {
+	if (items[i]->isSelected)
+	{
 	    selectedIdx = i;
 	    break;
 	}
     }
 
+    if (selectedIdx == -1) return;
+
+    for (s8 i = selectedIdx - 1;; i--) 
+    {
+	if (i < 0) 
+	{
+	    i = itemCount;
+	    continue;
+	} 
+	else if (items[i]->isHidden) continue;
+	else if (selectedIdx == i) return;
+
+	items[i]->isSelected = true;
+	items[selectedIdx]->isSelected = false;
+	break;
+    }
+}
+
+void select_next_menu_item(MenuItem **items, u8 itemCount) 
+{
+    s8 selectedIdx = -1;
+
+    for (s8 i = 0; i < itemCount; i++) 
+    {
+	if (items[i]->isSelected) 
+	{
+	    selectedIdx = i;
+	    break;
+	}
+    }
+
+    if (selectedIdx == -1) return;
+
     for (s8 i = selectedIdx + 1;; i++) 
     {
-	if (i > winCount - 1) 
+	if (i > itemCount - 1) 
 	{
 	    i = -1;
 	    continue;
 	} 
 	else if (items[i]->isHidden) continue;
+	else if (selectedIdx == i) return;
 
 	items[i]->isSelected = true;
 	items[selectedIdx]->isSelected = false;
@@ -116,7 +151,7 @@ void display_menu_options(UIData *ui)
 {
     WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
     u8 titlePosY = 0;
-    const u8 titlePosX = (statTypeWin->wWidth / 2) - (strlen(text(TXT_ADD_WINDOW)) / 2);
+    const u8 titlePosX = (statTypeWin->wWidth / 2) - (strlen(statTypeWin->windowTitle) / 2);
     const u8 numPosX = 4;
     const u8 valPosX = 7;
     size_t optionNumber = 1;
@@ -124,7 +159,7 @@ void display_menu_options(UIData *ui)
     werase(statTypeWin->window);
     SET_COLOR(statTypeWin->window, MT_PAIR_BOX);
     box(statTypeWin->window, 0, 0);
-    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", ui->menu->windowTitle, MT_PAIR_CTRL_TXT);
+    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", statTypeWin->windowTitle, MT_PAIR_CTRL_TXT);
 
     for (size_t i = 0; i < ui->menu->menuItemCount; i++) 
     {
