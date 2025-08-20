@@ -19,7 +19,7 @@ typedef enum _nav_direction
 } NavDirection;
 
 static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
-static void _read_add_win_menu_input(UIData *ui, u8 ch);
+static void _read_menu_input(UIData *ui, u8 ch);
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp);
 
 void read_arrange_input(UIData *ui)
@@ -31,7 +31,7 @@ void read_arrange_input(UIData *ui)
 
     if (ui->menu->isVisible)
     {
-	_read_add_win_menu_input(ui, ch);
+	_read_menu_input(ui, ch);
 	return;
     }
 
@@ -94,20 +94,19 @@ void read_arrange_input(UIData *ui)
 	    const char *title;
 	    u8 itemCount;
 
-	    // TODO: Magic numbers
 	    if (mtopSettings->activeWindowCount == 3)
 	    {
 		onSelect = handle_change_layout;
 		items = init_layout_menu_items;
 		title = text(TXT_CHOOSE_LAYOUT);
-		itemCount = 4;
+		itemCount = LAYOUT_COUNT;
 	    }
 	    else if (mtopSettings->activeWindowCount == 2)
 	    {
 		onSelect = handle_change_duo_orientation;
 		items = init_orienation_menu_items;
 		title = text(TXT_CHOOSE_ORIENTATION);
-		itemCount = 2;
+		itemCount = ORIENTATION_COUNT;
 	    }
 	    else return;
 
@@ -237,7 +236,7 @@ void read_normal_input(
 	    
 	    return;
 	case 'b':
-	    state->infoVisible = 0;
+	    state->infoVisible = false;
 
 	    return;
     	case 'q':
@@ -258,14 +257,14 @@ void read_normal_input(
     else if (ch != state->cmdBuffer) 
     {
 	state->cmdBuffer = '\0';
-	state->timeoutActive = 0;
+	state->timeoutActive = false;
     
 	return;
     }
     else if (ch == 'd')
     {
 	state->cmdBuffer = '\0';
-	state->timeoutActive = 0;
+	state->timeoutActive = false;
 
 	kill(state->selectedPid, SIGKILL);
 
@@ -273,7 +272,7 @@ void read_normal_input(
     }
 }
 
-static void _read_add_win_menu_input(UIData *ui, u8 ch)
+static void _read_menu_input(UIData *ui, u8 ch)
 {
     switch (ch)
     {
@@ -294,7 +293,7 @@ static void _read_add_win_menu_input(UIData *ui, u8 ch)
 	case 'u':
 	    ui->menu->isVisible = false;
 
-	    reset_menu_idx(ui->menu->items, 4);
+	    reset_menu_idx(ui->menu->items, LAYOUT_COUNT);
 
 	    break;
 	case 10:

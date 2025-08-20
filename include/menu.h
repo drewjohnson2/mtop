@@ -3,6 +3,12 @@
 
 #include "window.h"
 
+#define LAYOUT_COUNT 4
+#define ORIENTATION_COUNT 2
+#define ITEM_PADDING 2
+#define ITEM_NUM_START_X 4
+#define ITEM_TEXT_START_X 7
+
 void init_menu(
     UIData *ui,
     u8 isVisible,

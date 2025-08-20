@@ -2,7 +2,6 @@
 #include "../../include/text.h"
 #include "../../include/window.h"
 
-
 static void _init_menu_idx(MenuItem **items, u8 itemCount);
 
 void init_menu(
@@ -22,7 +21,12 @@ void init_menu(
     ui->menu->on_select = onSelect; 
     menu->windowTitle = windowTitle;
 
-    size_floating_win(container, menu, ui->menu->menuItemCount + 2, FLOAT_WIN_DEFAULT_W(container));
+    size_floating_win(
+	container,
+	menu,
+	ui->menu->menuItemCount + ITEM_PADDING,
+	FLOAT_WIN_DEFAULT_W(container)
+    );
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
 
     initMenuItems(ui->menu->items);
@@ -152,8 +156,6 @@ void display_menu_options(UIData *ui)
     WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
     u8 titlePosY = 0;
     const u8 titlePosX = (statTypeWin->wWidth / 2) - (strlen(statTypeWin->windowTitle) / 2);
-    const u8 numPosX = 4;
-    const u8 valPosX = 7;
     size_t optionNumber = 1;
 
     werase(statTypeWin->window);
@@ -172,12 +174,13 @@ void display_menu_options(UIData *ui)
 	{
 	    pair = MT_PAIR_PRC_SEL_TEXT;
 	
-	    for (size_t y = valPosX - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
+	    for (size_t y = ITEM_TEXT_START_X - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
 		PRINTFC(statTypeWin->window, titlePosY, y, "%c", ' ', pair);
 	}
 	
-	PRINTFC(statTypeWin->window, titlePosY, numPosX, "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
-	PRINTFC(statTypeWin->window, titlePosY++, valPosX, "%s", item->displayString, pair);
+	PRINTFC(statTypeWin->window, titlePosY, ITEM_NUM_START_X,
+	    "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
+	PRINTFC(statTypeWin->window, titlePosY++, ITEM_TEXT_START_X, "%s", item->displayString, pair);
     }
 }
 
