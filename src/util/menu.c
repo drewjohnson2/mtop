@@ -53,7 +53,7 @@ void init_layout_menu_items(MenuItem **items)
     items[idx]->isSelected = false;		\
     items[idx]->isHidden = false;		
 
-#include "../../include/tables/layout_menu_items.h"
+#include "../../include/tables/layout_menu_item_table.h"
 #undef DEF_MENU_ITEMS
 }
 
@@ -65,7 +65,7 @@ void init_orienation_menu_items(MenuItem **items)
     items[idx]->isSelected = false;		\
     items[idx]->isHidden = false;		
 
-#include "../../include/tables/orientation_menu_items.h"
+#include "../../include/tables/orientation_menu_item_table.h"
 #undef DEF_MENU_ITEMS
 }
 
