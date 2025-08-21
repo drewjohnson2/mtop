@@ -17,18 +17,18 @@ ProcessesSummary * get_processes(
     
     if (procArena->regionsAllocated > MAX_PROC_REGIONS_ALLOCD)
     {
-	r_free_head(procArena);
+		r_free_head(procArena);
     }
     
     ProcessesSummary *procStats = a_alloc(
-	procArena,
+		procArena,
     	sizeof(ProcessesSummary),
     	__alignof(ProcessesSummary)
     );
     procStats->processes = a_alloc(
-	procArena,
-	sizeof(Process *) * MAX_PROCS,
-	__alignof(Process *)
+		procArena,
+		sizeof(Process *) * MAX_PROCS,
+		__alignof(Process *)
     );
     
     PROCTAB *prc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM);
@@ -36,35 +36,35 @@ ProcessesSummary * get_processes(
 
     while ((prcInfo = readproc(prc, NULL)) != NULL)
     {
-	if (procStats->count > MAX_PROCS - 1) break;
-	if (prcInfo->ruid != (int)uid)
-	{
-	    freeproc(prcInfo);
-	    continue;
-	}
+		if (procStats->count > MAX_PROCS - 1) break;
+		if (prcInfo->ruid != (int)uid)
+		{
+		    freeproc(prcInfo);
+		    continue;
+		}
 
-	Process **item = &procStats->processes[procStats->count];
+		Process **item = &procStats->processes[procStats->count];
 
-	(*item) = a_alloc(procArena, sizeof(Process), __alignof(Process));
+		(*item) = a_alloc(procArena, sizeof(Process), __alignof(Process));
 
-	strcpy((*item)->procName, prcInfo->cmd);
-	(*item)->pid = prcInfo->tid;
-	(*item)->stime = prcInfo->stime;
-	(*item)->utime = prcInfo->utime;
-	(*item)->vmRss = prcInfo->vm_rss;
-	(*item)->vmSize = prcInfo->vm_size;
-	(*item)->vmLock = prcInfo->vm_lock;
-	(*item)->vmData = prcInfo->vm_data;
-	(*item)->vmStack = prcInfo->vm_stack;
-	(*item)->vmSwap = prcInfo->vm_swap;
-	(*item)->vmExe = prcInfo->vm_exe;
-	(*item)->vmLib = prcInfo->vm_lib;
-	(*item)->threads = prcInfo->nlwp;
-	(*item)->ppid = prcInfo->ppid;
-	(*item)->state = prcInfo->state;
-	procStats->count++;
+		strcpy((*item)->procName, prcInfo->cmd);
+		(*item)->pid = prcInfo->tid;
+		(*item)->stime = prcInfo->stime;
+		(*item)->utime = prcInfo->utime;
+		(*item)->vmRss = prcInfo->vm_rss;
+		(*item)->vmSize = prcInfo->vm_size;
+		(*item)->vmLock = prcInfo->vm_lock;
+		(*item)->vmData = prcInfo->vm_data;
+		(*item)->vmStack = prcInfo->vm_stack;
+		(*item)->vmSwap = prcInfo->vm_swap;
+		(*item)->vmExe = prcInfo->vm_exe;
+		(*item)->vmLib = prcInfo->vm_lib;
+		(*item)->threads = prcInfo->nlwp;
+		(*item)->ppid = prcInfo->ppid;
+		(*item)->state = prcInfo->state;
+		procStats->count++;
 
-	freeproc(prcInfo);
+		freeproc(prcInfo);
     }
 
     closeproc(prc);
@@ -79,7 +79,7 @@ ProcessesSummary * get_processes(
 
 void get_prc_info_by_pid(u32 pid, Process *prc)
 {
-    PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM | PROC_FILLARG);
+    PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM);
 
     if (!proc) return;
 
@@ -87,27 +87,27 @@ void get_prc_info_by_pid(u32 pid, Process *prc)
 
     while ((out = readproc(proc, NULL)) != NULL) 
     {
-	if (out->tid == (int)pid)
-	{
-	    prc->vmRss = out->vm_rss;
-	    prc->vmSize = out->vm_size;
-	    prc->vmLock = out->vm_lock;
-	    prc->vmData = out->vm_data;
-	    prc->vmStack = out->vm_stack;
-	    prc->vmSwap = out->vm_swap;
-	    prc->vmExe = out->vm_exe;
-	    prc->vmLib = out->vm_lib;
-	    prc->threads = out->nlwp;
-	    prc->ppid = out->ppid;
-	    prc->state = out->state;
+		if (out->tid == (int)pid)
+		{
+		    prc->vmRss = out->vm_rss;
+		    prc->vmSize = out->vm_size;
+		    prc->vmLock = out->vm_lock;
+		    prc->vmData = out->vm_data;
+		    prc->vmStack = out->vm_stack;
+		    prc->vmSwap = out->vm_swap;
+		    prc->vmExe = out->vm_exe;
+		    prc->vmLib = out->vm_lib;
+		    prc->threads = out->nlwp;
+		    prc->ppid = out->ppid;
+		    prc->state = out->state;
 
-	    freeproc(out);
-	    closeproc(proc);
+		    freeproc(out);
+		    closeproc(proc);
 
-	    return;
-	}
+		    return;
+		}
 
-	freeproc(out);
+		freeproc(out);
     }
 
     closeproc(proc);

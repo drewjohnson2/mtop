@@ -14,9 +14,9 @@ void fetch_cpu_stats(CpuStats *stat)
     fgets(buffer, sizeof(buffer), f);
     
     sscanf(buffer, 
-	"cpu  %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n", 
-	&stat->user, &stat->nice, &stat->system, &stat->idle, &stat->ioWait,
-	&stat->irq, &stat->softIrq, &stat->steal, &stat->guest, &stat->guestNice
+		"cpu  %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n", 
+		&stat->user, &stat->nice, &stat->system, &stat->idle, &stat->ioWait,
+		&stat->irq, &stat->softIrq, &stat->steal, &stat->guest, &stat->guestNice
     );
     
     fclose(f);

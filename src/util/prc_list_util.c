@@ -6,11 +6,13 @@
 void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
 {
     listState->cmdBuffer = '\0';
-    listState->timeoutActive = 0;
-    listState->selectedIndex = 0;
+    listState->timeoutActive = false;
     listState->pageStartIdx = 0;
     listState->count = curPrcs->count;
     listState->pageSize = prcWin->wHeight - 5;
+    listState->selectedIndex = listState->selectedIndex > listState->pageSize - 1 ?
+	listState->pageSize - 1 :
+	listState->selectedIndex;
     listState->totalPages = listState->count / listState->pageSize;
     listState->selectedPid = 0;
     listState->activePage = 0;
@@ -20,11 +22,11 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
     listState->pageEndIdx = listState->pageSize - 1;
 
     if (listState->pageEndIdx > listState->count)
-	listState->pageEndIdx = listState->count - 1;
+		listState->pageEndIdx = listState->count - 1;
 
     listState->sortFn = vd_name_compare_fn;
     listState->sortOrder = PRC_NAME;
-    listState->infoVisible = 0;
+    listState->infoVisible = false;
 }
 
 void set_start_end_idx(ProcessListState *state) 
@@ -35,12 +37,12 @@ void set_start_end_idx(ProcessListState *state)
 
     state->pageStartIdx = state->pageSize * state->activePage;
     state->pageEndIdx = isLastPage ?
-	lastPageEnd : 
-	pageEndIdx;
+		lastPageEnd : 
+		pageEndIdx;
 
     if (state->pageEndIdx < state->selectedIndex)
     {
-	state->selectedIndex = state->pageEndIdx;
+		state->selectedIndex = state->pageEndIdx;
     }
 }
 

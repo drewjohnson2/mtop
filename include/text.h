@@ -5,7 +5,7 @@ typedef enum {
 #define STATIC_TEXT(id, string) id,
 #include "tables/text_table.h"
 #undef STATIC_TEXT
-    TXT_COUNT
+	TXT_COUNT
 } TextID;
 
 const char * text(TextID id);

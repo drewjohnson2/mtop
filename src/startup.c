@@ -27,7 +27,7 @@
 
 typedef struct _ui_thread_args
 {
-    UIData *ui;
+	UIData *ui;
     ThreadSafeQueue *taskQueue;
 } UIThreadArgs;
 
@@ -111,86 +111,86 @@ void run(int argc, char **argv)
     mtopSettings->orientation = HORIZONTAL;
     mtopSettings->layout = QUARTERS_BOTTOM;
     mtopSettings->activeWindowCount = 0;
-    mtopSettings->activeWindows[CPU_WIN] = 0;
-    mtopSettings->activeWindows[MEMORY_WIN] = 0;
-    mtopSettings->activeWindows[PRC_WIN] = 0;
+    mtopSettings->activeWindows[CPU_WIN] = false;
+    mtopSettings->activeWindows[MEMORY_WIN] = false;
+    mtopSettings->activeWindows[PRC_WIN] = false;
 
     static struct option long_options[] = 
-    {
-	{ "transparent", no_argument, NULL, 't' },
-	{ "cpu", no_argument, NULL, 'c'},
-	{ "memory", no_argument, NULL, 'm'},
-	{ "process", no_argument, NULL, 'p'},
-	{ "vertical", optional_argument, NULL, 'v'},
-	{ "horizontal", optional_argument, NULL, 'h' },
-	{ NULL, no_argument, NULL, 0 }
+	{
+		{ "transparent", no_argument, NULL, 't' },
+		{ "cpu", no_argument, NULL, 'c'},
+		{ "memory", no_argument, NULL, 'm'},
+		{ "process", no_argument, NULL, 'p'},
+		{ "vertical", optional_argument, NULL, 'v'},
+		{ "horizontal", optional_argument, NULL, 'h' },
+		{ NULL, no_argument, NULL, 0 }
     };
 
     while((arg = getopt_long(argc, argv, "tcmpv::h::", long_options, &option_index)) != -1)
     {
-	switch (arg) 
+		switch (arg) 
     	{
     	    case 't':
-		mtopSettings->transparencyEnabled = 1;
+				mtopSettings->transparencyEnabled = true;
     	        break;
-	    case 'c':
-		mtopSettings->activeWindows[CPU_WIN] = 1;
-		_set_window_in_order(ui->windowOrder, CPU_WIN);
-		break;
-	    case 'm':
-		mtopSettings->activeWindows[MEMORY_WIN] = 1;
-		_set_window_in_order(ui->windowOrder, MEMORY_WIN);
-		break;
-	    case 'p':
-		mtopSettings->activeWindows[PRC_WIN] = 1;
-		_set_window_in_order(ui->windowOrder, PRC_WIN);
-		break;
-	    case 'h':
-		mtopSettings->orientation = HORIZONTAL;
-		mtopSettings->layout = QUARTERS_BOTTOM;
+	    	case 'c':
+				mtopSettings->activeWindows[CPU_WIN] = true;
+				_set_window_in_order(ui->windowOrder, CPU_WIN);
+				break;
+	    	case 'm':
+				mtopSettings->activeWindows[MEMORY_WIN] = true;
+				_set_window_in_order(ui->windowOrder, MEMORY_WIN);
+				break;
+	    	case 'p':
+				mtopSettings->activeWindows[PRC_WIN] = true;
+				_set_window_in_order(ui->windowOrder, PRC_WIN);
+				break;
+	    	case 'h':
+				mtopSettings->orientation = HORIZONTAL;
+				mtopSettings->layout = QUARTERS_BOTTOM;
 
-		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
+				if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
 
-		if (strcmp(optarg, "top") == 0)
-		{
-		    mtopSettings->layout = QUARTERS_TOP;
-		    break;
-		}
+				if (strcmp(optarg, "top") == 0)
+				{
+		    		mtopSettings->layout = QUARTERS_TOP;
+		    		break;
+				}
 
-		break;
-	    case 'v':
-		mtopSettings->orientation = VERTICAL;
-		mtopSettings->layout = QUARTERS_LEFT;
+				break;
+	    	case 'v':
+				mtopSettings->orientation = VERTICAL;
+				mtopSettings->layout = QUARTERS_LEFT;
 
-		if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
-		
-		if (strcmp(optarg, "right") == 0)
-		{
-		    mtopSettings->layout = QUARTERS_RIGHT;
-		    break;
-		}
+				if (!_get_option_after_flag_with_space(&optarg, argv, (u8)argc, optind)) break;
+				
+				if (strcmp(optarg, "right") == 0)
+				{
+				    mtopSettings->layout = QUARTERS_RIGHT;
+				    break;
+				}
 
-		break;
+				break;
     	    default:
     	        break;
     	}
     }
 
     if (
-	ui->windowOrder[0] == WINDOW_ID_MAX && 
-	ui->windowOrder[1] == WINDOW_ID_MAX && 
-	ui->windowOrder[2] == WINDOW_ID_MAX
+		ui->windowOrder[0] == WINDOW_ID_MAX && 
+		ui->windowOrder[1] == WINDOW_ID_MAX && 
+		ui->windowOrder[2] == WINDOW_ID_MAX
     )
     {
-	mtopSettings->activeWindowCount = 3;
+		mtopSettings->activeWindowCount = 3;
 
-	ui->windowOrder[0] = CPU_WIN;
-	ui->windowOrder[1] = MEMORY_WIN;
-	ui->windowOrder[2] = PRC_WIN;
+		ui->windowOrder[0] = CPU_WIN;
+		ui->windowOrder[1] = MEMORY_WIN;
+		ui->windowOrder[2] = PRC_WIN;
 
-	mtopSettings->activeWindows[CPU_WIN] = 1;
-	mtopSettings->activeWindows[MEMORY_WIN] = 1;
-	mtopSettings->activeWindows[PRC_WIN] = 1;
+		mtopSettings->activeWindows[CPU_WIN] = true;
+		mtopSettings->activeWindows[MEMORY_WIN] = true;
+		mtopSettings->activeWindows[PRC_WIN] = true;
     }
 
     if (mtopSettings->activeWindowCount == 2) mtopSettings->layout = DUO;
@@ -200,7 +200,6 @@ void run(int argc, char **argv)
     init_ncurses(ui->windows[CONTAINER_WIN], screen);
     init_window_dimens(ui);
     init_windows(ui);
-    init_stat_menu_items(ui->items);
     
     UIThreadArgs uiArgs = 
     {
@@ -210,9 +209,9 @@ void run(int argc, char **argv)
     
     IOThreadArgs ioArgs = 
     {
-	.arenas = arenas,
+		.arenas = arenas,
     	.taskQueue = taskQueue,
-	.windows = ui->windows
+		.windows = ui->windows
     };
     
     pthread_t ioThread;
@@ -273,9 +272,9 @@ static void * _io_thread_run(void *arg)
     IOThreadArgs *args = (IOThreadArgs *)arg;
     
     run_io(
-	args->arenas,
+		args->arenas,
     	args->taskQueue,
-	args->windows
+		args->windows
     );
     
     return NULL;
@@ -290,7 +289,7 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
 {
     if ((*optarg == NULL || strcmp((*optarg), "=") == 0) && optind < argc && argv[optind][0] != '-')
     {
-	*optarg = argv[optind++];
+		*optarg = argv[optind++];
     }
 
     return *optarg != NULL;
@@ -299,5 +298,5 @@ static u8 _get_option_after_flag_with_space(char **optarg, char **argv, u8 argc,
 // put this into some sort of util file maybe?
 void _handle_resize(int sig)
 {
-    if (sig == SIGWINCH) RESIZE = 1;
+    if (sig == SIGWINCH) RESIZE = true;
 }

@@ -13,13 +13,13 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/task.h"
 
-#define BUILD_TASK(cond, data_fn, ...)	\
-    do {					\
-	if (cond)				\
-	{					\
-	    *tail = data_fn(__VA_ARGS__);	\
-	    tail = &(*tail)->next;		\
-	}					\
+#define BUILD_TASK(cond, data_fn, ...)		\
+    do {									\
+		if (cond)							\
+		{									\
+		    *tail = data_fn(__VA_ARGS__);	\
+		    tail = &(*tail)->next;			\
+		}									\
     } while(0)
 	
 ProcessesSummary *prevPrcs;
@@ -51,8 +51,9 @@ void run_io(
     prevPrcs = get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
+
     tg->a = a_new(64);
-    tg->tasksComplete = 1;
+    tg->tasksComplete = true;
     tg->cleanup = tg_cleanup;
 
     setup_list_state(listState, curPrcs, windows[PRC_WIN]);
@@ -66,72 +67,72 @@ void run_io(
 
     while (!SHUTDOWN_FLAG)
     {
-	if (!tg->tasksComplete)
-	{
-	    usleep(READ_SLEEP_TIME);
-	    continue;
-	}
+		if (!tg->tasksComplete)
+		{
+		    usleep(READ_SLEEP_TIME);
+		    continue;
+		}
 
-	UITask **tail = &tg->head;
-	u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
+		UITask **tail = &tg->head;
+		u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
     	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
     	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
-	u8 handleCpu = cpuActive && tg->tasksComplete;
-	u8 handleMem = memActive && tg->tasksComplete;
+		u8 handleCpu = cpuActive && tg->tasksComplete;
+		u8 handleMem = memActive && tg->tasksComplete;
 
-	if (handleCpu) fetch_cpu_stats(curStats);
-	if (handleMem) fetch_memory_stats(memStats);
+		if (handleCpu) fetch_cpu_stats(curStats);
+		if (handleMem) fetch_memory_stats(memStats);
 
-	BUILD_TASK(true, build_input_task, &tg->a, listState);
-	clock_gettime(CLOCK_REALTIME, &current);
+		BUILD_TASK(true, build_input_task, &tg->a, listState);
+		clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
     
     	if ((totalTimeSec > PROC_WAIT_TIME_SEC) && prcActive)
     	{
-	    prevPrcs = curPrcs;
-	    curPrcs = get_processes(procArena, prc_pid_compare);
+	    	prevPrcs = curPrcs;
+	    	curPrcs = get_processes(procArena, prc_pid_compare);
 
-	    adjust_state(listState, curPrcs);
-	    
-	    clock_gettime(CLOCK_REALTIME, &start);
+	    	adjust_state(listState, curPrcs);
+	    	
+	    	clock_gettime(CLOCK_REALTIME, &start);
     	}
 
-	// I really like the stats to update quickly when
-	// on the process info page, so that's why this is here.
-	if (listState->infoVisible)
-	{
-	    qsort(
-		curPrcs->processes,
-		curPrcs->count,
-		sizeof(ProcessesSummary *),
-		prc_pid_compare_without_direction_fn
-	    );
+		// I really like the stats to update quickly when
+		// on the process info page, so that's why this is here.
+		if (listState->infoVisible)
+		{
+		    qsort(
+				curPrcs->processes,
+				curPrcs->count,
+				sizeof(ProcessesSummary *),
+				prc_pid_compare_without_direction_fn
+		    );
 
-	    Process **prc = bsearch(
-		&listState->selectedPid,
-		curPrcs->processes,
-		curPrcs->count,
-		sizeof(Process *),
-		prc_find_by_pid_compare_fn
-	    );
+		    Process **prc = bsearch(
+				&listState->selectedPid,
+				curPrcs->processes,
+				curPrcs->count,
+				sizeof(Process *),
+				prc_find_by_pid_compare_fn
+		    );
 
-	    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
-	}
+		    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
+		}
 
-	BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-	BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
-	BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
-	BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
-	BUILD_TASK(true, build_refresh_task, &tg->a);
+		BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+		BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+		BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
+		BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+		BUILD_TASK(true, build_refresh_task, &tg->a);
 
-	tg->tail = *tail;
-	tg->tasksComplete = 0;
+		tg->tail = *tail;
+		tg->tasksComplete = false;
 
-	_copy_stats(prevStats, curStats);
+		_copy_stats(prevStats, curStats);
 
-	enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
-	usleep(READ_SLEEP_TIME);
+		enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
+		usleep(READ_SLEEP_TIME);
     }
 
     a_free(&tgArena);

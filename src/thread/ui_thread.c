@@ -29,14 +29,14 @@ void run_ui(
 
     if (!mtopSettings->transparencyEnabled)
     {
-	set_bg_colors(
-	    container->window,
-	    cpuWin->window,
-	    memWin->window,
-	    prcWin->window,
-	    optWin->window,
-	    statTypeWin->window
-	);
+		set_bg_colors(
+		    container->window,
+		    cpuWin->window,
+		    memWin->window,
+		    prcWin->window,
+		    optWin->window,
+		    statTypeWin->window
+		);
     }
 
     print_header(container);
@@ -44,27 +44,27 @@ void run_ui(
     
     while (!SHUTDOWN_FLAG)
     {
-	print_uptime_ldAvg(container);
-	print_time(container);
+		print_uptime_ldAvg(container);
+		print_time(container);
 
-	TaskGroup *tg = peek(taskQueue, &taskQueueLock, &taskQueueCondition);
-	dequeue(taskQueue, &taskQueueLock, &taskQueueCondition);
+		TaskGroup *tg = peek(taskQueue, &taskQueueLock, &taskQueueCondition);
+		dequeue(taskQueue, &taskQueueLock, &taskQueueCondition);
 
-	// instead of passing in specific arena we could
-	// pass in the arenas structure? Idk if I like that,
-	// honestly.
-	UITask *task = tg->head;
-	
-	while (task)
-	{
-	    task->action(ui, task->data);
-	    task = task->next;
-	}
+		// instead of passing in specific arena we could
+		// pass in the arenas structure? Idk if I like that,
+		// honestly.
+		UITask *task = tg->head;
+		
+		while (task)
+		{
+		    task->action(ui, task->data);
+		    task = task->next;
+		}
 
-	tg->cleanup(&tg->a);
+		tg->cleanup(&tg->a);
 
-	tg->tasksComplete = 1;
-    
+		tg->tasksComplete = 1;
+    	
     	usleep(DISPLAY_SLEEP_TIME);
     }
 }

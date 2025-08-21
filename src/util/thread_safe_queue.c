@@ -20,7 +20,7 @@ void enqueue(
     
     if(queue->head == NULL)
     {
-	queue->head = newNode;
+		queue->head = newNode;
     	queue->tail = queue->head;
     	queue->head->next = NULL;
     	queue->head->data = data;
@@ -55,7 +55,7 @@ u8 dequeue(
     
     while (queue->head == NULL)
     {
-	pthread_cond_wait(condition, queueLock);
+		pthread_cond_wait(condition, queueLock);
     }
     
     QueueNode *tmp = queue->head;
@@ -83,7 +83,7 @@ void * peek(
     
     while (queue->head == NULL)
     {
-	pthread_cond_wait(condition, queueLock);
+		pthread_cond_wait(condition, queueLock);
     }
     
     void *val = queue->head->data;

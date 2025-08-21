@@ -24,17 +24,17 @@ void import_colors()
     u8 bgPair;
     u8 useBackground;
 
-#define DEF_COLORS(color, colEnumVal, memberName) \
-    if (sscanf(buffer, #memberName " = [%hu, %hu, %hu]\n", &theme->memberName->red, 	\
-    	&theme->memberName->green, &theme->memberName->blue) > 0) 			\
-    { 											\
-    	TO_NC_COLOR(theme->memberName->red); 						\
-    	TO_NC_COLOR(theme->memberName->green); 						\
-    	TO_NC_COLOR(theme->memberName->blue); 						\
-											\
-    	init_color(color, theme->memberName->red, 					\
-    		theme->memberName->green, 						\
-    		theme->memberName->blue); 						\
+#define DEF_COLORS(color, colEnumVal, memberName) 									\
+    if (sscanf(buffer, #memberName " = [%hu, %hu, %hu]\n", &theme->memberName->red, \
+    	&theme->memberName->green, &theme->memberName->blue) > 0) 					\
+    { 																				\
+    	TO_NC_COLOR(theme->memberName->red); 										\
+    	TO_NC_COLOR(theme->memberName->green); 										\
+    	TO_NC_COLOR(theme->memberName->blue); 										\
+																					\
+    	init_color(color, theme->memberName->red, 									\
+    		theme->memberName->green, 												\
+    		theme->memberName->blue); 												\
     }
     
     while (fgets(buffer, sizeof(buffer), f))

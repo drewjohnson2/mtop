@@ -8,7 +8,7 @@ pthread_cond_t taskQueueCondition;
 pthread_mutex_t listStateLock;
 pthread_cond_t listStateCondition;
 
-volatile s8 SHUTDOWN_FLAG = 0;
+volatile s8 SHUTDOWN_FLAG = false;
 
 void mutex_init()
 {

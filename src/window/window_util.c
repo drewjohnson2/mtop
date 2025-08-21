@@ -10,9 +10,7 @@
 
 #define S32_MAX 2147483647
 
-static void _reinit_window(UIData * di);
-
-u8 RESIZE = 0;
+u8 RESIZE = false;
 
 void print_header(const WindowData *wd)
 {
@@ -69,16 +67,16 @@ void print_uptime_ldAvg(const WindowData *wd)
     if (error == -1) return;
 
     snprintf(
-	displayStr,
-	sizeof(displayStr),
-	text(TXT_UPTIME_LOAD_FMT),
-	days,
-	hours,
-	minutes,
-	seconds,
-	load[0],
-	load[1],
-	load[2]
+		displayStr,
+		sizeof(displayStr),
+		text(TXT_UPTIME_LOAD_FMT),
+		days,
+		hours,
+		minutes,
+		seconds,
+		load[0],
+		load[1],
+		load[2]
     );
 
     if (strlen(displayStr) > (wd->wWidth / 2)) return;
@@ -94,10 +92,10 @@ void print_footer(const WindowData *wd)
 
     if (!mtopSettings->activeWindows[PRC_WIN])
     {
-	PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
-	    text(TXT_GITHUB), MT_PAIR_GITHUB);
+		PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
+		    text(TXT_GITHUB), MT_PAIR_GITHUB);
 
-	return;
+		return;
     }
 
     const u8 killPrcCtrlX = 2;
@@ -173,40 +171,6 @@ void display_options(UIData *ui)
 	    MT_PAIR_CTRL_TXT);
 }
 
-void display_stat_types(UIData *ui)
-{
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
-    u8 titlePosY = 0;
-    const u8 titlePosX = (statTypeWin->wWidth / 2) - (strlen(text(TXT_ADD_WINDOW)) / 2);
-    const u8 numPosX = 4;
-    const u8 valPosX = 7;
-    size_t optionNumber = 1;
-
-    werase(statTypeWin->window);
-    SET_COLOR(statTypeWin->window, MT_PAIR_BOX);
-    box(statTypeWin->window, 0, 0);
-    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", text(TXT_ADD_WINDOW), MT_PAIR_CTRL_TXT);
-
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
-    {
-	AddWindowMenuItem *item = ui->items[i];
-	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
-
-	if (mtopSettings->activeWindows[item->windowType]) continue;
-
-	if (item->isSelected)
-	{
-	    pair = MT_PAIR_PRC_SEL_TEXT;
-
-	    for (size_t y = valPosX - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
-		PRINTFC(statTypeWin->window, titlePosY, y, "%c", ' ', pair);
-	}
-
-	PRINTFC(statTypeWin->window, titlePosY, numPosX, "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
-	PRINTFC(statTypeWin->window, titlePosY++, valPosX, "%s", item->displayString, pair);
-    }
-}
-
 // Maybe use some macro expansion to clean this up.
 void set_bg_colors(
     WINDOW *container,
@@ -241,9 +205,9 @@ void resize_win(UIData *ui)
     init_window_dimens(ui);
     wresize(container->window, container->wHeight, container->wWidth);
 
-    _reinit_window(ui);
+    reinit_window(ui);
     
-    RESIZE = 0;
+    RESIZE = false;
 }
 
 void remove_win(UIData *ui, mt_Window winToRemove)
@@ -251,16 +215,16 @@ void remove_win(UIData *ui, mt_Window winToRemove)
     if (mtopSettings->activeWindowCount == 1) return;
 
     mtopSettings->activeWindowCount--;
-    mtopSettings->activeWindows[winToRemove] = 0;
+    mtopSettings->activeWindows[winToRemove] = false;
 
-    ui->windows[winToRemove]->active = 0;
+    ui->windows[winToRemove]->active = false;
 
     size_t i, j = 0;
 
     for (i = 0; i < STAT_WIN_COUNT; i++)
     {
-	if (ui->windowOrder[i] == winToRemove) ui->windowOrder[i] = WINDOW_ID_MAX;
-	if (ui->windowOrder[i] != WINDOW_ID_MAX) ui->windowOrder[j++] = ui->windowOrder[i];
+		if (ui->windowOrder[i] == winToRemove) ui->windowOrder[i] = WINDOW_ID_MAX;
+		if (ui->windowOrder[i] != WINDOW_ID_MAX) ui->windowOrder[j++] = ui->windowOrder[i];
     }
 
     while(j < STAT_WIN_COUNT) ui->windowOrder[j++] = WINDOW_ID_MAX;
@@ -274,7 +238,7 @@ void remove_win(UIData *ui, mt_Window winToRemove)
 
     wclear(ui->windows[CONTAINER_WIN]->window);
     init_window_dimens(ui);
-    _reinit_window(ui); 
+    reinit_window(ui); 
 }
 
 void add_win(UIData *ui, mt_Window winToAdd)
@@ -282,7 +246,7 @@ void add_win(UIData *ui, mt_Window winToAdd)
     if (mtopSettings->activeWindowCount == 3) return;
 
     u8 winCount = ++mtopSettings->activeWindowCount;
-    mtopSettings->activeWindows[winToAdd] = 1;
+    mtopSettings->activeWindows[winToAdd] = true;
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
@@ -296,88 +260,16 @@ void add_win(UIData *ui, mt_Window winToAdd)
     if (winCount == 2) mtopSettings->layout = DUO;
     else if (winCount == 3) 
     {
-	mtopSettings->layout = mtopSettings->orientation == HORIZONTAL ?
-	    QUARTERS_TOP :
-	    QUARTERS_LEFT;
+		mtopSettings->layout = mtopSettings->orientation == HORIZONTAL ?
+		    QUARTERS_TOP :
+		    QUARTERS_LEFT;
     }
 
-    ui->windows[winToAdd]->active = 1;
+    ui->windows[winToAdd]->active = true;
 
     wclear(ui->windows[CONTAINER_WIN]->window);
     init_window_dimens(ui);
-    _reinit_window(ui);
-}
-
-void init_stat_menu_items(AddWindowMenuItem **items)
-{
-    items[0]->displayString = text(TXT_CPU);
-    items[0]->windowType = CPU_WIN;
-    items[0]->isSelected = 0;
-    items[1]->displayString = text(TXT_MEM);
-    items[1]->windowType = MEMORY_WIN;
-    items[1]->isSelected = 0;
-    items[2]->displayString = text(TXT_PRC);
-    items[2]->windowType = PRC_WIN;
-    items[2]->isSelected = 0;
-}
-
-void init_menu_idx(AddWindowMenuItem **items)
-{
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
-    {
-	AddWindowMenuItem *item = items[i];
-
-	if (!mtopSettings->activeWindows[item->windowType])
-	{
-	    item->isSelected = 1;
-	    return;
-	}
-    }
-}
-
-void reset_menu_idx(AddWindowMenuItem **items)
-{
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++) items[i]->isSelected = 0;
-}
-
-void toggle_add_win_opts(AddWindowMenuItem **items)
-{
-    if (mtopSettings->activeWindowCount > 1) return;
-    
-    AddWindowMenuItem *selectedItem = NULL;
-    
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
-    {
-        if (items[i]->isSelected)
-        {
-            selectedItem = items[i];
-            break;
-        }
-    }
-    
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
-    {
-        if (items[i] == selectedItem) continue;
-        else if (mtopSettings->activeWindows[items[i]->windowType]) continue;
-    
-        items[i]->isSelected = 1;
-        selectedItem->isSelected = 0;
-    }
-}
-
-mt_Window get_add_menu_selection(AddWindowMenuItem **items)
-{
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++)
-    {
-	if (items[i]->isSelected)
-	{
-	    items[i]->isSelected = 0;
-
-	    return items[i]->windowType;
-	}
-    }
-
-    return WINDOW_ID_MAX;
+    reinit_window(ui);
 }
 
 mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp)
@@ -391,20 +283,20 @@ mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp)
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
-	WindowData *win = ui->windows[windows[i]];
+		WindowData *win = ui->windows[windows[i]];
 
-	if (win == cur || win == NULL) continue;
-	else if (!(cmp(win, cur) && win->active)) continue;
+		if (win == cur || win == NULL) continue;
+		else if (!(cmp(win, cur) && win->active)) continue;
 
-	s16 dx = abs(win->windowX - cur->windowX);
-	s16 dy = abs(win->windowY - cur->windowY);
-	s32 distance = dx + dy;
+		s16 dx = abs(win->windowX - cur->windowX);
+		s16 dy = abs(win->windowY - cur->windowY);
+		s32 distance = dx + dy;
 
-	if (distance < best)
-	{
-	    selectedWindow = windows[i];
-	    best = distance;
-	}
+		if (distance < best)
+		{
+		    selectedWindow = windows[i];
+		    best = distance;
+		}
     }
 
     return selectedWindow;
@@ -418,21 +310,22 @@ void swap_windows(UIData *ui, mt_Window windowToSwap)
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
-	if (ui->windowOrder[i] == current) idxCurrent = i;
-	else if (ui->windowOrder[i] == windowToSwap) idxSwap = i;
+		if (ui->windowOrder[i] == current) idxCurrent = i;
+		else if (ui->windowOrder[i] == windowToSwap) idxSwap = i;
     }
 
     if (idxCurrent == -1 || idxSwap == -1) return;
 
     mt_Window hold = ui->windowOrder[idxCurrent];
+
     ui->windowOrder[idxCurrent] = ui->windowOrder[idxSwap];
     ui->windowOrder[idxSwap] = hold;
 
     init_window_dimens(ui);
-    _reinit_window(ui);
+    reinit_window(ui);
 }
 
-static void _reinit_window(UIData *ui)
+void reinit_window(UIData *ui)
 {
     u8 winCount = mtopSettings->activeWindowCount;
     mt_Window winType = ui->windowOrder[0];
@@ -442,14 +335,16 @@ static void _reinit_window(UIData *ui)
 
     for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
     {
-	WindowData *win = ui->windows[winType];
+		WindowData *win = ui->windows[winType];
 
-	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
-	winType = ui->windowOrder[++i];
+		win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
+		winType = ui->windowOrder[++i];
     }
 
     optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
     statTypeWin->window = subwin(container->window, statTypeWin->wHeight, statTypeWin->wWidth, statTypeWin->windowY, statTypeWin->windowX);
+
+    ui->reinitListState = true;
 
     REFRESH_WIN(container->window);
 

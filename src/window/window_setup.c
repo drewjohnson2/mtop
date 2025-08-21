@@ -26,9 +26,6 @@
 #define POS_Y_START 1
 #define POS_Y_BOTTOM(container, win) ((container)->wHeight - (win)->wHeight - 1)
 
-#define UTIL_W_DEFAULT(container) container->wWidth / 4
-#define UTIL_H_DEFAULT(container) container->wHeight / 4
-
 typedef void (*LayoutHandler)(UIData *ui);
 
 static void _setup_quarters_left(UIData *ui);
@@ -37,17 +34,9 @@ static void _setup_quarters_top(UIData *ui);
 static void _setup_quarters_bottom(UIData *ui);
 static void _setup_duo(UIData *ui);
 static void _setup_single(UIData *ui);
-static void _setup_util_win(
-    WindowData *container, 
-    WindowData *win,
-    u8 height,
-    u8 width,
-    u8 enforceMinH,
-    u8 enforceMinW
-);
 
 LayoutHandler layout_fn_table[] = {
-    _setup_quarters_left,
+	_setup_quarters_left,
     _setup_quarters_right,
     _setup_quarters_top,
     _setup_quarters_bottom,
@@ -61,7 +50,7 @@ UIData * init_display_items(Arena *arena)
     
     assert(ui);
     
-    ui->optionsVisible = 0;
+    ui->optionsVisible = false;
     ui->windowOrder[0] = WINDOW_ID_MAX;
     ui->windowOrder[1] = WINDOW_ID_MAX;
     ui->windowOrder[2] = WINDOW_ID_MAX;
@@ -81,23 +70,24 @@ UIData * init_display_items(Arena *arena)
     );
 
 #define DEFINE_WINDOWS(winName, enumName) 	\
-    do {					\
-	ui->windows[enumName] = a_alloc( 	\
-    	    arena, 				\
-    	    sizeof(WindowData), 		\
-    	    __alignof(WindowData) 		\
-    	); 					\
-    	    					\
+    do {									\
+		ui->windows[enumName] = a_alloc( 	\
+    	    arena, 							\
+    	    sizeof(WindowData), 			\
+    	    __alignof(WindowData) 			\
+    	); 									\
+    	    								\
     	assert(ui->windows[enumName]);		\
     } while (0);
 #include "../../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
 
-    ui->items = a_alloc(arena, sizeof(AddWindowMenuItem *) * STAT_WIN_COUNT,
-	__alignof(AddWindowMenuItem)); 
+    // remove magic number when I have a solid number nailed down.
+    ui->menu = a_alloc(arena, sizeof(MenuData), __alignof(MenuData));
+    ui->menu->items = a_alloc(arena, sizeof(MenuItem *) * 10, __alignof(MenuItem)); 
 
-    for (size_t i = 0; i < STAT_WIN_COUNT; i++) 
-	 ui->items[i] = a_alloc(arena, sizeof(AddWindowMenuItem), __alignof(AddWindowMenuItem));
+    for (size_t i = 0; i < 10; i++) 
+		ui->menu->items[i] = a_alloc(arena, sizeof(MenuItem), __alignof(MenuItem));
 
     return ui;
 }
@@ -124,17 +114,23 @@ void init_window_dimens(UIData *ui)
     WindowData *optWin = ui->windows[OPT_WIN];
     WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
 
-    ui->windows[ui->windowOrder[0]]->active = 1;
-    if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = 1;
-    if (winCount == 3) ui->windows[ui->windowOrder[2]]->active = 1;
+    ui->windows[ui->windowOrder[0]]->active = true;
+    if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = true;
+    if (winCount == 3) ui->windows[ui->windowOrder[2]]->active = true;
 
     container->windowX = 0;
     container->windowY = 0;
 
     layout_fn_table[layout](ui);
 
-    _setup_util_win(container, optWin, UTIL_H_DEFAULT(container), UTIL_W_DEFAULT(container), 1, 1);
-    _setup_util_win(container, statTypeWin, STAT_WIN_COUNT + 2, UTIL_W_DEFAULT(container), 0, 1);
+    s16 optWinHeight = FLOAT_WIN_DEFAULT_H(container); 
+    s16 optWinWidth = FLOAT_WIN_DEFAULT_W(container);
+
+    optWinHeight = optWinHeight < MIN_UTIL_WIN_HEIGHT ? MIN_UTIL_WIN_HEIGHT : optWinHeight;
+    optWinWidth = optWinWidth < MIN_UTIL_WIN_WIDTH ? MIN_UTIL_WIN_WIDTH : optWinWidth;
+
+    size_floating_win(container, optWin, optWinHeight, optWinWidth);
+    size_floating_win(container, statTypeWin, STAT_WIN_COUNT + 2, FLOAT_WIN_DEFAULT_W(container));
 }
 
 void init_windows(UIData *ui) 
@@ -151,38 +147,31 @@ void init_windows(UIData *ui)
     assert(container->window);
     nodelay(container->window, TRUE);
 
-#define DEFINE_WINDOWS(winName, enumName) 		\
+#define DEFINE_WINDOWS(winName, enumName) 				\
     WindowData *winName##Win = ui->windows[enumName]; 	\
-							\
-    winName##Win->window = subwin(			\
-    	container->window,				\
-    	winName##Win->wHeight,				\
-    	winName##Win->wWidth,				\
-    	winName##Win->windowY,				\
-    	winName##Win->windowX				\
-    );							\
-							\
+														\
+    winName##Win->window = subwin(						\
+    	container->window,								\
+    	winName##Win->wHeight,							\
+    	winName##Win->wWidth,							\
+    	winName##Win->windowY,							\
+    	winName##Win->windowX							\
+    );													\
+														\
     assert(winName##Win->window);
 #include "../../include/tables/window_def_table.h"
 #undef DEFINE_WINDOWS
 }
 
-// Need to just combine these two functions. It's the same damn thing.
-static void _setup_util_win(
+void size_floating_win(
     WindowData *container, 
     WindowData *win,
-    u8 height,
-    u8 width,
-    u8 enforceMinH,
-    u8 enforceMinW
+    s16 height,
+    s16 width
 )
 {
     win->wWidth = width;
     win->wHeight = height;
-
-    if (win->wHeight < MIN_UTIL_WIN_HEIGHT && enforceMinH) win->wHeight = MIN_UTIL_WIN_HEIGHT;
-    if (win->wWidth < MIN_UTIL_WIN_WIDTH && enforceMinW) win->wWidth = MIN_UTIL_WIN_WIDTH;
-
     win->windowX = (container->wWidth / 2) - (win->wWidth / 2);
     win->windowY = (container->wHeight / 2) - (win->wHeight / 2);
 }

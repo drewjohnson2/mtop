@@ -9,25 +9,32 @@
 #include "monitor.h"
 #include "sorting.h"
 #include "mt_colors.h"
+#include "startup.h"
 
 #define INPUT_TIMEOUT_MS 575
 #define STAT_WIN_COUNT 3
 
 #define REFRESH_WIN(win) 	\
-    do { 			\
-	touchwin(win); 		\
-	wrefresh(win); 		\
-    } while (0) 		\
+    do { 					\
+		touchwin(win); 		\
+		wrefresh(win); 		\
+    } while (0) 			\
 
 #define SET_COLOR(win, pair) wattron(win, COLOR_PAIR(pair))
 #define UNSET_COLOR(win, pair) wattroff(win, COLOR_PAIR(pair))
 
 #define PRINTFC(win, y, x, fmt, str, pair) 	\
-    do { 					\
-	SET_COLOR(win, pair); 			\
-	mvwprintw(win, y, x, fmt, str); 	\
-	UNSET_COLOR(win, pair); 		\
+    do { 									\
+		SET_COLOR(win, pair); 				\
+		mvwprintw(win, y, x, fmt, str); 	\
+		UNSET_COLOR(win, pair); 			\
     } while (0)
+
+#define FLOAT_WIN_DEFAULT_W(container) container->wWidth / 4
+#define FLOAT_WIN_DEFAULT_H(container) container->wHeight / 4
+
+struct UIData;
+typedef struct UIData UIData;
 
 typedef enum _mt_window 
 {
@@ -44,12 +51,20 @@ typedef enum
     ARRANGE
 } WindowMode;
 
+typedef union
+{
+    mt_Window windowType;
+    Layout layout;
+    LayoutOrientation orientation;
+} MenuItemValue;
+
 typedef struct
 {
     const char *displayString;
-    mt_Window windowType;
+    MenuItemValue returnValue;
     u8 isSelected;
-} AddWindowMenuItem;
+    u8 isHidden;
+} MenuItem;
 
 typedef struct
 {
@@ -62,14 +77,22 @@ typedef struct
 
 typedef struct
 {
+    u8 isVisible;
+    u8 menuItemCount;
+    MenuItem **items;
+    void (*on_select)(UIData *, MenuItemValue);
+} MenuData;
+
+struct UIData
+{
     u8 optionsVisible;
-    u8 statTypesVisible;
-    WindowData **windows;
-    mt_Window windowOrder[3]; 
-    WindowMode mode;
+    u8 reinitListState;
     mt_Window selectedWindow;
-    AddWindowMenuItem **items;
-} UIData;
+    mt_Window windowOrder[3]; 
+    MenuData *menu; 
+    WindowData **windows;
+    WindowMode mode;
+};
 
 typedef struct _graph_point
 {
@@ -136,6 +159,12 @@ UIData * init_display_items(Arena *arena);
 void init_windows(UIData *ui);
 void init_window_dimens(UIData *ui);
 void init_ncurses(WindowData *wd, SCREEN *screen);
+void size_floating_win(
+    WindowData *container, 
+    WindowData *win,
+    s16 height,
+    s16 width
+);
 
 //
 //		graph.c
@@ -173,6 +202,7 @@ void adjust_state(ProcessListState *state, ProcessesSummary *stats);
 void set_start_end_idx(ProcessListState *state);
 void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelected);
 
+// why are input functions being declared in the window header?
 //
 //		input.c
 //
@@ -188,13 +218,11 @@ void read_arrange_input(UIData *ui);
 //		window_util.c
 //
 //
-void init_stat_menu_items(AddWindowMenuItem **items);
 void print_header(const WindowData *wd);
 void print_time(const WindowData *wd);
 void print_uptime_ldAvg(const WindowData *wd);
 void print_footer(const WindowData *wd);
 void display_options(UIData *ui);
-void display_stat_types(UIData *ui);
 void set_bg_colors(
     WINDOW *container,
     WINDOW *cpuWin,
@@ -206,11 +234,8 @@ void set_bg_colors(
 void resize_win(UIData *ui);
 void remove_win(UIData *ui, mt_Window winToRemove);
 void add_win(UIData *ui, mt_Window winToAdd);
-void init_menu_idx(AddWindowMenuItem **items);
-void reset_menu_idx(AddWindowMenuItem **items);
-void toggle_add_win_opts(AddWindowMenuItem **items);
 void swap_windows(UIData *ui, mt_Window windowToSwap);
+void reinit_window(UIData *ui);
 mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp);
-mt_Window get_add_menu_selection(AddWindowMenuItem **items);
 
 #endif
