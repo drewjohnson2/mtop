@@ -65,6 +65,6 @@ void run_ui(
 
 		tg->tasksComplete = 1;
     	
-    		usleep(DISPLAY_SLEEP_TIME);
+    	usleep(DISPLAY_SLEEP_TIME);
     }
 }

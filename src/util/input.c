@@ -170,80 +170,80 @@ void read_normal_input(
     
     switch (ch)
     {
-	case 'j':
-	    _adjust_menu_index(DOWN, state);
+		case 'j':
+		    _adjust_menu_index(DOWN, state);
 
-	    return;
-    case 'k':
-	    _adjust_menu_index(UP, state);    
+		    return;
+    	case 'k':
+		    _adjust_menu_index(UP, state);    
 
-	    return;
-	case 'l':
-	    _adjust_menu_index(RIGHT, state);
+		    return;
+		case 'l':
+		    _adjust_menu_index(RIGHT, state);
 
-	    return;
-	case 'h':
-	    _adjust_menu_index(LEFT, state);
+		    return;
+		case 'h':
+		    _adjust_menu_index(LEFT, state);
 
-	    return;
-	case 4: // CTRL + D
-	    _adjust_menu_index(JUMP_DOWN, state);
-	
-	    return;
-	case 21: // CTRL + U
-	    _adjust_menu_index(JUMP_UP, state);
+		    return;
+		case 4: // CTRL + D
+		    _adjust_menu_index(JUMP_DOWN, state);
+		
+		    return;
+		case 21: // CTRL + U
+		    _adjust_menu_index(JUMP_UP, state);
 
-	    return;
-	case 10: // Enter
-	    if (mtopSettings->activeWindows[PRC_WIN]) state->infoVisible = true;
-	    
-	    return;
-	case 'n':
-	    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
-	    else sortDirection = ASC;
+		    return;
+		case 10: // Enter
+		    if (mtopSettings->activeWindows[PRC_WIN]) state->infoVisible = true;
+		    
+		    return;
+		case 'n':
+		    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
+		    else sortDirection = ASC;
 
-	    state->sortOrder = PRC_NAME;
-	    state->sortFn = vd_name_compare_fn;
+		    state->sortOrder = PRC_NAME;
+		    state->sortFn = vd_name_compare_fn;
 
-	    return;
-	case 'p':
-	    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
-	    else sortDirection = ASC;
+		    return;
+		case 'p':
+		    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
+		    else sortDirection = ASC;
 
-	    state->sortOrder = PID;
-	    state->sortFn = vd_pid_compare_fn;
+		    state->sortOrder = PID;
+		    state->sortFn = vd_pid_compare_fn;
 
-	    return;
-	case 'c':
-	    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
-	    else sortDirection = DESC;
+		    return;
+		case 'c':
+		    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
+		    else sortDirection = DESC;
 
-	    state->sortOrder = CPU;
-	    state->sortFn = vd_cpu_compare_fn;
+		    state->sortOrder = CPU;
+		    state->sortFn = vd_cpu_compare_fn;
 
-	    return;
-	case 'm':
-	    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
-	    else sortDirection = DESC;
+		    return;
+		case 'm':
+		    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
+		    else sortDirection = DESC;
 
-	    state->sortOrder = MEM;
-	    state->sortFn = vd_mem_compare_fn;
+		    state->sortOrder = MEM;
+		    state->sortFn = vd_mem_compare_fn;
 
-	    return;
-	case 'o':
-	    if (!mtopSettings->activeWindows[PRC_WIN]) return;
-	    ui->optionsVisible = !ui->optionsVisible;
-	    
-	    return;
-	case 'b':
-	    state->infoVisible = false;
+		    return;
+		case 'o':
+		    if (!mtopSettings->activeWindows[PRC_WIN]) return;
+		    ui->optionsVisible = !ui->optionsVisible;
+		    
+		    return;
+		case 'b':
+		    state->infoVisible = false;
 
-	    return;
-    case 'q':
-	    SHUTDOWN_FLAG = true;
-	    return;
-    default:
-	    break;
+		    return;
+    	case 'q':
+		    SHUTDOWN_FLAG = true;
+		    return;
+    	default:
+	    	break;
     }
     
     if (!state->cmdBuffer)
