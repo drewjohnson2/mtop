@@ -11,7 +11,7 @@ const char * text(TextID id)
 {
     if (id < 0 || id > TXT_COUNT)
     {
-	return "<invalid text>";
+		return "<invalid text>";
     }
 
     return _text[id];

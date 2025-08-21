@@ -14,7 +14,7 @@ void fetch_memory_stats(volatile MemoryStats *memStats)
 
     while (fgets(buffer, sizeof(buffer), f))
     {
-	_parse_stat(memStats, buffer);
+		_parse_stat(memStats, buffer);
     }
     
     fclose(f);

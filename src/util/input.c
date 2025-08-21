@@ -31,33 +31,33 @@ void read_arrange_input(UIData *ui)
 
     if (ui->menu->isVisible)
     {
-	_read_menu_input(ui, ch);
-	return;
+		_read_menu_input(ui, ch);
+		return;
     }
 
     if (ch == ('j' & 0x1F)) // ctrl+j
     {
-	_swap_windows(ui, win_compare_below);
+		_swap_windows(ui, win_compare_below);
 
-	return;
+		return;
     }
     else if (ch == ('k' & 0x1F)) // ctrl+k
     {
-	_swap_windows(ui, win_compare_above);
+		_swap_windows(ui, win_compare_above);
 
-	return;
+		return;
     }
     else if (ch == ('h' & 0x1F)) // ctrl+h
     {
-	_swap_windows(ui, win_compare_left);
+		_swap_windows(ui, win_compare_left);
 
-	return;
+		return;
     }
     else if (ch == ('l' & 0x1F)) // ctrl+l
     {
-	_swap_windows(ui, win_compare_right);
+		_swap_windows(ui, win_compare_right);
 
-	return;
+		return;
     }
 
     switch (ch)
@@ -96,17 +96,17 @@ void read_arrange_input(UIData *ui)
 
 	    if (mtopSettings->activeWindowCount == 3)
 	    {
-		onSelect = handle_change_layout;
-		items = init_layout_menu_items;
-		title = text(TXT_CHOOSE_LAYOUT);
-		itemCount = LAYOUT_COUNT;
+			onSelect = handle_change_layout;
+			items = init_layout_menu_items;
+			title = text(TXT_CHOOSE_LAYOUT);
+			itemCount = LAYOUT_COUNT;
 	    }
 	    else if (mtopSettings->activeWindowCount == 2)
 	    {
-		onSelect = handle_change_duo_orientation;
-		items = init_orienation_menu_items;
-		title = text(TXT_CHOOSE_ORIENTATION);
-		itemCount = ORIENTATION_COUNT;
+			onSelect = handle_change_duo_orientation;
+			items = init_orienation_menu_items;
+			title = text(TXT_CHOOSE_ORIENTATION);
+			itemCount = ORIENTATION_COUNT;
 	    }
 	    else return;
 
@@ -117,7 +117,7 @@ void read_arrange_input(UIData *ui)
 	    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
 
 	    init_menu(ui, isVisible, STAT_WIN_COUNT,
-	       text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
+	    text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
 
 	    return;
 	default:
@@ -146,7 +146,7 @@ void read_normal_input(
     
     if (state->timeoutActive)
     {
-	clock_gettime(CLOCK_REALTIME, &timeoutCurrent);
+		clock_gettime(CLOCK_REALTIME, &timeoutCurrent);
     
     	timeElapsedMs = (timeoutCurrent.tv_sec - state->timeoutStart.tv_sec) * 1000
     	 + (timeoutCurrent.tv_nsec - state->timeoutStart.tv_nsec) 
@@ -154,8 +154,8 @@ void read_normal_input(
     
     	if (timeElapsedMs > INPUT_TIMEOUT_MS)
     	{
-	    state->cmdBuffer = '\0';
-	    state->timeoutActive = false;
+	    	state->cmdBuffer = '\0';
+	    	state->timeoutActive = false;
     	}
     }
     
@@ -163,9 +163,9 @@ void read_normal_input(
 
     if (ch == ('a' & 0x1F)) // ctrl+a
     {
-	ui->mode = ARRANGE;
-	ui->selectedWindow = ui->windowOrder[0];
-	return;
+		ui->mode = ARRANGE;
+		ui->selectedWindow = ui->windowOrder[0];
+		return;
     }
     
     switch (ch)
@@ -174,7 +174,7 @@ void read_normal_input(
 	    _adjust_menu_index(DOWN, state);
 
 	    return;
-    	case 'k':
+    case 'k':
 	    _adjust_menu_index(UP, state);    
 
 	    return;
@@ -239,36 +239,36 @@ void read_normal_input(
 	    state->infoVisible = false;
 
 	    return;
-    	case 'q':
+    case 'q':
 	    SHUTDOWN_FLAG = true;
 	    return;
-    	default:
+    default:
 	    break;
     }
     
     if (!state->cmdBuffer)
     {
-	state->cmdBuffer = ch;
-	state->timeoutActive = true;
-	clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
-	    
-	return;
+		state->cmdBuffer = ch;
+		state->timeoutActive = true;
+		clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
+		    
+		return;
     }
     else if (ch != state->cmdBuffer) 
     {
-	state->cmdBuffer = '\0';
-	state->timeoutActive = false;
-    
-	return;
+		state->cmdBuffer = '\0';
+		state->timeoutActive = false;
+    	
+		return;
     }
     else if (ch == 'd')
     {
-	state->cmdBuffer = '\0';
-	state->timeoutActive = false;
+		state->cmdBuffer = '\0';
+		state->timeoutActive = false;
 
-	kill(state->selectedPid, SIGKILL);
+		kill(state->selectedPid, SIGKILL);
 
-	return;
+		return;
     }
 }
 
@@ -318,41 +318,41 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
     switch (dir) 
     {
 	case UP:
-    	    state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
-    	        state->selectedIndex - 1 :
-    	        state->pageEndIdx;
+    	state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
+    	    state->selectedIndex - 1 :
+    	    state->pageEndIdx;
 	    break;
 	case DOWN:
-    	    state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
-    	        state->selectedIndex + 1 : 
-    	        state->pageStartIdx;
+		state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
+    		state->selectedIndex + 1 : 
+    	    state->pageStartIdx;
 	    break;
 	case RIGHT:
-    	    state->activePage = state->activePage < state->totalPages - 1 ?
-    	        state->activePage + 1 :
-    	        0;
+    	state->activePage = state->activePage < state->totalPages - 1 ?
+    	    state->activePage + 1 :
+    	    0;
 
-    	    state->selectedIndex = state->activePage == 0 ?
-    	        state->selectedIndex - state->pageStartIdx :
-    	        state->selectedIndex + state->pageSize;
+    	state->selectedIndex = state->activePage == 0 ?
+    	    state->selectedIndex - state->pageStartIdx :
+    	    state->selectedIndex + state->pageSize;
 
 	    break;
 	case LEFT:
-    	    state->activePage = state->activePage > 0 ?
-    	        state->activePage - 1 :
-    	        state->totalPages - 1;
+    	state->activePage = state->activePage > 0 ?
+    	    state->activePage - 1 :
+    	    state->totalPages - 1;
 
-    	    state->selectedIndex = state->activePage == state->totalPages - 1 ?
-    	        (state->pageSize * state->activePage) + state->selectedIndex :
-    	        state->selectedIndex - state->pageSize;
+    	state->selectedIndex = state->activePage == state->totalPages - 1 ?
+    	    (state->pageSize * state->activePage) + state->selectedIndex :
+    	    state->selectedIndex - state->pageSize;
 
 	    break;
 	case JUMP_DOWN:
-    	    jumpValue = (state->pageSize / 2);
+    	jumpValue = (state->pageSize / 2);
 
-    	    state->selectedIndex = (state->selectedIndex + jumpValue) <= state->pageEndIdx ?
-    	        state->selectedIndex + jumpValue :
-    	        state->pageEndIdx;
+    	state->selectedIndex = (state->selectedIndex + jumpValue) <= state->pageEndIdx ?
+    	    state->selectedIndex + jumpValue :
+    	    state->pageEndIdx;
 
 	    break;
 	case JUMP_UP:

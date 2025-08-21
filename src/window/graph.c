@@ -36,42 +36,42 @@ s8 graph_render(
     
     while (current)
     {
-	if (posX > wd->wWidth - 3) break;
-    
-	s16 lineHeight = (wd->wHeight - 3) * current->percent;
-	const char dataChar = current->percent * 100 == 0 ? '.' : '|';
+		if (posX > wd->wWidth - 3) break;
+    	
+		s16 lineHeight = (wd->wHeight - 3) * current->percent;
+		const char dataChar = current->percent * 100 == 0 ? '.' : '|';
+				
+		lineHeight = lineHeight == 0 ? 1 : lineHeight;
+		
+		while (lineHeight--)
+		{
+		    if (posY <= 0) break;
 			
-	lineHeight = lineHeight == 0 ? 1 : lineHeight;
-	
-	while (lineHeight--)
-	{
-	    if (posY <= 0) break;
+		    // Extended ascii not playing nice
+		    // const wchar_t bullet = L'•';
+		    // wmove(win, posY--, posX);
+		    // waddnwstr(win, &bullet, -1);
+			
+		    PRINTFC(win, posY--, posX, "%c", dataChar, gpColor);
+		}
 		
-	    // Extended ascii not playing nice
-	    // const wchar_t bullet = L'•';
-	    // wmove(win, posY--, posX);
-	    // waddnwstr(win, &bullet, -1);
-		
-	    PRINTFC(win, posY--, posX, "%c", dataChar, gpColor);
-	}
-	
-	posY = wd->wHeight - 2;
-	posX++;
+		posY = wd->wHeight - 2;
+		posX++;
 
-	SET_COLOR(wd->window, boxPair);
+		SET_COLOR(wd->window, boxPair);
 
-	box(win, 0, 0);
+		box(win, 0, 0);
 
 #ifdef DEBUG
-	PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
-	    headerColor);
-	PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
-	    headerColor);
+		PRINTFC(win, 0, 3, " Percentage  = %.4f ", current->percent * 100, 
+		    headerColor);
+		PRINTFC(win, 0, 35, " Arena Regions Alloc'd  = %zu ", arena->regionsAllocated,
+		    headerColor);
 #else 
-	PRINTFC(win, 0, 3, " %s ", wd->windowTitle, headerColor);
+		PRINTFC(win, 0, 3, " %s ", wd->windowTitle, headerColor);
 #endif
-	last = current;	
-	current = current->next;
+		last = current;	
+		current = current->next;
     }
 
     const s8 pctLabel = (s8)(last->percent * 100);
@@ -125,7 +125,7 @@ s8 add_graph_point(Arena *arena, GraphData *gd, float percentage, u8 winActive)
     
     if (gd->head == NULL) 
     {
-	gd->head = gp;
+		gd->head = gp;
     
     	return 0;
     }

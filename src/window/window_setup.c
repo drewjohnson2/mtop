@@ -36,7 +36,7 @@ static void _setup_duo(UIData *ui);
 static void _setup_single(UIData *ui);
 
 LayoutHandler layout_fn_table[] = {
-    _setup_quarters_left,
+	_setup_quarters_left,
     _setup_quarters_right,
     _setup_quarters_top,
     _setup_quarters_bottom,
@@ -71,7 +71,7 @@ UIData * init_display_items(Arena *arena)
 
 #define DEFINE_WINDOWS(winName, enumName) 	\
     do {					\
-	ui->windows[enumName] = a_alloc( 	\
+		ui->windows[enumName] = a_alloc( 	\
     	    arena, 				\
     	    sizeof(WindowData), 		\
     	    __alignof(WindowData) 		\
@@ -84,11 +84,10 @@ UIData * init_display_items(Arena *arena)
 
     // remove magic number when I have a solid number nailed down.
     ui->menu = a_alloc(arena, sizeof(MenuData), __alignof(MenuData));
-    ui->menu->items = a_alloc(arena, sizeof(MenuItem *) * 10,
-	__alignof(MenuItem)); 
+    ui->menu->items = a_alloc(arena, sizeof(MenuItem *) * 10, __alignof(MenuItem)); 
 
     for (size_t i = 0; i < 10; i++) 
-	 ui->menu->items[i] = a_alloc(arena, sizeof(MenuItem), __alignof(MenuItem));
+		ui->menu->items[i] = a_alloc(arena, sizeof(MenuItem), __alignof(MenuItem));
 
     return ui;
 }

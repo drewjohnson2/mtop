@@ -23,7 +23,7 @@ void cpu_action_fn(UIData *ui, void *ctx)
         cpuWin,
         MT_PAIR_CPU_GP,
         MT_PAIR_CPU_HEADER,
-	winSelected
+		winSelected
     );
 
     wnoutrefresh(cpuWin->window);
@@ -39,11 +39,11 @@ void mem_action_fn(UIData *ui, void *ctx)
     add_graph_point(a, context->graphData, context->memPercentage, 1);
     graph_render(
         a,
-	context->graphData,
+		context->graphData,
         memWin,
         MT_PAIR_MEM_GP,
         MT_PAIR_MEM_HEADER,
-	winSelected
+		winSelected
     );
 
     wnoutrefresh(memWin->window);
@@ -61,23 +61,23 @@ void process_action_fn(UIData *ui, void *ctx)
 
     if (ui->reinitListState)
     {
-	setup_list_state(listState, curPrcs, prcWin);
-	ui->reinitListState = false;
+		setup_list_state(listState, curPrcs, prcWin);
+		ui->reinitListState = false;
     }
 
     Arena scratch = a_new(
-	(sizeof(ProcessStatsViewData *) * curPrcs->count) +
+		(sizeof(ProcessStatsViewData *) * curPrcs->count) +
     	sizeof(ProcessStatsViewData) +
     	(sizeof(ProcessStatsViewData) * curPrcs->count)
     );
     ProcessStatsViewData **vd = a_alloc(
-	&scratch,
+		&scratch,
     	sizeof(ProcessStatsViewData *) * curPrcs->count,
     	__alignof(ProcessStatsViewData *)
     ); 
     
     set_prc_view_data(
-	&scratch,
+		&scratch,
     	vd,
     	curPrcs,
     	prevPrcs,
@@ -92,22 +92,22 @@ void process_action_fn(UIData *ui, void *ctx)
 
     if (!listState->infoVisible)
     {
-	listState->selectedPid = vd[listState->selectedIndex]->pid;
-	print_stats(listState, prcWin, vd, curPrcs->count, winSelected);
+		listState->selectedPid = vd[listState->selectedIndex]->pid;
+		print_stats(listState, prcWin, vd, curPrcs->count, winSelected);
     }
     else
     {	
-	qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), vd_pid_compare_without_direction_fn);
+		qsort(vd, curPrcs->count, sizeof(ProcessStatsViewData *), vd_pid_compare_without_direction_fn);
 
-	ProcessStatsViewData **data = bsearch(
-	    &listState->selectedPid,
-	    vd,
-	    curPrcs->count,
-	    sizeof(ProcessStatsViewData *),
-	    vd_find_by_pid_compare_fn
-	);
+		ProcessStatsViewData **data = bsearch(
+		    &listState->selectedPid,
+		    vd,
+		    curPrcs->count,
+		    sizeof(ProcessStatsViewData *),
+		    vd_find_by_pid_compare_fn
+		);
 
-	show_prc_info(*data, prcWin, winSelected);
+		show_prc_info(*data, prcWin, winSelected);
     }
 
     wnoutrefresh(prcWin->window);
@@ -141,13 +141,13 @@ void refresh_action_fn(UIData *ui, void *ctx)
 
     if (ui->optionsVisible)
     {
-	display_options(ui);
-	wnoutrefresh(optWin->window);
+		display_options(ui);
+		wnoutrefresh(optWin->window);
     }
     else if (ui->menu->isVisible)
     {
-	display_menu_options(ui);
-	wnoutrefresh(statTypeWin->window);
+		display_menu_options(ui);
+		wnoutrefresh(statTypeWin->window);
     }
 
     // this is literally just so the compiler won't

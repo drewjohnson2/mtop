@@ -14,28 +14,28 @@
 #include "../../include/startup.h"
 #include "../../include/text.h"
 
-#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 		\
-    do {							\
-	if (*y >= wd->wHeight - 4) 				\
-    	{							\
-    	    *y = 4;						\
-    	    *x = wd->wWidth / 2;				\
-    	}							\
-								\
-	PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);	\
+#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	\
+    do {											\
+		if (*y >= wd->wHeight - 4) 					\
+    	{											\
+    	    *y = 4;									\
+    	    *x = wd->wWidth / 2;					\
+    	}											\
+													\
+	PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
     } while (0)
 
-#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 	\
-    do {							\
-	if (*y >= wd->wHeight - 4) 				\
-    	{							\
-    	    *y = 4;						\
-    	    *x = wd->wWidth / 2;				\
-    	}							\
-								\
-	u8 valuePos = padding + *x + 2;				\
-								\
-	PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
+#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 		\
+    do {														\
+		if (*y >= wd->wHeight - 4) 								\
+    	{														\
+    		*y = 4;												\
+    		*x = wd->wWidth / 2;								\
+    	}														\
+																\
+		u8 valuePos = padding + *x + 2;							\
+																\
+		PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
     } while (0)
 
 void print_stats(
@@ -117,7 +117,7 @@ void print_stats(
     
     for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
     {
-	PRINTFC(win, prcTblHeaderY + 1, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
+		PRINTFC(win, prcTblHeaderY + 1, x, "%c", '-', MT_PAIR_PRC_TBL_HEADER);
     }
     
     wattroff(win, A_BOLD);
@@ -134,7 +134,7 @@ void print_stats(
     {
     	const u16 idx = i + state->pageStartIdx;
 
-	if (idx > state->count - 1) break;
+		if (idx > state->count - 1) break;
     
     	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
     
@@ -143,20 +143,19 @@ void print_stats(
 	    pair = MT_PAIR_PRC_SEL_TEXT;
 
 	    for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
-		PRINTFC(win, posY, j, "%c", ' ', pair);
+			PRINTFC(win, posY, j, "%c", ' ', pair);
     	}
     
     	SET_COLOR(win, pair);
     	PRINTFC(win, posY, dataOffsetX, "%s", vd[idx]->command, pair);
     	PRINTFC(win, posY, pidPosX, "%d", vd[idx]->pid, pair);
     
-	MT_Color_Pairs pctPair = 
-	    (vd[idx]->cpuPercentage < 0.01 && pair != MT_PAIR_PRC_SEL_TEXT) ?
-	    MT_PAIR_PRC_PCT_ZERO : 
-	    pair;
-    
-	PRINTFC(win, posY, cpuPosX, "%.2f", vd[idx]->cpuPercentage, pctPair);
-    
+		MT_Color_Pairs pctPair = 
+		    (vd[idx]->cpuPercentage < 0.01 && pair != MT_PAIR_PRC_SEL_TEXT) ?
+		    	MT_PAIR_PRC_PCT_ZERO : 
+		    	pair;
+    	
+		PRINTFC(win, posY, cpuPosX, "%.2f", vd[idx]->cpuPercentage, pctPair);
     	PRINTFC(win, posY++, memPosX, "%.2f", vd[idx]->memPercentage, pair);
     }
 }
@@ -171,54 +170,54 @@ void set_prc_view_data(
 {
     for (size_t i = 0; i < curPrcs->count; i++)
     {
-	float cpuPct = 0.0;
-	float memPct = 0.0;
-	
-	Process *target;
-	Process *cur = curPrcs->processes[i];
-	Process **match = bsearch(
-	    &cur,
-	    prevPrcs->processes,
-	    prevPrcs->count,
-	    sizeof(Process *),
-	    prc_pid_compare	
-	);
-	
-	target = !match ? cur : *match;
-	
-	CALC_PRC_CPU_USAGE_PCT(
-	    target,
-	    cur,
-	    cpuPct,
-	    prevPrcs->cpuTimeAtSample,
-	    curPrcs->cpuTimeAtSample
-	);
-	
-	memPct = memTotal > 0 ? 
-	    (cur->vmRss / (float)memTotal) * 100 :
-	    0;
-	
-	vd[i] = a_alloc(
-	    scratch,
-	    sizeof(ProcessStatsViewData),
-	    __alignof(ProcessStatsViewData)
-	);
-	
-	vd[i]->pid = cur->pid;
-	vd[i]->command = cur->procName;
-	vd[i]->cpuPercentage = cpuPct;
-	vd[i]->memPercentage = memPct;	
-	vd[i]->state = cur->state;
-	vd[i]->ppid = cur->ppid;
-	vd[i]->threads = cur->threads;
-	vd[i]->vmRss = cur->vmRss;
-	vd[i]->vmSize = cur->vmSize;
-	vd[i]->vmLock = cur->vmLock;
-	vd[i]->vmData = cur->vmData;
-	vd[i]->vmStack = cur->vmStack;
-	vd[i]->vmSwap = cur->vmSwap;
-	vd[i]->vmExe = cur->vmExe;
-	vd[i]->vmLib = cur->vmLib;
+		float cpuPct = 0.0;
+		float memPct = 0.0;
+		
+		Process *target;
+		Process *cur = curPrcs->processes[i];
+		Process **match = bsearch(
+		    &cur,
+		    prevPrcs->processes,
+		    prevPrcs->count,
+		    sizeof(Process *),
+		    prc_pid_compare	
+		);
+		
+		target = !match ? cur : *match;
+		
+		CALC_PRC_CPU_USAGE_PCT(
+		    target,
+		    cur,
+		    cpuPct,
+		    prevPrcs->cpuTimeAtSample,
+		    curPrcs->cpuTimeAtSample
+		);
+		
+		memPct = memTotal > 0 ? 
+		    (cur->vmRss / (float)memTotal) * 100 :
+		    0;
+		
+		vd[i] = a_alloc(
+		    scratch,
+		    sizeof(ProcessStatsViewData),
+		    __alignof(ProcessStatsViewData)
+		);
+		
+		vd[i]->pid = cur->pid;
+		vd[i]->command = cur->procName;
+		vd[i]->cpuPercentage = cpuPct;
+		vd[i]->memPercentage = memPct;	
+		vd[i]->state = cur->state;
+		vd[i]->ppid = cur->ppid;
+		vd[i]->threads = cur->threads;
+		vd[i]->vmRss = cur->vmRss;
+		vd[i]->vmSize = cur->vmSize;
+		vd[i]->vmLock = cur->vmLock;
+		vd[i]->vmData = cur->vmData;
+		vd[i]->vmStack = cur->vmStack;
+		vd[i]->vmSwap = cur->vmSwap;
+		vd[i]->vmExe = cur->vmExe;
+		vd[i]->vmLib = cur->vmLib;
     }
 }
 
@@ -237,11 +236,11 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     werase(wd->window);
 
     snprintf(
-	prcInfoHeader,
-	sizeof(prcInfoHeader),
-	text(TXT_PRC_STAT_FMT),
-	vd->pid,
-	vd->command
+		prcInfoHeader,
+		sizeof(prcInfoHeader),
+		text(TXT_PRC_STAT_FMT),
+		vd->pid,
+		vd->command
     );
 
     wattron(wd->window, A_BOLD);
@@ -250,7 +249,7 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
 
     for (size_t x = dataOffsetX; x < (size_t)wd->wWidth - dataOffsetX; x++)
     {
-	PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_STAT_TBL_HEADER);
+		PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_STAT_TBL_HEADER);
     }
 
     posY++;
@@ -303,12 +302,12 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     box(wd->window, 0, 0);
 
     PRINTFC(
-	wd->window,
-	windowTitleY,
-	windowTitleX,
-	" %s ",
-	"Process Status",
-	MT_PAIR_PRC_HEADER
+		wd->window,
+		windowTitleY,
+		windowTitleX,
+		" %s ",
+		"Process Status",
+		MT_PAIR_PRC_HEADER
     );
 
     a_free(&scratch);

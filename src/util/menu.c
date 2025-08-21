@@ -22,11 +22,12 @@ void init_menu(
     menu->windowTitle = windowTitle;
 
     size_floating_win(
-	container,
-	menu,
-	ui->menu->menuItemCount + ITEM_PADDING,
-	FLOAT_WIN_DEFAULT_W(container)
+		container,
+		menu,
+		ui->menu->menuItemCount + ITEM_PADDING,
+		FLOAT_WIN_DEFAULT_W(container)
     );
+
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
 
     initMenuItems(ui->menu->items);
@@ -37,7 +38,7 @@ void init_stat_menu_items(MenuItem **items)
 {
 #define DEF_MENU_ITEMS(idx, txt, win) 				\
     items[idx]->displayString = text(txt); 			\
-    items[idx]->returnValue.windowType = win; 			\
+    items[idx]->returnValue.windowType = win; 		\
     items[idx]->isSelected = false; 				\
     items[idx]->isHidden = mtopSettings->activeWindows[win]; 	
 
@@ -50,7 +51,7 @@ void init_layout_menu_items(MenuItem **items)
 #define DEF_MENU_ITEMS(idx, txt, lyt) 		\
     items[idx]->displayString = text(txt); 	\
     items[idx]->returnValue.layout = lyt; 	\
-    items[idx]->isSelected = false;		\
+    items[idx]->isSelected = false;			\
     items[idx]->isHidden = false;		
 
 #include "../../include/tables/layout_menu_item_table.h"
@@ -59,10 +60,10 @@ void init_layout_menu_items(MenuItem **items)
 
 void init_orienation_menu_items(MenuItem **items)
 {
-#define DEF_MENU_ITEMS(idx, txt, ort) 		\
-    items[idx]->displayString = text(txt); 	\
+#define DEF_MENU_ITEMS(idx, txt, ort) 			\
+    items[idx]->displayString = text(txt); 		\
     items[idx]->returnValue.orientation = ort; 	\
-    items[idx]->isSelected = false;		\
+    items[idx]->isSelected = false;				\
     items[idx]->isHidden = false;		
 
 #include "../../include/tables/orientation_menu_item_table.h"
@@ -80,28 +81,28 @@ void select_previous_menu_item(MenuItem **items, u8 itemCount)
 
     for (s8 i = 0; i < itemCount; i++)
     {
-	if (items[i]->isSelected)
-	{
-	    selectedIdx = i;
-	    break;
-	}
+		if (items[i]->isSelected)
+		{
+		    selectedIdx = i;
+		    break;
+		}
     }
 
     if (selectedIdx == -1) return;
 
     for (s8 i = selectedIdx - 1;; i--) 
     {
-	if (i < 0) 
-	{
-	    i = itemCount;
-	    continue;
-	} 
-	else if (items[i]->isHidden) continue;
-	else if (selectedIdx == i) return;
+		if (i < 0) 
+		{
+		    i = itemCount;
+		    continue;
+		} 
+		else if (items[i]->isHidden) continue;
+		else if (selectedIdx == i) return;
 
-	items[i]->isSelected = true;
-	items[selectedIdx]->isSelected = false;
-	break;
+		items[i]->isSelected = true;
+		items[selectedIdx]->isSelected = false;
+		break;
     }
 }
 
@@ -111,28 +112,28 @@ void select_next_menu_item(MenuItem **items, u8 itemCount)
 
     for (s8 i = 0; i < itemCount; i++) 
     {
-	if (items[i]->isSelected) 
-	{
-	    selectedIdx = i;
-	    break;
-	}
+		if (items[i]->isSelected) 
+		{
+		    selectedIdx = i;
+		    break;
+		}
     }
 
     if (selectedIdx == -1) return;
 
     for (s8 i = selectedIdx + 1;; i++) 
     {
-	if (i > itemCount - 1) 
-	{
-	    i = -1;
-	    continue;
-	} 
-	else if (items[i]->isHidden) continue;
-	else if (selectedIdx == i) return;
+		if (i > itemCount - 1) 
+		{
+		    i = -1;
+		    continue;
+		} 
+		else if (items[i]->isHidden) continue;
+		else if (selectedIdx == i) return;
 
-	items[i]->isSelected = true;
-	items[selectedIdx]->isSelected = false;
-	break;
+		items[i]->isSelected = true;
+		items[selectedIdx]->isSelected = false;
+		break;
     }
 }
 
@@ -140,12 +141,12 @@ MenuItemValue get_menu_selection(MenuItem **items, u8 itemCount)
 {
     for (size_t i = 0; i < itemCount; i++) 
     {
-	if (items[i]->isSelected) 
-	{
-	    items[i]->isSelected = false;
+		if (items[i]->isSelected) 
+		{
+		    items[i]->isSelected = false;
 
-	    return items[i]->returnValue;
-	}
+		    return items[i]->returnValue;
+		}
     }
 
     return items[0]->returnValue;
@@ -165,22 +166,22 @@ void display_menu_options(UIData *ui)
 
     for (size_t i = 0; i < ui->menu->menuItemCount; i++) 
     {
-	MenuItem *item = ui->menu->items[i];
-	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
-	
-	if (item->isHidden) continue;
-	
-	if (item->isSelected) 
-	{
-	    pair = MT_PAIR_PRC_SEL_TEXT;
-	
-	    for (size_t y = ITEM_TEXT_START_X - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
-		PRINTFC(statTypeWin->window, titlePosY, y, "%c", ' ', pair);
-	}
-	
-	PRINTFC(statTypeWin->window, titlePosY, ITEM_NUM_START_X,
-	    "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
-	PRINTFC(statTypeWin->window, titlePosY++, ITEM_TEXT_START_X, "%s", item->displayString, pair);
+		MenuItem *item = ui->menu->items[i];
+		MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
+		
+		if (item->isHidden) continue;
+		
+		if (item->isSelected) 
+		{
+			pair = MT_PAIR_PRC_SEL_TEXT;
+		
+		    for (size_t y = ITEM_TEXT_START_X - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
+				PRINTFC(statTypeWin->window, titlePosY, y, "%c", ' ', pair);
+		}
+		
+		PRINTFC(statTypeWin->window, titlePosY, ITEM_NUM_START_X,
+		    "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
+		PRINTFC(statTypeWin->window, titlePosY++, ITEM_TEXT_START_X, "%s", item->displayString, pair);
     }
 }
 
@@ -219,12 +220,12 @@ static void _init_menu_idx(MenuItem **items, u8 itemCount)
 {
     for (size_t i = 0; i < itemCount; i++) 
     {
-	MenuItem *item = items[i];
+		MenuItem *item = items[i];
 
-	if (item->isHidden) continue;
+		if (item->isHidden) continue;
 
-	item->isSelected = true;
+		item->isSelected = true;
 
-	return;
+		return;
     }
 }

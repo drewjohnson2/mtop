@@ -67,16 +67,16 @@ void print_uptime_ldAvg(const WindowData *wd)
     if (error == -1) return;
 
     snprintf(
-	displayStr,
-	sizeof(displayStr),
-	text(TXT_UPTIME_LOAD_FMT),
-	days,
-	hours,
-	minutes,
-	seconds,
-	load[0],
-	load[1],
-	load[2]
+		displayStr,
+		sizeof(displayStr),
+		text(TXT_UPTIME_LOAD_FMT),
+		days,
+		hours,
+		minutes,
+		seconds,
+		load[0],
+		load[1],
+		load[2]
     );
 
     if (strlen(displayStr) > (wd->wWidth / 2)) return;
@@ -92,10 +92,10 @@ void print_footer(const WindowData *wd)
 
     if (!mtopSettings->activeWindows[PRC_WIN])
     {
-	PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
-	    text(TXT_GITHUB), MT_PAIR_GITHUB);
+		PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
+		    text(TXT_GITHUB), MT_PAIR_GITHUB);
 
-	return;
+		return;
     }
 
     const u8 killPrcCtrlX = 2;
@@ -223,8 +223,8 @@ void remove_win(UIData *ui, mt_Window winToRemove)
 
     for (i = 0; i < STAT_WIN_COUNT; i++)
     {
-	if (ui->windowOrder[i] == winToRemove) ui->windowOrder[i] = WINDOW_ID_MAX;
-	if (ui->windowOrder[i] != WINDOW_ID_MAX) ui->windowOrder[j++] = ui->windowOrder[i];
+		if (ui->windowOrder[i] == winToRemove) ui->windowOrder[i] = WINDOW_ID_MAX;
+		if (ui->windowOrder[i] != WINDOW_ID_MAX) ui->windowOrder[j++] = ui->windowOrder[i];
     }
 
     while(j < STAT_WIN_COUNT) ui->windowOrder[j++] = WINDOW_ID_MAX;
@@ -260,9 +260,9 @@ void add_win(UIData *ui, mt_Window winToAdd)
     if (winCount == 2) mtopSettings->layout = DUO;
     else if (winCount == 3) 
     {
-	mtopSettings->layout = mtopSettings->orientation == HORIZONTAL ?
-	    QUARTERS_TOP :
-	    QUARTERS_LEFT;
+		mtopSettings->layout = mtopSettings->orientation == HORIZONTAL ?
+		    QUARTERS_TOP :
+		    QUARTERS_LEFT;
     }
 
     ui->windows[winToAdd]->active = true;
@@ -283,20 +283,20 @@ mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp)
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
-	WindowData *win = ui->windows[windows[i]];
+		WindowData *win = ui->windows[windows[i]];
 
-	if (win == cur || win == NULL) continue;
-	else if (!(cmp(win, cur) && win->active)) continue;
+		if (win == cur || win == NULL) continue;
+		else if (!(cmp(win, cur) && win->active)) continue;
 
-	s16 dx = abs(win->windowX - cur->windowX);
-	s16 dy = abs(win->windowY - cur->windowY);
-	s32 distance = dx + dy;
+		s16 dx = abs(win->windowX - cur->windowX);
+		s16 dy = abs(win->windowY - cur->windowY);
+		s32 distance = dx + dy;
 
-	if (distance < best)
-	{
-	    selectedWindow = windows[i];
-	    best = distance;
-	}
+		if (distance < best)
+		{
+		    selectedWindow = windows[i];
+		    best = distance;
+		}
     }
 
     return selectedWindow;
@@ -310,8 +310,8 @@ void swap_windows(UIData *ui, mt_Window windowToSwap)
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
-	if (ui->windowOrder[i] == current) idxCurrent = i;
-	else if (ui->windowOrder[i] == windowToSwap) idxSwap = i;
+		if (ui->windowOrder[i] == current) idxCurrent = i;
+		else if (ui->windowOrder[i] == windowToSwap) idxSwap = i;
     }
 
     if (idxCurrent == -1 || idxSwap == -1) return;
@@ -335,10 +335,10 @@ void reinit_window(UIData *ui)
 
     for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
     {
-	WindowData *win = ui->windows[winType];
+		WindowData *win = ui->windows[winType];
 
-	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
-	winType = ui->windowOrder[++i];
+		win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
+		winType = ui->windowOrder[++i];
     }
 
     optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
