@@ -75,8 +75,8 @@ void run_io(
 
 		UITask **tail = &tg->head;
 		u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
-    		u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
-    		u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
+    	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
+    	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
 		u8 handleCpu = cpuActive && tg->tasksComplete;
 		u8 handleMem = memActive && tg->tasksComplete;
 
@@ -103,18 +103,18 @@ void run_io(
 		if (listState->infoVisible)
 		{
 		    qsort(
-			curPrcs->processes,
-			curPrcs->count,
-			sizeof(ProcessesSummary *),
-			prc_pid_compare_without_direction_fn
+				curPrcs->processes,
+				curPrcs->count,
+				sizeof(ProcessesSummary *),
+				prc_pid_compare_without_direction_fn
 		    );
 
 		    Process **prc = bsearch(
-			&listState->selectedPid,
-			curPrcs->processes,
-			curPrcs->count,
-			sizeof(Process *),
-			prc_find_by_pid_compare_fn
+				&listState->selectedPid,
+				curPrcs->processes,
+				curPrcs->count,
+				sizeof(Process *),
+				prc_find_by_pid_compare_fn
 		    );
 
 		    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
