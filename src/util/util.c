@@ -19,3 +19,12 @@ u8 win_compare_right(WindowData *cmp, WindowData *cur)
 {
     return cmp->windowX > cur->windowX;
 }
+
+LayoutOrientation get_orientation_for_layout(Layout layout)
+{
+	// if you pass duo or single to this function you're getting
+	// horizontal back. Sorry.
+	return (layout == QUARTERS_LEFT) || (layout == QUARTERS_RIGHT) ?
+		VERTICAL :
+		HORIZONTAL;
+}

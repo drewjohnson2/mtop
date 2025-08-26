@@ -1,6 +1,7 @@
 #include "../../include/menu.h"
 #include "../../include/text.h"
 #include "../../include/window.h"
+#include "../../include/util.h"
 
 static void _init_menu_idx(MenuItem **items, u8 itemCount);
 
@@ -27,6 +28,8 @@ void init_menu(
 		ui->menu->menuItemCount + ITEM_PADDING,
 		FLOAT_WIN_DEFAULT_W(container)
     );
+
+	delwin(menu->window);
 
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
 
@@ -199,6 +202,7 @@ void handle_add_window(UIData *ui, MenuItemValue selection)
 void handle_change_layout(UIData *ui, MenuItemValue selection)
 {
     mtopSettings->layout = selection.layout;
+	mtopSettings->orientation = get_orientation_for_layout(mtopSettings->layout);
 
     init_window_dimens(ui);
     reinit_window(ui);

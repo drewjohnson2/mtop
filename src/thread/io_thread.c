@@ -47,12 +47,13 @@ void run_io(
     );
     MemoryStats *memStats = NULL;
     TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
+	UITask **tail = &tg->head;
 
     prevPrcs = get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
 
-    tg->a = a_new(64);
+    tg->a = a_new(256);
     tg->tasksComplete = true;
     tg->cleanup = tg_cleanup;
 
@@ -60,10 +61,13 @@ void run_io(
     fetch_cpu_stats(prevStats);
 
     struct timespec start, current;
-    
+
     clock_gettime(CLOCK_REALTIME, &start);
     
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
+
+	BUILD_TASK(true, build_print_header_task, &tg->a);
+	BUILD_TASK(true, build_print_footer_task, &tg->a);
 
     while (!SHUTDOWN_FLAG)
     {
@@ -73,7 +77,6 @@ void run_io(
 		    continue;
 		}
 
-		UITask **tail = &tg->head;
 		u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
     	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
     	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
@@ -84,6 +87,9 @@ void run_io(
 		if (handleMem) fetch_memory_stats(memStats);
 
 		BUILD_TASK(true, build_input_task, &tg->a, listState);
+		BUILD_TASK(true, build_load_average_task, &tg->a);
+		BUILD_TASK(true, build_print_time_task, &tg->a);
+
 		clock_gettime(CLOCK_REALTIME, &current);
     
     	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
@@ -124,13 +130,15 @@ void run_io(
 		BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
 		BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
 		BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+		BUILD_TASK(REINIT, build_print_header_task, &tg->a);
+		BUILD_TASK(REINIT, build_print_footer_task, &tg->a);
 		BUILD_TASK(true, build_refresh_task, &tg->a);
 
 		tg->tail = *tail;
 		tg->tasksComplete = false;
+		tail = &tg->head;
 
 		_copy_stats(prevStats, curStats);
-
 		enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
 		usleep(READ_SLEEP_TIME);
     }

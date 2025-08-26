@@ -8,23 +8,48 @@
 #include "../../include/util.h"
 #include "../../include/text.h"
 
-typedef enum _nav_direction
-{
-    UP,
-    DOWN,
-    RIGHT,
-    LEFT,
-    JUMP_DOWN,
-    JUMP_UP
-} NavDirection;
+#define CTRL(ch, key) ch == (key & 0x1F)
 
-static void _adjust_menu_index(NavDirection dir, ProcessListState *state);
+enum CommonKeyInput 
+{
+	OPTIONS = 'o',
+	LEFT = 'h',
+	DOWN = 'j',
+	UP = 'k',
+	RIGHT = 'l',
+	QUIT = 'q',
+	ENTER = 10
+};
+
+enum AdjustModeKeyInput
+{
+	REMOVE = 'd',
+	VIEW_LAYOUTS = 'u',
+	TOGGLE_ADD = 'a'
+};
+
+enum NormalModeKeyInput {
+	JUMP_DOWN = 4,
+	JUMP_UP = 21,
+	SORT_NAME = 'n',
+	SORT_PID = 'p',
+	SORT_CPU = 'c',
+	SORT_MEM = 'm',
+	BACK = 'b',
+	JUMP_BOTTOM = 'G',
+	JUMP_TOP = 'g',
+	ARRANGE_MODE = 'a',
+	KILL = 'd'
+};
+
+static void _adjust_menu_index(u8 dir, ProcessListState *state);
 static void _read_menu_input(UIData *ui, u8 ch);
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp);
 
 void read_arrange_input(UIData *ui)
 {
     WindowData *container = ui->windows[CONTAINER_WIN];
+	WindowData *optWin = ui->windows[OPT_WIN];
     s8 ch = wgetch(container->window);
 
     flushinp();
@@ -35,25 +60,25 @@ void read_arrange_input(UIData *ui)
 		return;
     }
 
-    if (ch == ('j' & 0x1F)) // ctrl+j
+    if (CTRL(ch, DOWN)) // ctrl+j
     {
 		_swap_windows(ui, win_compare_below);
 
 		return;
     }
-    else if (ch == ('k' & 0x1F)) // ctrl+k
+    else if (CTRL(ch, UP)) // ctrl+k
     {
 		_swap_windows(ui, win_compare_above);
 
 		return;
     }
-    else if (ch == ('h' & 0x1F)) // ctrl+h
+    else if (CTRL(ch, LEFT)) // ctrl+h
     {
 		_swap_windows(ui, win_compare_left);
 
 		return;
     }
-    else if (ch == ('l' & 0x1F)) // ctrl+l
+    else if (CTRL(ch, RIGHT)) // ctrl+l
     {
 		_swap_windows(ui, win_compare_right);
 
@@ -62,66 +87,70 @@ void read_arrange_input(UIData *ui)
 
     switch (ch)
     {
-	case 'q':
-	    ui->mode = NORMAL;
-	    ui->selectedWindow = false;
-	    
-	    if (ui->menu->isVisible) ui->menu->isVisible = false;
-	    return;
-	case 'j':
-	    ui->selectedWindow = get_selected_window(ui, win_compare_below);
+		case QUIT:
+		    ui->mode = NORMAL;
+		    ui->selectedWindow = false;
+		    
+		    if (ui->menu->isVisible) ui->menu->isVisible = false;
+		    return;
+		case DOWN:
+		    ui->selectedWindow = get_selected_window(ui, win_compare_below);
 
-	    return;
-	case 'k':
-	    ui->selectedWindow = get_selected_window(ui, win_compare_above);
+		    return;
+		case UP:
+		    ui->selectedWindow = get_selected_window(ui, win_compare_above);
 
-	    return;
-	case 'l':
-	    ui->selectedWindow = get_selected_window(ui, win_compare_right);
+		    return;
+		case RIGHT:
+		    ui->selectedWindow = get_selected_window(ui, win_compare_right);
 
-	    return;
-	case 'h':
-	    ui->selectedWindow = get_selected_window(ui, win_compare_left);
+		    return;
+		case LEFT:
+		    ui->selectedWindow = get_selected_window(ui, win_compare_left);
 
-	    return;
-	case 'd':
-	    remove_win(ui, ui->selectedWindow);
+		    return;
+		case REMOVE:
+		    remove_win(ui, ui->selectedWindow);
 
-	    return;
-	case 'u':
-	    void (*onSelect)(UIData *, MenuItemValue);
-	    void (*items)(MenuItem **);
-	    const char *title;
-	    u8 itemCount;
+		    return;
+		case VIEW_LAYOUTS:
+		    void (*onSelect)(UIData *, MenuItemValue);
+		    void (*items)(MenuItem **);
+		    const char *title;
+		    u8 itemCount;
 
-	    if (mtopSettings->activeWindowCount == 3)
-	    {
-			onSelect = handle_change_layout;
-			items = init_layout_menu_items;
-			title = text(TXT_CHOOSE_LAYOUT);
-			itemCount = LAYOUT_COUNT;
-	    }
-	    else if (mtopSettings->activeWindowCount == 2)
-	    {
-			onSelect = handle_change_duo_orientation;
-			items = init_orienation_menu_items;
-			title = text(TXT_CHOOSE_ORIENTATION);
-			itemCount = ORIENTATION_COUNT;
-	    }
-	    else return;
+		    if (mtopSettings->activeWindowCount == 3)
+		    {
+				onSelect = handle_change_layout;
+				items = init_layout_menu_items;
+				title = text(TXT_CHOOSE_LAYOUT);
+				itemCount = LAYOUT_COUNT;
+		    }
+		    else if (mtopSettings->activeWindowCount == 2)
+		    {
+				onSelect = handle_change_duo_orientation;
+				items = init_orienation_menu_items;
+				title = text(TXT_CHOOSE_ORIENTATION);
+				itemCount = ORIENTATION_COUNT;
+		    }
+		    else return;
 
-	    init_menu(ui, !ui->menu->isVisible, itemCount, title, onSelect, items);
+		    init_menu(ui, !ui->menu->isVisible, itemCount, title, onSelect, items);
 
-	    return;
-	case 'a':
-	    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
+		    return;
+		case TOGGLE_ADD:
+		    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
 
-	    init_menu(ui, isVisible, STAT_WIN_COUNT,
-	    text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
+		    init_menu(ui, isVisible, STAT_WIN_COUNT,
+		    	text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
 
-	    return;
-	default:
-	    break;
+		    return;
+		case OPTIONS:
+			ui->optionsVisible = !ui->optionsVisible;
+			
+			return;
+		default:
+		    break;
     }
 }
 
@@ -161,7 +190,7 @@ void read_normal_input(
     
     if (ch == -1) return;
 
-    if (ch == ('a' & 0x1F)) // ctrl+a
+    if (CTRL(ch, ARRANGE_MODE)) // ctrl+a
     {
 		ui->mode = ARRANGE;
 		ui->selectedWindow = ui->windowOrder[0];
@@ -170,35 +199,35 @@ void read_normal_input(
     
     switch (ch)
     {
-		case 'j':
+		case DOWN:
 		    _adjust_menu_index(DOWN, state);
 
 		    return;
-    	case 'k':
+    	case UP:
 		    _adjust_menu_index(UP, state);    
 
 		    return;
-		case 'l':
+		case RIGHT:
 		    _adjust_menu_index(RIGHT, state);
 
 		    return;
-		case 'h':
+		case LEFT:
 		    _adjust_menu_index(LEFT, state);
 
 		    return;
-		case 4: // CTRL + D
+		case JUMP_DOWN: // CTRL + D
 		    _adjust_menu_index(JUMP_DOWN, state);
 		
 		    return;
-		case 21: // CTRL + U
+		case JUMP_UP: // CTRL + U
 		    _adjust_menu_index(JUMP_UP, state);
 
 		    return;
-		case 10: // Enter
+		case ENTER: // Enter
 		    if (mtopSettings->activeWindows[PRC_WIN]) state->infoVisible = true;
 		    
 		    return;
-		case 'n':
+		case SORT_NAME:
 		    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
 		    else sortDirection = ASC;
 
@@ -206,7 +235,7 @@ void read_normal_input(
 		    state->sortFn = vd_name_compare_fn;
 
 		    return;
-		case 'p':
+		case SORT_PID:
 		    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
 		    else sortDirection = ASC;
 
@@ -214,7 +243,7 @@ void read_normal_input(
 		    state->sortFn = vd_pid_compare_fn;
 
 		    return;
-		case 'c':
+		case SORT_CPU:
 		    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
 		    else sortDirection = DESC;
 
@@ -222,7 +251,7 @@ void read_normal_input(
 		    state->sortFn = vd_cpu_compare_fn;
 
 		    return;
-		case 'm':
+		case SORT_MEM:
 		    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
 		    else sortDirection = DESC;
 
@@ -230,86 +259,94 @@ void read_normal_input(
 		    state->sortFn = vd_mem_compare_fn;
 
 		    return;
-		case 'o':
+		case OPTIONS:
 		    if (!mtopSettings->activeWindows[PRC_WIN]) return;
 		    ui->optionsVisible = !ui->optionsVisible;
 		    
 		    return;
-		case 'b':
+		case BACK:
 		    state->infoVisible = false;
 
 		    return;
-    	case 'q':
+		case JUMP_BOTTOM:
+			state->selectedIndex = state->pageEndIdx;
+
+			break;
+    	case QUIT:
 		    SHUTDOWN_FLAG = true;
 		    return;
     	default:
 	    	break;
     }
     
-    if (!state->cmdBuffer)
-    {
+	if (!state->cmdBuffer)
+	{
 		state->cmdBuffer = ch;
 		state->timeoutActive = true;
 		clock_gettime(CLOCK_REALTIME, &state->timeoutStart);
 		    
 		return;
-    }
-    else if (ch != state->cmdBuffer) 
-    {
+	}
+	else if (ch != state->cmdBuffer) 
+	{
 		state->cmdBuffer = '\0';
 		state->timeoutActive = false;
-    	
+		
 		return;
-    }
-    else if (ch == 'd')
-    {
+	}
+	else if (ch == KILL)
+	{
 		state->cmdBuffer = '\0';
 		state->timeoutActive = false;
-
+	
 		kill(state->selectedPid, SIGKILL);
-
+	
 		return;
-    }
+	}
+	else if (ch == JUMP_TOP)
+	{
+		state->selectedIndex = state->pageStartIdx;
+	}
 }
 
 static void _read_menu_input(UIData *ui, u8 ch)
 {
     switch (ch)
     {
-	case 'j':
-	    select_next_menu_item(ui->menu->items, ui->menu->menuItemCount);
-
-	    break;
-	case 'k':
-	    select_previous_menu_item(ui->menu->items, ui->menu->menuItemCount);
-
-	    break;
-	case 'a':
-	    ui->menu->isVisible = false;
-
-	    reset_menu_idx(ui->menu->items, STAT_WIN_COUNT);
-	    
-	    break;
-	case 'u':
-	    ui->menu->isVisible = false;
-
-	    reset_menu_idx(ui->menu->items, LAYOUT_COUNT);
-
-	    break;
-	case 10:
-	    // create a function pointer on UIData that we can set
-	    // when a menu is opened.
-	    MenuItemValue selection = get_menu_selection(ui->menu->items, ui->menu->menuItemCount);
-
-	    ui->menu->on_select(ui, selection);
-	    
-	    break;
-	default:
-	    break;
+		case DOWN:
+		    select_next_menu_item(ui->menu->items, ui->menu->menuItemCount);
+		
+		    break;
+		case UP:
+		    select_previous_menu_item(ui->menu->items, ui->menu->menuItemCount);
+		
+		    break;
+		case TOGGLE_ADD:
+		    ui->menu->isVisible = false;
+		
+		    reset_menu_idx(ui->menu->items, STAT_WIN_COUNT);
+		    
+		    break;
+		case VIEW_LAYOUTS:
+		    ui->menu->isVisible = false;
+		
+		    reset_menu_idx(ui->menu->items, LAYOUT_COUNT);
+		
+		    break;
+		case ENTER:
+		    MenuItemValue selection = get_menu_selection(ui->menu->items, ui->menu->menuItemCount);
+		
+		    ui->menu->on_select(ui, selection);
+		    
+		    break;
+		default:
+		    break;
     }
 }
 
-static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
+// TODO: Change the jump value to something a bit smaller than pageSize / 2.
+// maybe pageSize / 4?
+static void _adjust_menu_index(u8 dir, ProcessListState *state)
 {
     if (!mtopSettings->activeWindows[PRC_WIN]) return;
 
@@ -317,55 +354,55 @@ static void _adjust_menu_index(NavDirection dir, ProcessListState *state)
 
     switch (dir) 
     {
-	case UP:
-    	state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
-    	    state->selectedIndex - 1 :
-    	    state->pageEndIdx;
-	    break;
-	case DOWN:
-		state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
-    		state->selectedIndex + 1 : 
-    	    state->pageStartIdx;
-	    break;
-	case RIGHT:
-    	state->activePage = state->activePage < state->totalPages - 1 ?
-    	    state->activePage + 1 :
-    	    0;
-
-    	state->selectedIndex = state->activePage == 0 ?
-    	    state->selectedIndex - state->pageStartIdx :
-    	    state->selectedIndex + state->pageSize;
-
-	    break;
-	case LEFT:
-    	state->activePage = state->activePage > 0 ?
-    	    state->activePage - 1 :
-    	    state->totalPages - 1;
-
-    	state->selectedIndex = state->activePage == state->totalPages - 1 ?
-    	    (state->pageSize * state->activePage) + state->selectedIndex :
-    	    state->selectedIndex - state->pageSize;
-
-	    break;
-	case JUMP_DOWN:
-    	jumpValue = (state->pageSize / 2);
-
-    	state->selectedIndex = (state->selectedIndex + jumpValue) <= state->pageEndIdx ?
-    	    state->selectedIndex + jumpValue :
-    	    state->pageEndIdx;
-
-	    break;
-	case JUMP_UP:
-	    jumpValue = (state->pageSize / 2);
-
-	    state->selectedIndex = (state->selectedIndex - jumpValue) >= state->pageStartIdx ?
-		state->selectedIndex - jumpValue :
-		state->pageStartIdx;
-
-	    break;
+		case UP:
+	    	state->selectedIndex = state->selectedIndex > state->pageStartIdx ?
+	    	    state->selectedIndex - 1 :
+	    	    state->pageEndIdx;
+		    break;
+		case DOWN:
+			state->selectedIndex = state->selectedIndex < state->pageEndIdx ?
+	    		state->selectedIndex + 1 : 
+	    	    state->pageStartIdx;
+		    break;
+		case RIGHT:
+	    	state->activePage = state->activePage < state->totalPages - 1 ?
+	    	    state->activePage + 1 :
+	    	    0;
 	
-	default:
-	    return;
+	    	state->selectedIndex = state->activePage == 0 ?
+	    	    state->selectedIndex - state->pageStartIdx :
+	    	    state->selectedIndex + state->pageSize;
+	
+		    break;
+		case LEFT:
+	    	state->activePage = state->activePage > 0 ?
+	    	    state->activePage - 1 :
+	    	    state->totalPages - 1;
+	
+	    	state->selectedIndex = state->activePage == state->totalPages - 1 ?
+	    	    (state->pageSize * state->activePage) + state->selectedIndex :
+	    	    state->selectedIndex - state->pageSize;
+	
+		    break;
+		case JUMP_DOWN:
+	    	jumpValue = (state->pageSize / 4);
+	
+	    	state->selectedIndex = (state->selectedIndex + jumpValue) <= state->pageEndIdx ?
+	    	    state->selectedIndex + jumpValue :
+	    	    state->pageEndIdx;
+	
+		    break;
+		case JUMP_UP:
+		    jumpValue = (state->pageSize / 4);
+	
+		    state->selectedIndex = (state->selectedIndex - jumpValue) >= state->pageStartIdx ?
+			state->selectedIndex - jumpValue :
+			state->pageStartIdx;
+	
+		    break;
+		
+		default:
+		    return;
     }
 
     if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);

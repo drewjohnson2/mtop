@@ -31,7 +31,7 @@
     } while (0)
 
 #define FLOAT_WIN_DEFAULT_W(container) container->wWidth / 4
-#define FLOAT_WIN_DEFAULT_H(container) container->wHeight / 4
+#define FLOAT_WIN_DEFAULT_H(container) container->wHeight / 3
 
 struct UIData;
 typedef struct UIData UIData;
@@ -150,6 +150,7 @@ typedef struct
 typedef u8 (*WinPosComparisonFn)(WindowData *cmp, WindowData *cur);
 
 extern u8 RESIZE;
+extern u8 REINIT;
 
 //
 //		window_setup.c
@@ -218,11 +219,8 @@ void read_arrange_input(UIData *ui);
 //		window_util.c
 //
 //
-void print_header(const WindowData *wd);
-void print_time(const WindowData *wd);
-void print_uptime_ldAvg(const WindowData *wd);
-void print_footer(const WindowData *wd);
-void display_options(UIData *ui);
+void display_normal_options(UIData *ui);
+void display_arrange_options(UIData *ui);
 void set_bg_colors(
     WINDOW *container,
     WINDOW *cpuWin,
@@ -231,7 +229,7 @@ void set_bg_colors(
     WINDOW *optWin,
     WINDOW *statTypeWin
 );
-void resize_win(UIData *ui);
+void resize_windows(UIData *ui);
 void remove_win(UIData *ui, mt_Window winToRemove);
 void add_win(UIData *ui, mt_Window winToAdd);
 void swap_windows(UIData *ui, mt_Window windowToSwap);

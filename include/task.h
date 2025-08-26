@@ -2,6 +2,7 @@
 #define TASK_H
 
 #include <arena.h>
+#include <sys/sysinfo.h>
 
 #include "mt_type_defs.h"
 #include "monitor.h"
@@ -44,6 +45,11 @@ UITask * build_input_task(
 );
 UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, ProcessesSummary *curPrcs);
 UITask * build_refresh_task(Arena *taskArena);
+UITask * build_load_average_task(Arena *taskArena);
+UITask * build_print_time_task(Arena *taskArena);
+UITask * build_print_header_task(Arena *taskArena);
+UITask * build_print_footer_task(Arena *taskArena);
+
 /*
 
     task_functions.c
@@ -56,5 +62,9 @@ void input_action_fn(UIData *ui, void *ctx);
 void resize_action_fn(UIData *ui, void *ctx);
 void refresh_action_fn(UIData *ui, void *ctx);
 void tg_cleanup(Arena *a);
+void print_uptime_loadavg_fn(UIData *ui, void *ctx);
+void print_time_fn(UIData *ui, void *ctx);
+void print_header_fn(UIData *ui, void *ctx);
+void print_footer_fn(UIData *ui, void *ctx);
 
 #endif

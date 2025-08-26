@@ -241,7 +241,7 @@ void cleanup()
     
     	free(tmp);
     }
-    
+
     a_free(&windowArena);
     a_free(&cpuArena);
     a_free(&memArena);
