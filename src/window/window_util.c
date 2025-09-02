@@ -7,129 +7,28 @@
 #include "../../include/window.h"
 #include "../../include/text.h"
 #include "../../include/startup.h"
+#include "../../include/util.h"
+#include "../../include/task.h"
 
 #define S32_MAX 2147483647
 
 u8 RESIZE = false;
 
-void print_header(const WindowData *wd)
+static void _update_orientation(UIData *ui);
+static u8 _is_adj_empty(
+	UIData *ui, 
+	WinPosComparisonFn cmp1,	
+	WinPosComparisonFn cmp2,
+	mt_Window currentType,
+	u16 axisPos,
+	u8 isFullWidth,
+	u8 isFullHeight
+);
+
+void display_normal_options(UIData *ui)
 {
-    char *user = getlogin();
-    
-    wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, 0, 2, "%s", text(TXT_MTOP), MT_PAIR_MTOP_LBL);
-    wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, 0, 7, "for %s", user, MT_PAIR_USR_LBL);
-}
-
-void print_time(const WindowData *wd)
-{
-    char timeBuf[10];
-    time_t now = time(0);
-    struct tm tmNow;
-
-    localtime_r(&now, &tmNow);
-
-    strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &tmNow);
-
-    PRINTFC(wd->window, 0, wd->wWidth - 10, "%s", timeBuf, MT_PAIR_TM);
-}
-
-// Need to move the data calls from this function
-// and ^ that function to the IO thread if possible.
-// I know it's not a big deal, but that's something
-// that I should probably be doing just to be consistent.
-void print_uptime_ldAvg(const WindowData *wd)
-{
-    struct sysinfo info;
-    u16 days;
-    u64 uptime;
-    u16 hours;
-    u16 minutes;
-    u16 seconds;
-    s8 error = sysinfo(&info);
-
-    if (error) return;
-
-    char displayStr[66];
-
-    uptime = info.uptime;
-    days = uptime / 86400;
-    uptime %= 86400;
-    hours = uptime / 3600;
-    uptime %= 3600;
-    minutes = uptime / 60;
-    seconds = uptime %= 60;
-
-    double load[3];
-    error = getloadavg(load, 3);
-
-    if (error == -1) return;
-
-    snprintf(
-		displayStr,
-		sizeof(displayStr),
-		text(TXT_UPTIME_LOAD_FMT),
-		days,
-		hours,
-		minutes,
-		seconds,
-		load[0],
-		load[1],
-		load[2]
-    );
-
-    if (strlen(displayStr) > (wd->wWidth / 2)) return;
-
-    const u8 uptimeX = (wd->wWidth / 2) - (strlen(displayStr) / 2);
-
-    PRINTFC(wd->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
-}
-
-void print_footer(const WindowData *wd)
-{
-    const u8 githubText = wd->wWidth - 30;
-
-    if (!mtopSettings->activeWindows[PRC_WIN])
-    {
-		PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", 
-		    text(TXT_GITHUB), MT_PAIR_GITHUB);
-
-		return;
-    }
-
-    const u8 killPrcCtrlX = 2;
-    const u8 killPrcLabelX = killPrcCtrlX + 2;
-    const u8 downCtrlX = 19;
-    const u8 downLableX = downCtrlX + 2;
-    const u8 upCtrlX = 27;
-    const u8 upLabelX = upCtrlX + 2;
-    const u8 pLeftCtrlX = 33;
-    const u8 pLeftLabelX = pLeftCtrlX + 2;
-    const u8 pRightCtrlX = 46;
-    const u8 pRightLabelX = pRightCtrlX + 2;
-    const u8 optionsCtrlX = 60;
-    const u8 optionsLabelX = optionsCtrlX + 2;
-
-    PRINTFC(wd->window, wd->wHeight - 1, killPrcCtrlX, "%s", text(TXT_KILL_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, killPrcLabelX, " %s ",
-	    text(TXT_KILL), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, downCtrlX, "%s", text(TXT_DOWN_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, downLableX, "%s", text(TXT_DOWN), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, upCtrlX, "%s", text(TXT_UP_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, upLabelX, "%s", text(TXT_UP), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, pLeftCtrlX, "%s", text(TXT_PAGE_LEFT_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, pLeftLabelX, "%s", text(TXT_PAGE_LEFT), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, pRightCtrlX, "%s", text(TXT_PAGE_RIGHT_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, pRightLabelX, "%s", text(TXT_PAGE_RIGHT), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, optionsCtrlX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 1, optionsLabelX, "%s", text(TXT_OPT), MT_PAIR_CTRL_TXT);
-    PRINTFC(wd->window, wd->wHeight - 1, githubText, "%s", text(TXT_GITHUB), MT_PAIR_GITHUB);
-}
-
-void display_options(UIData *ui)
-{
-    const WindowData *optWin = ui->windows[OPT_WIN];
+	WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *optWin = ui->windows[OPT_WIN];
     const u8 titlePosX = (optWin->wWidth / 2) - (strlen(text(TXT_OPT_WIN_TITLE)) / 2);
     const u8 titlePosY = 0;
     const u8 ctrlStartX = optWin->wWidth / 4;
@@ -141,9 +40,22 @@ void display_options(UIData *ui)
     const u8 sPidY = sProcNmY + 2;
     const u8 sCpuY = sPidY + 2;
     const u8 sMemY = sCpuY + 2;
-    const u8 sCloseOpts = sMemY + 2;
+	const u8 jumpTopY = sMemY + 2;
+	const u8 jumpBottomY = jumpTopY + 2;
+    const u8 closeOptsY = jumpBottomY + 2;
+	const u8 windowHeight = closeOptsY + 3;
 
-    werase(ui->windows[OPT_WIN]->window);
+	if (optWin->wHeight != windowHeight)
+	{
+		size_floating_win(
+			container,
+			optWin,
+			windowHeight,
+			MIN_UTIL_WIN_WIDTH
+		);
+		reset_window(container, optWin);
+	}
+    werase(optWin->window);
     SET_COLOR(optWin->window, MT_PAIR_BOX);
     box(optWin->window, 0, 0);
 
@@ -166,9 +78,83 @@ void display_options(UIData *ui)
     PRINTFC(optWin->window, sMemY, ctrlStartX, "%s", text(TXT_SORT_MEM_CTRL), MT_PAIR_CTRL);
     PRINTFC(optWin->window, sMemY, infoStartX, "%s ", text(TXT_SORT_MEM), 
 	    MT_PAIR_CTRL_TXT);
-    PRINTFC(optWin->window, sCloseOpts, ctrlStartX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
-    PRINTFC(optWin->window, sCloseOpts, infoStartX, "%s ", text(TXT_OPT_CLOSE), 
+	PRINTFC(optWin->window, jumpTopY, ctrlStartX, "%s", text(TXT_JMP_TOP_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, jumpTopY, infoStartX, "%s", text(TXT_JMP_TOP), MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, jumpBottomY, ctrlStartX, "%s", text(TXT_JMP_BTM_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, jumpBottomY, infoStartX, "%s", text(TXT_JMP_BTM), MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, closeOptsY, ctrlStartX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
+    PRINTFC(optWin->window, closeOptsY, infoStartX, "%s ", text(TXT_OPT_CLOSE), MT_PAIR_CTRL_TXT);
+
+
+}
+
+void display_arrange_options(UIData *ui)
+{
+	WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *optWin = ui->windows[OPT_WIN];
+    const u8 titlePosX = (optWin->wWidth / 2) - (strlen(text(TXT_OPT_WIN_TITLE)) / 2);
+    const u8 titlePosY = 0;
+	const u8 ctrlStartX = (optWin->wWidth / 4) - 2;
+	const u8 ctrlMultStartX = ctrlStartX - 3;
+    const u8 ctrlSelStartX = ctrlStartX - 6;
+    const u8 infoStartX = ctrlStartX + 9;
+	const u8 selectWinY = 2;
+	const u8 moveWinY = selectWinY + 2;
+	const u8 addWinY = moveWinY + 2;
+	const u8 removeWinY = addWinY + 2;
+	const u8 layoutChangeY = removeWinY + 2;
+	const u8 closeOptsY = layoutChangeY +2;
+	const u8 windowHeight = closeOptsY + 3;
+
+	if (optWin->wHeight != windowHeight)
+	{
+		size_floating_win(
+			container,
+			optWin,
+			windowHeight,
+			MIN_UTIL_WIN_WIDTH
+		);
+		reset_window(container, optWin);
+	}
+
+    werase(optWin->window);
+    SET_COLOR(optWin->window, MT_PAIR_BOX);
+    box(optWin->window, 0, 0);
+
+	PRINTFC(optWin->window, titlePosY, titlePosX, "%s", text(TXT_OPT_WIN_TITLE), MT_PAIR_PRC_UNSEL_TEXT);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX, "%s", text(TXT_LEFT_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 1, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 2, "%s", text(TXT_DOWN_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 3, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 4, "%s", text(TXT_UP_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 5, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, selectWinY, ctrlMultStartX + 6, "%s", text(TXT_RIGHT_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, selectWinY, infoStartX, "%s", "Change Window Selection", MT_PAIR_CTRL_TXT);
+
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX, "%s", "Ctrl+", MT_PAIR_CTRL);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 5, "%s", text(TXT_LEFT_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 6, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 7, "%s", text(TXT_DOWN_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 8, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 9, "%s", text(TXT_UP_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 10, "%s", ",", MT_PAIR_CTRL_TXT);
+	PRINTFC(optWin->window, moveWinY, ctrlSelStartX + 11, "%s", text(TXT_RIGHT_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, moveWinY, infoStartX, "%s", "Move Window", MT_PAIR_CTRL_TXT);
+
+	PRINTFC(optWin->window, addWinY, ctrlStartX, "%s", text(TXT_ADD_WIN_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, addWinY, infoStartX, "%s", text(TXT_ADD_WIN), MT_PAIR_CTRL_TXT);
+
+	PRINTFC(optWin->window, removeWinY, ctrlStartX, "%s", text(TXT_REMOVE_WIN_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, removeWinY, infoStartX, "%s", text(TXT_RMV_STAT_WIN), MT_PAIR_CTRL_TXT);
+
+	PRINTFC(optWin->window, layoutChangeY, ctrlStartX, "%s", text(TXT_CHANGE_LAYOUT_CTRL), MT_PAIR_CTRL);
+	PRINTFC(optWin->window, layoutChangeY, infoStartX, "%s", text(TXT_CHANGE_LAYOUT),
+		 MT_PAIR_CTRL_TXT);
+
+    PRINTFC(optWin->window, closeOptsY, ctrlStartX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
+    PRINTFC(optWin->window, closeOptsY, infoStartX, "%s ", text(TXT_OPT_CLOSE), 
 	    MT_PAIR_CTRL_TXT);
+
 }
 
 // Maybe use some macro expansion to clean this up.
@@ -178,7 +164,7 @@ void set_bg_colors(
     WINDOW *memWin,
     WINDOW *prcWin,
     WINDOW *optWin,
-    WINDOW *statTypeWin
+    WINDOW *menuWin
 )
 {
     volatile u8 *activeWindows = mtopSettings->activeWindows;
@@ -190,10 +176,10 @@ void set_bg_colors(
     if (activeWindows[PRC_WIN]) wbkgd(prcWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
 
     wbkgd(optWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(statTypeWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    wbkgd(menuWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
 }
 
-void resize_win(UIData *ui)
+void resize_windows(UIData *ui)
 {
     WindowData *container = ui->windows[CONTAINER_WIN];
 
@@ -237,6 +223,8 @@ void remove_win(UIData *ui, mt_Window winToRemove)
     ui->selectedWindow = ui->windowOrder[0];
 
     wclear(ui->windows[CONTAINER_WIN]->window);
+
+	_update_orientation(ui);
     init_window_dimens(ui);
     reinit_window(ui); 
 }
@@ -325,29 +313,89 @@ void swap_windows(UIData *ui, mt_Window windowToSwap)
     reinit_window(ui);
 }
 
+void reset_window(WindowData *container, WindowData *win)
+{
+	delwin(win->window);
+
+	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
+}
+
 void reinit_window(UIData *ui)
 {
     u8 winCount = mtopSettings->activeWindowCount;
     mt_Window winType = ui->windowOrder[0];
     WindowData *container = ui->windows[CONTAINER_WIN];
     WindowData *optWin = ui->windows[OPT_WIN];
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
 
     for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
     {
 		WindowData *win = ui->windows[winType];
 
+		delwin(win->window);
+
 		win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
 		winType = ui->windowOrder[++i];
     }
 
-    optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
-    statTypeWin->window = subwin(container->window, statTypeWin->wHeight, statTypeWin->wWidth, statTypeWin->windowY, statTypeWin->windowX);
+	delwin(optWin->window);
+	delwin(menuWin->window);
+
+    optWin->window = subwin(container->window, optWin->wHeight,
+		optWin->wWidth, optWin->windowY, optWin->windowX);
+    menuWin->window = subwin(container->window, menuWin->wHeight,
+		menuWin->wWidth, menuWin->windowY, menuWin->windowX);
 
     ui->reinitListState = true;
 
-    REFRESH_WIN(container->window);
+	TaskGroup *tg = broker_create_group();
 
-    print_header(container);
-    print_footer(container);
+	BROKER_BUILD_TASK(tg, true, build_print_header_task, &tg->a);
+	BROKER_BUILD_TASK(tg, true, build_print_footer_task, &tg->a);
+
+	broker_commit(&tg);
+
+    REFRESH_WIN(container->window);
+}
+
+static void _update_orientation(UIData *ui)
+{
+	for (size_t i = CPU_WIN; i < PRC_WIN + 1; i++)
+	{
+		if (!ui->windows[i]->active || mtopSettings->activeWindowCount != 2) continue;
+
+		WindowData *cur = ui->windows[i];
+		mt_Window curType = i;
+		u8 isFw = cur->wWidth == ui->windows[CONTAINER_WIN]->wWidth - 2;
+		u8 isFh = cur->wHeight == ui->windows[CONTAINER_WIN]->wHeight - 2;
+
+		if (_is_adj_empty(ui, u_win_cmp_left, u_win_cmp_right, curType, cur->windowX, isFw, isFh))
+		{
+			mtopSettings->orientation = HORIZONTAL;
+			break;
+		}
+		else if (_is_adj_empty(ui, u_win_cmp_above, u_win_cmp_below, curType, cur->windowY, isFw, isFh))
+		{
+			mtopSettings->orientation = VERTICAL;
+			break;
+		}
+	}
+}
+
+static u8 _is_adj_empty(
+	UIData *ui, 
+	WinPosComparisonFn cmp1,	
+	WinPosComparisonFn cmp2,
+	mt_Window currentType,
+	u16 axisPos,
+	u8 isFullWidth,
+	u8 isFullHeight
+)
+{
+	mt_Window result;
+
+	if (axisPos > 1) result = get_selected_window(ui, cmp1);
+	else result = get_selected_window(ui, cmp2);
+
+	return result == currentType && !isFullHeight && !isFullWidth;
 }

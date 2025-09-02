@@ -3,7 +3,7 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/monitor.h"
 
-void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
+void plu_setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
 {
     listState->cmdBuffer = '\0';
     listState->timeoutActive = false;
@@ -21,7 +21,7 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
 
     listState->pageEndIdx = listState->pageSize - 1;
 
-    if (listState->pageEndIdx > listState->count)
+    if (listState->pageEndIdx >= listState->count)
 		listState->pageEndIdx = listState->count - 1;
 
     listState->sortFn = vd_name_compare_fn;
@@ -29,7 +29,7 @@ void setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, co
     listState->infoVisible = false;
 }
 
-void set_start_end_idx(ProcessListState *state) 
+void plu_set_start_end_idx(ProcessListState *state) 
 {
     s8 isLastPage = state->activePage == state->totalPages - 1;
     size_t lastPageEnd = state->count - 1;
@@ -46,7 +46,7 @@ void set_start_end_idx(ProcessListState *state)
     }
 }
 
-void adjust_state(ProcessListState *state, ProcessesSummary *stats)
+void plu_adjust_state(ProcessListState *state, ProcessesSummary *stats)
 {
     if (state->count == (s8)stats->count) return;
     
@@ -60,7 +60,7 @@ void adjust_state(ProcessListState *state, ProcessesSummary *stats)
 
     if (state->activePage > state->totalPages - 1) state->activePage = state->totalPages - 1;
 
-    set_start_end_idx(state);
+    plu_set_start_end_idx(state);
 
     state->selectedIndex = state->selectedIndex > state->count - 1 ?
 	state->count - 1 :

@@ -1,4 +1,7 @@
 #include <arena.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "../../include/monitor.h"
 #include "../../include/task.h"
@@ -118,4 +121,56 @@ UITask * build_refresh_task(Arena *taskArena)
     task->next = NULL;
 
     return task;
+}
+
+UITask * build_uptime_load_average_task(Arena *taskArena)
+{
+    UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
+
+	sysinfo(&ctx->info);
+	getloadavg(ctx->load, 3);
+
+	task->action = print_uptime_loadavg_fn;
+	task->data = ctx;
+	task->next = NULL;
+
+	return task;
+}
+
+UITask * build_print_time_task(Arena *taskArena)
+{
+	UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+	PrintTimeContext *ctx = a_alloc(taskArena, sizeof(PrintTimeContext), __alignof(PrintTimeContext));
+	time_t now = time(0);
+
+	localtime_r(&now, &ctx->tmNow);
+
+	task->action = print_time_fn;
+	task->data = ctx;
+	task->next = NULL;
+
+	return task;
+}
+
+UITask * build_print_header_task(Arena *taskArena)
+{
+	UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+
+	task->action = print_header_fn;
+	task->data = getlogin();
+	task->next = NULL;
+
+	return task;
+}
+
+UITask * build_print_footer_task(Arena *taskArena)
+{
+	UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
+
+	task->action = print_footer_fn;
+	task->data = NULL;
+	task->next = NULL;
+
+	return task;
 }

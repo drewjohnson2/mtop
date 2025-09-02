@@ -1,6 +1,7 @@
 #include "../../include/menu.h"
 #include "../../include/text.h"
 #include "../../include/window.h"
+#include "../../include/util.h"
 
 static void _init_menu_idx(MenuItem **items, u8 itemCount);
 
@@ -14,7 +15,7 @@ void init_menu(
 )
 {
     WindowData *container = ui->windows[CONTAINER_WIN];
-    WindowData *menu = ui->windows[STAT_TYPE_WIN];
+    WindowData *menu = ui->windows[MENU_WIN];
 
     ui->menu->isVisible = isVisible;
     ui->menu->menuItemCount = itemCount;
@@ -27,6 +28,8 @@ void init_menu(
 		ui->menu->menuItemCount + ITEM_PADDING,
 		FLOAT_WIN_DEFAULT_W(container)
     );
+
+	delwin(menu->window);
 
     menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
 
@@ -70,12 +73,12 @@ void init_orienation_menu_items(MenuItem **items)
 #undef DEF_MENU_ITEMS
 }
 
-void reset_menu_idx(MenuItem **items, u8 itemCount) 
+void menu_reset_idx(MenuItem **items, u8 itemCount) 
 {
     for (size_t i = 0; i < itemCount; i++) items[i]->isSelected = false;
 }
 
-void select_previous_menu_item(MenuItem **items, u8 itemCount)
+void menu_select_previous_item(MenuItem **items, u8 itemCount)
 {
     s8 selectedIdx = -1;
 
@@ -106,7 +109,7 @@ void select_previous_menu_item(MenuItem **items, u8 itemCount)
     }
 }
 
-void select_next_menu_item(MenuItem **items, u8 itemCount) 
+void menu_select_next_item(MenuItem **items, u8 itemCount) 
 {
     s8 selectedIdx = -1;
 
@@ -137,7 +140,7 @@ void select_next_menu_item(MenuItem **items, u8 itemCount)
     }
 }
 
-MenuItemValue get_menu_selection(MenuItem **items, u8 itemCount) 
+MenuItemValue menu_get_selection(MenuItem **items, u8 itemCount) 
 {
     for (size_t i = 0; i < itemCount; i++) 
     {
@@ -152,17 +155,17 @@ MenuItemValue get_menu_selection(MenuItem **items, u8 itemCount)
     return items[0]->returnValue;
 }
 
-void display_menu_options(UIData *ui) 
+void menu_display_options(UIData *ui) 
 {
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
     u8 titlePosY = 0;
-    const u8 titlePosX = (statTypeWin->wWidth / 2) - (strlen(statTypeWin->windowTitle) / 2);
+    const u8 titlePosX = (menuWin->wWidth / 2) - (strlen(menuWin->windowTitle) / 2);
     size_t optionNumber = 1;
 
-    werase(statTypeWin->window);
-    SET_COLOR(statTypeWin->window, MT_PAIR_BOX);
-    box(statTypeWin->window, 0, 0);
-    PRINTFC(statTypeWin->window, titlePosY++, titlePosX, "%s", statTypeWin->windowTitle, MT_PAIR_CTRL_TXT);
+    werase(menuWin->window);
+    SET_COLOR(menuWin->window, MT_PAIR_BOX);
+    box(menuWin->window, 0, 0);
+    PRINTFC(menuWin->window, titlePosY++, titlePosX, "%s", menuWin->windowTitle, MT_PAIR_CTRL_TXT);
 
     for (size_t i = 0; i < ui->menu->menuItemCount; i++) 
     {
@@ -175,17 +178,17 @@ void display_menu_options(UIData *ui)
 		{
 			pair = MT_PAIR_PRC_SEL_TEXT;
 		
-		    for (size_t y = ITEM_TEXT_START_X - 1; y < (size_t)(statTypeWin->wWidth - 4); y++)
-				PRINTFC(statTypeWin->window, titlePosY, y, "%c", ' ', pair);
+		    for (size_t y = ITEM_TEXT_START_X - 1; y < (size_t)(menuWin->wWidth - 4); y++)
+				PRINTFC(menuWin->window, titlePosY, y, "%c", ' ', pair);
 		}
 		
-		PRINTFC(statTypeWin->window, titlePosY, ITEM_NUM_START_X,
+		PRINTFC(menuWin->window, titlePosY, ITEM_NUM_START_X,
 		    "%zu.", optionNumber++, MT_PAIR_CPU_HEADER);
-		PRINTFC(statTypeWin->window, titlePosY++, ITEM_TEXT_START_X, "%s", item->displayString, pair);
+		PRINTFC(menuWin->window, titlePosY++, ITEM_TEXT_START_X, "%s", item->displayString, pair);
     }
 }
 
-void handle_add_window(UIData *ui, MenuItemValue selection) 
+void menu_handle_add_window(UIData *ui, MenuItemValue selection) 
 {
     mt_Window winToAdd = selection.windowType;
 
@@ -196,9 +199,10 @@ void handle_add_window(UIData *ui, MenuItemValue selection)
     ui->menu->isVisible = false;
 }
 
-void handle_change_layout(UIData *ui, MenuItemValue selection)
+void menu_handle_change_layout(UIData *ui, MenuItemValue selection)
 {
     mtopSettings->layout = selection.layout;
+	mtopSettings->orientation = u_get_orientation_for_layout(mtopSettings->layout);
 
     init_window_dimens(ui);
     reinit_window(ui);
@@ -206,7 +210,7 @@ void handle_change_layout(UIData *ui, MenuItemValue selection)
     ui->menu->isVisible = false;
 }
 
-void handle_change_duo_orientation(UIData *ui, MenuItemValue selection)
+void menu_handle_change_duo_orientation(UIData *ui, MenuItemValue selection)
 {
     mtopSettings->orientation = selection.orientation;
 

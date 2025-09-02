@@ -134,23 +134,23 @@ static inline u64 cpu_time_now()
 //		cpu_monitor.c
 //
 //
-void fetch_cpu_stats(CpuStats *stats);
+void cm_fetch_cpu_stats(CpuStats *stats);
 
 //
 //		mem_monitor.c
 //
 //
-void fetch_memory_stats(volatile MemoryStats *memStats);
+void mm_fetch_memory_stats(volatile MemoryStats *memStats);
 
 //
 //		prc_monitor.c
 //
 //
-ProcessesSummary * get_processes(
+ProcessesSummary * pm_get_processes(
     Arena *procArena,
     int (*sortFn)(const void *, const void *)
 );
-void get_prc_info_by_pid(u32 pid, Process *prc);
+void pm_get_info_by_pid(u32 pid, Process *prc);
 
 #endif
 

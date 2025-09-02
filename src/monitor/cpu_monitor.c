@@ -6,7 +6,7 @@
 
 #define MAX_CPU_REGIONS_ALLOCD 5
 
-void fetch_cpu_stats(CpuStats *stat) 
+void cm_fetch_cpu_stats(CpuStats *stat) 
 {
     FILE *f = fopen("/proc/stat", "r");
     char buffer[512];

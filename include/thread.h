@@ -5,13 +5,12 @@
 #include <pthread.h>
 
 #include "startup.h"
-#include "thread_safe_queue.h"
 #include "window.h"
 
-#define DISPLAY_SLEEP_TIME 1000 * 200 // ui thread sleep time
+#define DISPLAY_SLEEP_TIME 1000 * 100 // ui thread sleep time
 #define PROC_WAIT_TIME_SEC 2
 #define MIN_QUEUE_SIZE 5
-#define READ_SLEEP_TIME 1000 * 200//125 // io thread sleep time
+#define READ_SLEEP_TIME 1000 * 200 // io thread sleep time
 
 extern pthread_mutex_t taskQueueLock;
 extern pthread_cond_t taskQueueCondition;
@@ -35,8 +34,7 @@ void mutex_destroy();
 //
 //
 void run_ui(
-    UIData *ui,
-    ThreadSafeQueue *taskQueue
+    UIData *ui
 );
 
 //
@@ -45,7 +43,6 @@ void run_ui(
 //
 void run_io(
     mtopArenas *arenas,
-    ThreadSafeQueue *taskQueue,
     WindowData **windows
 );
 #endif

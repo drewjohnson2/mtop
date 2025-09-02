@@ -11,9 +11,6 @@
 #include "../../include/startup.h"
 #include "../../include/text.h"
 
-#define MIN_UTIL_WIN_WIDTH 55
-#define MIN_UTIL_WIN_HEIGHT 17
-
 #define FULL_WIDTH(container) ((container)->wWidth - 2)
 #define HALF_WIDTH(container) ((FULL_WIDTH(container)) / 2)
 
@@ -112,7 +109,7 @@ void init_window_dimens(UIData *ui)
     const u8 winCount = mtopSettings->activeWindowCount;
     WindowData *container = ui->windows[CONTAINER_WIN];
     WindowData *optWin = ui->windows[OPT_WIN];
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
 
     ui->windows[ui->windowOrder[0]]->active = true;
     if (winCount >= 2) ui->windows[ui->windowOrder[1]]->active = true;
@@ -123,14 +120,8 @@ void init_window_dimens(UIData *ui)
 
     layout_fn_table[layout](ui);
 
-    s16 optWinHeight = FLOAT_WIN_DEFAULT_H(container); 
-    s16 optWinWidth = FLOAT_WIN_DEFAULT_W(container);
-
-    optWinHeight = optWinHeight < MIN_UTIL_WIN_HEIGHT ? MIN_UTIL_WIN_HEIGHT : optWinHeight;
-    optWinWidth = optWinWidth < MIN_UTIL_WIN_WIDTH ? MIN_UTIL_WIN_WIDTH : optWinWidth;
-
-    size_floating_win(container, optWin, optWinHeight, optWinWidth);
-    size_floating_win(container, statTypeWin, STAT_WIN_COUNT + 2, FLOAT_WIN_DEFAULT_W(container));
+    size_floating_win(container, optWin, MIN_NORMAL_MODE_UTIL_WIN_HEIGHT, MIN_UTIL_WIN_WIDTH);
+    size_floating_win(container, menuWin, STAT_WIN_COUNT + 2, FLOAT_WIN_DEFAULT_W(container));
 }
 
 void init_windows(UIData *ui) 
@@ -174,6 +165,8 @@ void size_floating_win(
     win->wHeight = height;
     win->windowX = (container->wWidth / 2) - (win->wWidth / 2);
     win->windowY = (container->wHeight / 2) - (win->wHeight / 2);
+
+	wnoutrefresh(win->window);
 }
 
 static void _setup_quarters_left(UIData *ui)
