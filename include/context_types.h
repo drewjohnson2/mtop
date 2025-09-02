@@ -50,9 +50,4 @@ typedef struct
 	struct tm tmNow;
 } PrintTimeContext;
 
-typedef struct
-{
-	char *user;
-} PrintHeaderContext;
-
 #endif

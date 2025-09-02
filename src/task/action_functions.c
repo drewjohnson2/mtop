@@ -217,13 +217,13 @@ void print_time_fn(UIData *ui, void *ctx)
 
 void print_header_fn(UIData *ui, void *ctx)
 {
-	PrintHeaderContext *context = (PrintHeaderContext *)ctx;
+	char *user = (char *)ctx;
 	WindowData *container = ui->windows[CONTAINER_WIN];
 
     wattron(container->window, A_BOLD);
     PRINTFC(container->window, 0, 2, "%s", text(TXT_MTOP), MT_PAIR_MTOP_LBL);
     wattroff(container->window, A_BOLD);
-    PRINTFC(container->window, 0, 7, "for %s", context->user, MT_PAIR_USR_LBL);
+    PRINTFC(container->window, 0, 7, "for %s", user, MT_PAIR_USR_LBL);
 }
 
 void print_footer_fn(UIData *ui, void *ctx)

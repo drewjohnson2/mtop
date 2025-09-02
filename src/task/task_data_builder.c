@@ -156,12 +156,9 @@ UITask * build_print_time_task(Arena *taskArena)
 UITask * build_print_header_task(Arena *taskArena)
 {
 	UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
-	PrintHeaderContext *ctx = a_alloc(taskArena, sizeof(PrintHeaderContext), __alignof(PrintHeaderContext));
-
-	ctx->user = getlogin();
 
 	task->action = print_header_fn;
-	task->data = ctx;
+	task->data = getlogin();
 	task->next = NULL;
 
 	return task;
