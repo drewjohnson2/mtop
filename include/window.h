@@ -128,7 +128,6 @@ typedef struct
     u64 vmSwap;
     u64 vmExe;
     u64 vmLib;
-
 } ProcessStatsViewData;
 
 typedef struct
