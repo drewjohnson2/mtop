@@ -32,6 +32,9 @@
 
 #define FLOAT_WIN_DEFAULT_W(container) container->wWidth / 4
 #define FLOAT_WIN_DEFAULT_H(container) container->wHeight / 3
+#define MIN_UTIL_WIN_WIDTH 55
+#define MIN_NORMAL_MODE_UTIL_WIN_HEIGHT 21 
+#define MIN_ADJUST_MODE_UTIL_WIN_HEIGHT 15
 
 struct UIData;
 typedef struct UIData UIData;
@@ -150,7 +153,6 @@ typedef struct
 typedef u8 (*WinPosComparisonFn)(WindowData *cmp, WindowData *cur);
 
 extern u8 RESIZE;
-extern u8 REINIT;
 
 //
 //		window_setup.c
@@ -199,21 +201,9 @@ void set_prc_view_data(
     ProcessesSummary *prevPrcs,
     u64 memTotal
 );
-void adjust_state(ProcessListState *state, ProcessesSummary *stats);
-void set_start_end_idx(ProcessListState *state);
+void plu_adjust_state(ProcessListState *state, ProcessesSummary *stats);
+void plu_set_start_end_idx(ProcessListState *state);
 void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelected);
-
-// why are input functions being declared in the window header?
-//
-//		input.c
-//
-//
-void read_normal_input(
-    WINDOW *win,
-    ProcessListState *state,
-    UIData *ui
-);
-void read_arrange_input(UIData *ui);
 
 //
 //		window_util.c
@@ -227,12 +217,13 @@ void set_bg_colors(
     WINDOW *memWin,
     WINDOW *prcWin,
     WINDOW *optWin,
-    WINDOW *statTypeWin
+    WINDOW *menuWin
 );
 void resize_windows(UIData *ui);
 void remove_win(UIData *ui, mt_Window winToRemove);
 void add_win(UIData *ui, mt_Window winToAdd);
 void swap_windows(UIData *ui, mt_Window windowToSwap);
+void reset_window(WindowData *container, WindowData *win);
 void reinit_window(UIData *ui);
 mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp);
 

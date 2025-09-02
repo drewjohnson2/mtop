@@ -8,7 +8,7 @@
 
 #define MAX_PROC_REGIONS_ALLOCD 3
 
-ProcessesSummary * get_processes(
+ProcessesSummary * pm_get_processes(
     Arena *procArena,
     int (*sortFn)(const void *, const void *)
 ) 
@@ -77,7 +77,7 @@ ProcessesSummary * get_processes(
 }
 
 
-void get_prc_info_by_pid(u32 pid, Process *prc)
+void pm_get_info_by_pid(u32 pid, Process *prc)
 {
     PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM);
 

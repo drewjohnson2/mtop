@@ -8,14 +8,12 @@
 
 #include "../../include/thread.h"
 #include "../../include/window.h"
-#include "../../include/thread_safe_queue.h"
 #include "../../include/mt_colors.h"
 #include "../../include/startup.h"
 #include "../../include/task.h"
 
 void run_ui(
-    UIData *ui,
-    ThreadSafeQueue *taskQueue
+    UIData *ui
 )
 {
     import_colors();
@@ -28,18 +26,14 @@ void run_ui(
 		    ui->windows[MEMORY_WIN]->window,
 		    ui->windows[PRC_WIN]->window,
 		    ui->windows[OPT_WIN]->window,
-		    ui->windows[STAT_TYPE_WIN]->window
+		    ui->windows[MENU_WIN]->window
 		);
     }
 
     while (!SHUTDOWN_FLAG)
     {
-		TaskGroup *tg = peek(taskQueue, &taskQueueLock, &taskQueueCondition);
-		dequeue(taskQueue, &taskQueueLock, &taskQueueCondition);
+		TaskGroup *tg = broker_read();
 
-		// instead of passing in specific arena we could
-		// pass in the arenas structure? Idk if I like that,
-		// honestly.
 		UITask *task = tg->head;
 		
 		while (task)
@@ -49,8 +43,6 @@ void run_ui(
 		}
 
 		tg->cleanup(&tg->a);
-
-		tg->tasksComplete = 1;
     	
     	usleep(DISPLAY_SLEEP_TIME);
     }

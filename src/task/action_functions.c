@@ -8,6 +8,7 @@
 #include "../../include/prc_list_util.h"
 #include "../../include/menu.h"
 #include "../../include/text.h"
+#include "../../include/input.h"
 
 void cpu_action_fn(UIData *ui, void *ctx)
 {
@@ -62,7 +63,7 @@ void process_action_fn(UIData *ui, void *ctx)
 
     if (ui->reinitListState)
     {
-		setup_list_state(listState, curPrcs, prcWin);
+		plu_setup_list_state(listState, curPrcs, prcWin);
 		ui->reinitListState = false;
     }
 
@@ -130,7 +131,7 @@ void resize_action_fn(UIData *ui, void *ctx)
     WindowData *prcWin = ui->windows[PRC_WIN];
 
     resize_windows(ui);
-    setup_list_state(context->listState, context->curPrcs, prcWin);
+    plu_setup_list_state(context->listState, context->curPrcs, prcWin);
 }
 
 void refresh_action_fn(UIData *ui, void *ctx)
@@ -138,7 +139,7 @@ void refresh_action_fn(UIData *ui, void *ctx)
     u8 *context = (u8 *)ctx;
     WindowData *container = ui->windows[CONTAINER_WIN];
     WindowData *optWin = ui->windows[OPT_WIN];
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
 	void (*optionFn)(UIData *) = ui->mode == NORMAL ? display_normal_options : display_arrange_options;
 
     if (ui->optionsVisible)
@@ -148,8 +149,8 @@ void refresh_action_fn(UIData *ui, void *ctx)
     }
     else if (ui->menu->isVisible)
     {
-		display_menu_options(ui);
-		wnoutrefresh(statTypeWin->window);
+		menu_display_options(ui);
+		wnoutrefresh(menuWin->window);
     }
 
     // this is literally just so the compiler won't
@@ -269,12 +270,4 @@ void print_footer_fn(UIData *ui, void *ctx)
     PRINTFC(container->window, container->wHeight - 1, optionsCtrlX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
     PRINTFC(container->window, container->wHeight - 1, optionsLabelX, "%s", text(TXT_OPT), MT_PAIR_CTRL_TXT);
     PRINTFC(container->window, container->wHeight - 1, githubText, "%s", text(TXT_GITHUB), MT_PAIR_GITHUB);
-
-}
-
-void tg_cleanup(Arena *a)
-{
-    a_free(a);
-
-    *a = a_new(256);
 }

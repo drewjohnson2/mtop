@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <signal.h>
 
+#include "../../include/input.h"
 #include "../../include/prc_list_util.h"
 #include "../../include/thread.h"
 #include "../../include/startup.h"
@@ -45,11 +46,11 @@ enum NormalModeKeyInput {
 static void _adjust_menu_index(u8 dir, ProcessListState *state);
 static void _read_menu_input(UIData *ui, u8 ch);
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp);
+static void _setup_layout_menu(UIData *ui);
 
 void read_arrange_input(UIData *ui)
 {
     WindowData *container = ui->windows[CONTAINER_WIN];
-	WindowData *optWin = ui->windows[OPT_WIN];
     s8 ch = wgetch(container->window);
 
     flushinp();
@@ -62,25 +63,25 @@ void read_arrange_input(UIData *ui)
 
     if (CTRL(ch, DOWN)) // ctrl+j
     {
-		_swap_windows(ui, win_compare_below);
+		_swap_windows(ui, u_win_cmp_below);
 
 		return;
     }
     else if (CTRL(ch, UP)) // ctrl+k
     {
-		_swap_windows(ui, win_compare_above);
+		_swap_windows(ui, u_win_cmp_above);
 
 		return;
     }
     else if (CTRL(ch, LEFT)) // ctrl+h
     {
-		_swap_windows(ui, win_compare_left);
+		_swap_windows(ui, u_win_cmp_left);
 
 		return;
     }
     else if (CTRL(ch, RIGHT)) // ctrl+l
     {
-		_swap_windows(ui, win_compare_right);
+		_swap_windows(ui, u_win_cmp_right);
 
 		return;
     }
@@ -92,63 +93,42 @@ void read_arrange_input(UIData *ui)
 		    ui->selectedWindow = false;
 		    
 		    if (ui->menu->isVisible) ui->menu->isVisible = false;
-		    return;
+		    break;
 		case DOWN:
-		    ui->selectedWindow = get_selected_window(ui, win_compare_below);
+		    ui->selectedWindow = get_selected_window(ui, u_win_cmp_below);
 
-		    return;
+		    break;
 		case UP:
-		    ui->selectedWindow = get_selected_window(ui, win_compare_above);
+		    ui->selectedWindow = get_selected_window(ui, u_win_cmp_above);
 
-		    return;
+		    break;
 		case RIGHT:
-		    ui->selectedWindow = get_selected_window(ui, win_compare_right);
+		    ui->selectedWindow = get_selected_window(ui, u_win_cmp_right);
 
-		    return;
+		    break;
 		case LEFT:
-		    ui->selectedWindow = get_selected_window(ui, win_compare_left);
+		    ui->selectedWindow = get_selected_window(ui, u_win_cmp_left);
 
-		    return;
+		    break;
 		case REMOVE:
 		    remove_win(ui, ui->selectedWindow);
 
-		    return;
+		    break;
 		case VIEW_LAYOUTS:
-		    void (*onSelect)(UIData *, MenuItemValue);
-		    void (*items)(MenuItem **);
-		    const char *title;
-		    u8 itemCount;
+			_setup_layout_menu(ui);
 
-		    if (mtopSettings->activeWindowCount == 3)
-		    {
-				onSelect = handle_change_layout;
-				items = init_layout_menu_items;
-				title = text(TXT_CHOOSE_LAYOUT);
-				itemCount = LAYOUT_COUNT;
-		    }
-		    else if (mtopSettings->activeWindowCount == 2)
-		    {
-				onSelect = handle_change_duo_orientation;
-				items = init_orienation_menu_items;
-				title = text(TXT_CHOOSE_ORIENTATION);
-				itemCount = ORIENTATION_COUNT;
-		    }
-		    else return;
-
-		    init_menu(ui, !ui->menu->isVisible, itemCount, title, onSelect, items);
-
-		    return;
+		    break;
 		case TOGGLE_ADD:
 		    u8 isVisible = mtopSettings->activeWindowCount < STAT_WIN_COUNT;
 
 		    init_menu(ui, isVisible, STAT_WIN_COUNT,
-		    	text(TXT_ADD_WINDOW), handle_add_window, init_stat_menu_items);
+		    	text(TXT_ADD_WINDOW), menu_handle_add_window, init_stat_menu_items);
 
-		    return;
+		    break;
 		case OPTIONS:
 			ui->optionsVisible = !ui->optionsVisible;
 			
-			return;
+			break;
 		default:
 		    break;
     }
@@ -194,6 +174,7 @@ void read_normal_input(
     {
 		ui->mode = ARRANGE;
 		ui->selectedWindow = ui->windowOrder[0];
+		
 		return;
     }
     
@@ -228,32 +209,28 @@ void read_normal_input(
 		    
 		    return;
 		case SORT_NAME:
-		    if (state->sortOrder == PRC_NAME && sortDirection == ASC) sortDirection = DESC;
-		    else sortDirection = ASC;
+			sortDirection = util_get_sort_direction(state, PRC_NAME, sortDirection);
 
 		    state->sortOrder = PRC_NAME;
 		    state->sortFn = vd_name_compare_fn;
 
 		    return;
 		case SORT_PID:
-		    if (state->sortOrder == PID && sortDirection == ASC) sortDirection = DESC;
-		    else sortDirection = ASC;
+			sortDirection = util_get_sort_direction(state, PID, sortDirection);
 
 		    state->sortOrder = PID;
 		    state->sortFn = vd_pid_compare_fn;
 
 		    return;
 		case SORT_CPU:
-		    if (state->sortOrder == CPU && sortDirection == DESC) sortDirection = ASC;
-		    else sortDirection = DESC;
+			sortDirection = util_get_sort_direction_num(state, CPU, sortDirection);
 
 		    state->sortOrder = CPU;
 		    state->sortFn = vd_cpu_compare_fn;
 
 		    return;
 		case SORT_MEM:
-		    if (state->sortOrder == MEM && sortDirection == DESC) sortDirection = ASC;
-		    else sortDirection = DESC;
+			sortDirection = util_get_sort_direction_num(state, MEM, sortDirection);
 
 		    state->sortOrder = MEM;
 		    state->sortFn = vd_mem_compare_fn;
@@ -314,27 +291,27 @@ static void _read_menu_input(UIData *ui, u8 ch)
     switch (ch)
     {
 		case DOWN:
-		    select_next_menu_item(ui->menu->items, ui->menu->menuItemCount);
+		    menu_select_next_item(ui->menu->items, ui->menu->menuItemCount);
 		
 		    break;
 		case UP:
-		    select_previous_menu_item(ui->menu->items, ui->menu->menuItemCount);
+		    menu_select_previous_item(ui->menu->items, ui->menu->menuItemCount);
 		
 		    break;
 		case TOGGLE_ADD:
 		    ui->menu->isVisible = false;
 		
-		    reset_menu_idx(ui->menu->items, STAT_WIN_COUNT);
+		    menu_reset_idx(ui->menu->items, STAT_WIN_COUNT);
 		    
 		    break;
 		case VIEW_LAYOUTS:
 		    ui->menu->isVisible = false;
 		
-		    reset_menu_idx(ui->menu->items, LAYOUT_COUNT);
+		    menu_reset_idx(ui->menu->items, LAYOUT_COUNT);
 		
 		    break;
 		case ENTER:
-		    MenuItemValue selection = get_menu_selection(ui->menu->items, ui->menu->menuItemCount);
+		    MenuItemValue selection = menu_get_selection(ui->menu->items, ui->menu->menuItemCount);
 		
 		    ui->menu->on_select(ui, selection);
 		    
@@ -405,7 +382,7 @@ static void _adjust_menu_index(u8 dir, ProcessListState *state)
 		    return;
     }
 
-    if (dir == LEFT || dir == RIGHT) set_start_end_idx(state);
+    if (dir == LEFT || dir == RIGHT) plu_set_start_end_idx(state);
 }
 
 static void _swap_windows(UIData *ui, WinPosComparisonFn cmp)
@@ -415,4 +392,30 @@ static void _swap_windows(UIData *ui, WinPosComparisonFn cmp)
     if (ui->selectedWindow == windowToSwap) return;
     
     swap_windows(ui, windowToSwap);
+}
+
+static void _setup_layout_menu(UIData *ui)
+{
+	void (*onSelect)(UIData *, MenuItemValue);
+	void (*items)(MenuItem **);
+	const char *title;
+	u8 itemCount;
+	
+	if (mtopSettings->activeWindowCount == 3)
+	{
+		onSelect = menu_handle_change_layout;
+		items = init_layout_menu_items;
+		title = text(TXT_CHOOSE_LAYOUT);
+		itemCount = LAYOUT_COUNT;
+	}
+	else if (mtopSettings->activeWindowCount == 2)
+	{
+		onSelect = menu_handle_change_duo_orientation;
+		items = init_orienation_menu_items;
+		title = text(TXT_CHOOSE_ORIENTATION);
+		itemCount = ORIENTATION_COUNT;
+	}
+	else return;
+	
+	init_menu(ui, !ui->menu->isVisible, itemCount, title, onSelect, items);
 }

@@ -7,29 +7,25 @@
 
 #include "../../include/thread.h"
 #include "../../include/monitor.h"
-#include "../../include/thread_safe_queue.h"
-#include "../../include/thread.h"
 #include "../../include/sorting.h"
 #include "../../include/prc_list_util.h"
 #include "../../include/task.h"
 
-#define BUILD_TASK(cond, data_fn, ...)		\
-    do {									\
-		if (cond)							\
-		{									\
-		    *tail = data_fn(__VA_ARGS__);	\
-		    tail = &(*tail)->next;			\
-		}									\
-    } while(0)
-	
+static void _fetch_prcs(
+	Arena *procArena,
+	struct timespec *start,
+	struct timespec *current,
+	ProcessListState *listState,
+	u8 prcActive
+);
+static void _fetch_prc_info(ProcessListState *listState);
+static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
+
 ProcessesSummary *prevPrcs;
 ProcessesSummary *curPrcs;
 
-static void _copy_stats(CpuStats *prevStats, CpuStats *curStats);
-
 void run_io(
     mtopArenas *arenas,
-    ThreadSafeQueue *taskQueue,
     WindowData **windows
 ) 
 {
@@ -46,100 +42,61 @@ void run_io(
     	__alignof(ProcessListState)
     );
     MemoryStats *memStats = NULL;
-    TaskGroup *tg = a_alloc(&tgArena, sizeof(TaskGroup), __alignof(TaskGroup));
-	UITask **tail = &tg->head;
+    struct timespec start, current;
 
-    prevPrcs = get_processes(procArena, prc_pid_compare);
+    prevPrcs = pm_get_processes(procArena, prc_pid_compare);
     curPrcs = prevPrcs;
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
 
-    tg->a = a_new(256);
-    tg->tasksComplete = true;
-    tg->cleanup = tg_cleanup;
-
-    setup_list_state(listState, curPrcs, windows[PRC_WIN]);
-    fetch_cpu_stats(prevStats);
-
-    struct timespec start, current;
-
+    plu_setup_list_state(listState, curPrcs, windows[PRC_WIN]);
+    cm_fetch_cpu_stats(prevStats);
     clock_gettime(CLOCK_REALTIME, &start);
-    
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
-	BUILD_TASK(true, build_print_header_task, &tg->a);
-	BUILD_TASK(true, build_print_footer_task, &tg->a);
+    TaskGroup *tg = broker_create_group();
+
+	BROKER_BUILD_TASK(tg, true, build_print_header_task, &tg->a);
+	BROKER_BUILD_TASK(tg, true, build_print_footer_task, &tg->a);
+
+	broker_commit(&tg);
 
     while (!SHUTDOWN_FLAG)
     {
-		if (!tg->tasksComplete)
-		{
-		    usleep(READ_SLEEP_TIME);
-		    continue;
-		}
+		tg = broker_create_group();
 
 		u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
     	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
     	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
-		u8 handleCpu = cpuActive && tg->tasksComplete;
-		u8 handleMem = memActive && tg->tasksComplete;
+		u8 handleCpu = cpuActive;
+		u8 handleMem = memActive;
 
-		if (handleCpu) fetch_cpu_stats(curStats);
-		if (handleMem) fetch_memory_stats(memStats);
+		if (handleCpu) cm_fetch_cpu_stats(curStats);
+		if (handleMem) mm_fetch_memory_stats(memStats);
 
-		BUILD_TASK(true, build_input_task, &tg->a, listState);
-		BUILD_TASK(true, build_load_average_task, &tg->a);
-		BUILD_TASK(true, build_print_time_task, &tg->a);
+		BROKER_BUILD_TASK(tg, true, build_input_task, &tg->a, listState);
+		BROKER_BUILD_TASK(tg, true, build_uptime_load_average_task, &tg->a);
+		BROKER_BUILD_TASK(tg, true, build_print_time_task, &tg->a);
 
-		clock_gettime(CLOCK_REALTIME, &current);
-    
-    	const s32 totalTimeSec = current.tv_sec - start.tv_sec;
-    
-    	if ((totalTimeSec > PROC_WAIT_TIME_SEC) && prcActive)
-    	{
-	    	prevPrcs = curPrcs;
-	    	curPrcs = get_processes(procArena, prc_pid_compare);
+		_fetch_prcs(procArena, &start, &current, listState, prcActive);
+		_fetch_prc_info(listState); // see comment above func
 
-	    	adjust_state(listState, curPrcs);
-	    	
-	    	clock_gettime(CLOCK_REALTIME, &start);
-    	}
+		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+		BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+		BROKER_BUILD_TASK(
+			tg,
+			prcActive,
+			build_prc_task,
+			&tg->a,
+			listState,
+			prevPrcs,
+			curPrcs,
+			memStats->memTotal
+		);
+		BROKER_BUILD_TASK(tg, RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+		BROKER_BUILD_TASK(tg, true, build_refresh_task, &tg->a);
 
-		// I really like the stats to update quickly when
-		// on the process info page, so that's why this is here.
-		if (listState->infoVisible)
-		{
-		    qsort(
-				curPrcs->processes,
-				curPrcs->count,
-				sizeof(ProcessesSummary *),
-				prc_pid_compare_without_direction_fn
-		    );
-
-		    Process **prc = bsearch(
-				&listState->selectedPid,
-				curPrcs->processes,
-				curPrcs->count,
-				sizeof(Process *),
-				prc_find_by_pid_compare_fn
-		    );
-
-		    if (prc) get_prc_info_by_pid(listState->selectedPid, *prc);
-		}
-
-		BUILD_TASK(handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-		BUILD_TASK(handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
-		BUILD_TASK(prcActive, build_prc_task, &tg->a, listState, prevPrcs, curPrcs, memStats->memTotal);
-		BUILD_TASK(RESIZE, build_resize_task, &tg->a, listState, curPrcs);
-		BUILD_TASK(REINIT, build_print_header_task, &tg->a);
-		BUILD_TASK(REINIT, build_print_footer_task, &tg->a);
-		BUILD_TASK(true, build_refresh_task, &tg->a);
-
-		tg->tail = *tail;
-		tg->tasksComplete = false;
-		tail = &tg->head;
-
+		broker_commit(&tg);
 		_copy_stats(prevStats, curStats);
-		enqueue(taskQueue, tg, &taskQueueLock, &taskQueueCondition);
 		usleep(READ_SLEEP_TIME);
     }
 
@@ -159,4 +116,52 @@ static void _copy_stats(CpuStats *prevStats, CpuStats *curStats)
     prevStats->steal = curStats->steal;
     prevStats->system = curStats->system;
     prevStats->user = curStats->user;
+}
+
+static void _fetch_prcs(
+	Arena *procArena,
+	struct timespec *start,
+	struct timespec *current,
+	ProcessListState *listState,
+	u8 prcActive
+)
+{
+	clock_gettime(CLOCK_REALTIME, current);
+
+	const s32 totalTimeSec = current->tv_sec - start->tv_sec;
+	
+	if ((totalTimeSec > PROC_WAIT_TIME_SEC) && prcActive)
+	{
+		prevPrcs = curPrcs;
+		curPrcs = pm_get_processes(procArena, prc_pid_compare);
+	
+		plu_adjust_state(listState, curPrcs);
+		
+		clock_gettime(CLOCK_REALTIME, start);
+	}
+}
+
+// I really like the stats to update quickly when 
+// on the process info page, so that's why this is here.
+static void _fetch_prc_info(ProcessListState *listState)
+{
+	if (listState->infoVisible)
+	{
+	    qsort(
+			curPrcs->processes,
+			curPrcs->count,
+			sizeof(ProcessesSummary *),
+			prc_pid_compare_without_direction_fn
+	    );
+
+	    Process **prc = bsearch(
+			&listState->selectedPid,
+			curPrcs->processes,
+			curPrcs->count,
+			sizeof(Process *),
+			prc_find_by_pid_compare_fn
+	    );
+
+	    if (prc) pm_get_info_by_pid(listState->selectedPid, *prc);
+	}
 }

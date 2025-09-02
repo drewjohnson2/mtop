@@ -8,17 +8,27 @@
 #include "../../include/text.h"
 #include "../../include/startup.h"
 #include "../../include/util.h"
+#include "../../include/task.h"
 
 #define S32_MAX 2147483647
 
 u8 RESIZE = false;
-u8 REINIT = false;
 
 static void _update_orientation(UIData *ui);
+static u8 _is_adj_empty(
+	UIData *ui, 
+	WinPosComparisonFn cmp1,	
+	WinPosComparisonFn cmp2,
+	mt_Window currentType,
+	u16 axisPos,
+	u8 isFullWidth,
+	u8 isFullHeight
+);
 
 void display_normal_options(UIData *ui)
 {
-    const WindowData *optWin = ui->windows[OPT_WIN];
+	WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *optWin = ui->windows[OPT_WIN];
     const u8 titlePosX = (optWin->wWidth / 2) - (strlen(text(TXT_OPT_WIN_TITLE)) / 2);
     const u8 titlePosY = 0;
     const u8 ctrlStartX = optWin->wWidth / 4;
@@ -32,8 +42,19 @@ void display_normal_options(UIData *ui)
     const u8 sMemY = sCpuY + 2;
 	const u8 jumpTopY = sMemY + 2;
 	const u8 jumpBottomY = jumpTopY + 2;
-    const u8 closeOpts = jumpBottomY + 2;
+    const u8 closeOptsY = jumpBottomY + 2;
+	const u8 windowHeight = closeOptsY + 3;
 
+	if (optWin->wHeight != windowHeight)
+	{
+		size_floating_win(
+			container,
+			optWin,
+			windowHeight,
+			MIN_UTIL_WIN_WIDTH
+		);
+		reset_window(container, optWin);
+	}
     werase(optWin->window);
     SET_COLOR(optWin->window, MT_PAIR_BOX);
     box(optWin->window, 0, 0);
@@ -61,27 +82,40 @@ void display_normal_options(UIData *ui)
 	PRINTFC(optWin->window, jumpTopY, infoStartX, "%s", text(TXT_JMP_TOP), MT_PAIR_CTRL_TXT);
 	PRINTFC(optWin->window, jumpBottomY, ctrlStartX, "%s", text(TXT_JMP_BTM_CTRL), MT_PAIR_CTRL);
 	PRINTFC(optWin->window, jumpBottomY, infoStartX, "%s", text(TXT_JMP_BTM), MT_PAIR_CTRL_TXT);
-    PRINTFC(optWin->window, closeOpts, ctrlStartX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
-    PRINTFC(optWin->window, closeOpts, infoStartX, "%s ", text(TXT_OPT_CLOSE), MT_PAIR_CTRL_TXT);
+    PRINTFC(optWin->window, closeOptsY, ctrlStartX, "%s", text(TXT_OPT_CTRL), MT_PAIR_CTRL);
+    PRINTFC(optWin->window, closeOptsY, infoStartX, "%s ", text(TXT_OPT_CLOSE), MT_PAIR_CTRL_TXT);
 
 
 }
 
 void display_arrange_options(UIData *ui)
 {
-    const WindowData *optWin = ui->windows[OPT_WIN];
+	WindowData *container = ui->windows[CONTAINER_WIN];
+    WindowData *optWin = ui->windows[OPT_WIN];
     const u8 titlePosX = (optWin->wWidth / 2) - (strlen(text(TXT_OPT_WIN_TITLE)) / 2);
     const u8 titlePosY = 0;
 	const u8 ctrlStartX = (optWin->wWidth / 4) - 2;
 	const u8 ctrlMultStartX = ctrlStartX - 3;
     const u8 ctrlSelStartX = ctrlStartX - 6;
     const u8 infoStartX = ctrlStartX + 9;
-	const u8 selectWinY = 4;
+	const u8 selectWinY = 2;
 	const u8 moveWinY = selectWinY + 2;
 	const u8 addWinY = moveWinY + 2;
 	const u8 removeWinY = addWinY + 2;
 	const u8 layoutChangeY = removeWinY + 2;
 	const u8 closeOptsY = layoutChangeY +2;
+	const u8 windowHeight = closeOptsY + 3;
+
+	if (optWin->wHeight != windowHeight)
+	{
+		size_floating_win(
+			container,
+			optWin,
+			windowHeight,
+			MIN_UTIL_WIN_WIDTH
+		);
+		reset_window(container, optWin);
+	}
 
     werase(optWin->window);
     SET_COLOR(optWin->window, MT_PAIR_BOX);
@@ -130,7 +164,7 @@ void set_bg_colors(
     WINDOW *memWin,
     WINDOW *prcWin,
     WINDOW *optWin,
-    WINDOW *statTypeWin
+    WINDOW *menuWin
 )
 {
     volatile u8 *activeWindows = mtopSettings->activeWindows;
@@ -142,7 +176,7 @@ void set_bg_colors(
     if (activeWindows[PRC_WIN]) wbkgd(prcWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
 
     wbkgd(optWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
-    wbkgd(statTypeWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
+    wbkgd(menuWin, COLOR_PAIR(MT_PAIR_BACKGROUND));
 }
 
 void resize_windows(UIData *ui)
@@ -279,13 +313,20 @@ void swap_windows(UIData *ui, mt_Window windowToSwap)
     reinit_window(ui);
 }
 
+void reset_window(WindowData *container, WindowData *win)
+{
+	delwin(win->window);
+
+	win->window = subwin(container->window, win->wHeight, win->wWidth, win->windowY, win->windowX);
+}
+
 void reinit_window(UIData *ui)
 {
     u8 winCount = mtopSettings->activeWindowCount;
     mt_Window winType = ui->windowOrder[0];
     WindowData *container = ui->windows[CONTAINER_WIN];
     WindowData *optWin = ui->windows[OPT_WIN];
-    WindowData *statTypeWin = ui->windows[STAT_TYPE_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
 
     for (size_t i = 0; (winType != WINDOW_ID_MAX) && (i < winCount);)
     {
@@ -298,13 +339,21 @@ void reinit_window(UIData *ui)
     }
 
 	delwin(optWin->window);
-	delwin(statTypeWin->window);
+	delwin(menuWin->window);
 
-    optWin->window = subwin(container->window, optWin->wHeight, optWin->wWidth, optWin->windowY, optWin->windowX);
-    statTypeWin->window = subwin(container->window, statTypeWin->wHeight, statTypeWin->wWidth, statTypeWin->windowY, statTypeWin->windowX);
+    optWin->window = subwin(container->window, optWin->wHeight,
+		optWin->wWidth, optWin->windowY, optWin->windowX);
+    menuWin->window = subwin(container->window, menuWin->wHeight,
+		menuWin->wWidth, menuWin->windowY, menuWin->windowX);
 
     ui->reinitListState = true;
-	REINIT = true;
+
+	TaskGroup *tg = broker_create_group();
+
+	BROKER_BUILD_TASK(tg, true, build_print_header_task, &tg->a);
+	BROKER_BUILD_TASK(tg, true, build_print_footer_task, &tg->a);
+
+	broker_commit(&tg);
 
     REFRESH_WIN(container->window);
 }
@@ -315,28 +364,38 @@ static void _update_orientation(UIData *ui)
 	{
 		if (!ui->windows[i]->active || mtopSettings->activeWindowCount != 2) continue;
 
-		WindowData *current = ui->windows[i];
-		mt_Window currentType = i;
-		mt_Window result;
-		u8 isFullWidth = current->wWidth == ui->windows[CONTAINER_WIN]->wWidth - 2;
-		u8 isFullHeight = current->wHeight == ui->windows[CONTAINER_WIN]->wHeight - 2;
+		WindowData *cur = ui->windows[i];
+		mt_Window curType = i;
+		u8 isFw = cur->wWidth == ui->windows[CONTAINER_WIN]->wWidth - 2;
+		u8 isFh = cur->wHeight == ui->windows[CONTAINER_WIN]->wHeight - 2;
 
-		if (current->windowX > 1) result = get_selected_window(ui, win_compare_left);
-		else result = get_selected_window(ui, win_compare_right);
-
-		if (result == currentType && !isFullHeight && !isFullWidth)
+		if (_is_adj_empty(ui, u_win_cmp_left, u_win_cmp_right, curType, cur->windowX, isFw, isFh))
 		{
 			mtopSettings->orientation = HORIZONTAL;
 			break;
 		}
-
-		if (current->windowY > 1) result = get_selected_window(ui, win_compare_above);
-		else result = get_selected_window(ui, win_compare_below);
-
-		if (result == currentType && !isFullHeight && !isFullWidth)
+		else if (_is_adj_empty(ui, u_win_cmp_above, u_win_cmp_below, curType, cur->windowY, isFw, isFh))
 		{
 			mtopSettings->orientation = VERTICAL;
 			break;
 		}
 	}
+}
+
+static u8 _is_adj_empty(
+	UIData *ui, 
+	WinPosComparisonFn cmp1,	
+	WinPosComparisonFn cmp2,
+	mt_Window currentType,
+	u16 axisPos,
+	u8 isFullWidth,
+	u8 isFullHeight
+)
+{
+	mt_Window result;
+
+	if (axisPos > 1) result = get_selected_window(ui, cmp1);
+	else result = get_selected_window(ui, cmp2);
+
+	return result == currentType && !isFullHeight && !isFullWidth;
 }

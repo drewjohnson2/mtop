@@ -4,9 +4,24 @@
 #include <arena.h>
 #include <sys/sysinfo.h>
 
+#include "thread_safe_queue.h"
 #include "mt_type_defs.h"
 #include "monitor.h"
 #include "window.h"
+
+#define BROKER_BUILD_TASK(tg, cond, data_fn, ...)	\
+    do {											\
+		if (cond)									\
+		{											\
+		    UITask *task = data_fn(__VA_ARGS__);	\
+			UITask **link = (tg)->head ?			\
+				&((tg)->tail->next) : &((tg)->head);\
+													\
+			*link = task;							\
+			(tg)->tail = task;						\
+		}											\
+    } while(0)
+
 
 typedef struct _ui_task
 {
@@ -20,9 +35,19 @@ typedef struct
     Arena a;
     UITask *head;
     UITask *tail;
-    u8 tasksComplete;
     void (*cleanup)(Arena *a);
 } TaskGroup;
+
+/*
+    
+    task_broker.c
+
+*/
+void broker_init(ThreadSafeQueue *queue, size_t taskArenaCapacity);
+void broker_commit(TaskGroup **tg);
+TaskGroup * broker_create_group();
+TaskGroup * broker_read();
+void broker_cleanup();
 
 /*
     
@@ -45,14 +70,14 @@ UITask * build_input_task(
 );
 UITask * build_resize_task(Arena *taskArena, ProcessListState *listState, ProcessesSummary *curPrcs);
 UITask * build_refresh_task(Arena *taskArena);
-UITask * build_load_average_task(Arena *taskArena);
+UITask * build_uptime_load_average_task(Arena *taskArena);
 UITask * build_print_time_task(Arena *taskArena);
 UITask * build_print_header_task(Arena *taskArena);
 UITask * build_print_footer_task(Arena *taskArena);
 
 /*
 
-    task_functions.c
+    action_functions.c
 
 */
 void cpu_action_fn(UIData *ui, void *ctx);
@@ -61,7 +86,6 @@ void process_action_fn(UIData *ui, void *ctx);
 void input_action_fn(UIData *ui, void *ctx);
 void resize_action_fn(UIData *ui, void *ctx);
 void refresh_action_fn(UIData *ui, void *ctx);
-void tg_cleanup(Arena *a);
 void print_uptime_loadavg_fn(UIData *ui, void *ctx);
 void print_time_fn(UIData *ui, void *ctx);
 void print_header_fn(UIData *ui, void *ctx);

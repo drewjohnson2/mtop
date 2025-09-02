@@ -7,7 +7,7 @@
 
 static void _parse_stat(volatile MemoryStats *stat, char *buffer);
 
-void fetch_memory_stats(volatile MemoryStats *memStats)
+void mm_fetch_memory_stats(volatile MemoryStats *memStats)
 {
     FILE *f = fopen("/proc/meminfo", "r");
     char buffer[256];

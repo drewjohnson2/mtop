@@ -123,7 +123,7 @@ UITask * build_refresh_task(Arena *taskArena)
     return task;
 }
 
-UITask * build_load_average_task(Arena *taskArena)
+UITask * build_uptime_load_average_task(Arena *taskArena)
 {
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
@@ -174,8 +174,6 @@ UITask * build_print_footer_task(Arena *taskArena)
 	task->action = print_footer_fn;
 	task->data = NULL;
 	task->next = NULL;
-
-	REINIT = false;
 
 	return task;
 }

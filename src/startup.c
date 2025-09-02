@@ -13,6 +13,7 @@
 #include "../include/thread_safe_queue.h"
 #include "../include/window.h"
 #include "../include/thread.h"
+#include "../include/task.h"
 
 #define WINDOW_A_SZ 256
 #define CPU_A_SZ sizeof(CpuStats)
@@ -28,13 +29,11 @@
 typedef struct _ui_thread_args
 {
 	UIData *ui;
-    ThreadSafeQueue *taskQueue;
 } UIThreadArgs;
 
 typedef struct _io_thread_args
 {
     mtopArenas *arenas;
-    ThreadSafeQueue *taskQueue;
     WindowData **windows;
 } IOThreadArgs;
 
@@ -106,6 +105,8 @@ void run(int argc, char **argv)
     	sizeof(ThreadSafeQueue),
     	__alignof(ThreadSafeQueue)
     );
+
+	broker_init(taskQueue, 256);
 
     mtopSettings = a_alloc(&general, sizeof(Settings), __alignof(Settings));
     mtopSettings->orientation = HORIZONTAL;
@@ -203,14 +204,12 @@ void run(int argc, char **argv)
     
     UIThreadArgs uiArgs = 
     {
-    	.ui = ui,
-    	.taskQueue = taskQueue,
+    	.ui = ui
     };
     
     IOThreadArgs ioArgs = 
     {
 		.arenas = arenas,
-    	.taskQueue = taskQueue,
 		.windows = ui->windows
     };
     
@@ -260,8 +259,7 @@ static void * _ui_thread_run(void *arg)
     UIThreadArgs *args = (UIThreadArgs *)arg;
     
     run_ui(
-    	args->ui,
-    	args->taskQueue
+    	args->ui
     );
     
     return NULL;
@@ -273,7 +271,6 @@ static void * _io_thread_run(void *arg)
     
     run_io(
 		args->arenas,
-    	args->taskQueue,
 		args->windows
     );
     

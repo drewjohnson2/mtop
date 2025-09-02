@@ -34,11 +34,9 @@ void enqueue(
     }
     
     newNode->data = data;
-    
     queue->tail->next = newNode;
     queue->tail = queue->tail->next;
     queue->tail->next = NULL;
-    
     queue->size++;
     
     pthread_cond_signal(condition);
