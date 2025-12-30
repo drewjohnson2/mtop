@@ -20,6 +20,9 @@
 #define POS_AXIS_START 1
 #define WINDOW_ID_TEXT_OFFSET 19
 #define WIN_ONE_IDX 0
+#define ORIENTATION_CNT 2
+#define LAYOUT_CNT 6
+#define MAX_WIN_CNT 3
 
 typedef enum
 {
@@ -42,7 +45,7 @@ typedef struct
 	WindowGeometry posY;
 } PlacementDetails;
 
-static PlacementDetails sizeTable[2][6][3] = 
+static PlacementDetails sizeTable[ORIENTATION_CNT][LAYOUT_CNT][MAX_WIN_CNT] = 
 {
 	{	// Horizontal
 		{ /* N/A */ },{ /* N/A */ },
@@ -60,7 +63,7 @@ static PlacementDetails sizeTable[2][6][3] =
 			{ HALF_HEIGHT_PLUS_ONE, FULL_WIDTH, AXIS_START, AXIS_START },
 			{ HALF_HEIGHT, FULL_WIDTH, AXIS_START, AXIS_Y_END }
 		},
-		{
+		{ // Single
 			{ FULL_HEIGHT, FULL_WIDTH, AXIS_START, AXIS_START } 
 		}
 	},
@@ -80,7 +83,7 @@ static PlacementDetails sizeTable[2][6][3] =
 			{ FULL_HEIGHT, HALF_WIDTH_PLUS_ONE, AXIS_START, AXIS_START },
 			{ FULL_HEIGHT, HALF_WIDTH, AXIS_X_END, AXIS_START}
 		},
-		{
+		{ // Single
 			{ FULL_HEIGHT, FULL_WIDTH, AXIS_START, AXIS_START } 
 		}
 
@@ -89,7 +92,7 @@ static PlacementDetails sizeTable[2][6][3] =
 
 static u16 _get_size(WindowData *container, WindowGeometry size);
 static u16 _get_position(WindowData *container, WindowData *win, WindowGeometry size);
-static void _size_window(UIData *ui, PlacementDetails winDetails[3]);
+static void _size_window(UIData *ui, PlacementDetails winDetails[MAX_WIN_CNT]);
 
 UIData * init_display_items(Arena *arena) 
 {
@@ -152,11 +155,11 @@ void init_ncurses(WindowData *wd, SCREEN *screen)
     curs_set(0);
 }
 
-// need to fix full screen duo vertical. It's all messed up for some reason.
 void init_window_dimens(UIData *ui)
 {
     const Layout layout = mtopSettings->layout;
     const u8 winCount = mtopSettings->activeWindowCount;
+    const u8 verticalPadding = 2;
     WindowData *container = ui->windows[CONTAINER_WIN];
     WindowData *optWin = ui->windows[OPT_WIN];
     WindowData *menuWin = ui->windows[MENU_WIN];
@@ -171,7 +174,7 @@ void init_window_dimens(UIData *ui)
 	_size_window(ui, sizeTable[mtopSettings->orientation][layout]);
 
     size_floating_win(container, optWin, MIN_NORMAL_MODE_UTIL_WIN_HEIGHT, MIN_UTIL_WIN_WIDTH);
-    size_floating_win(container, menuWin, STAT_WIN_COUNT + 2, FLOAT_WIN_DEFAULT_W(container));
+    size_floating_win(container, menuWin, STAT_WIN_COUNT + verticalPadding, FLOAT_WIN_DEFAULT_W(container));
 }
 
 void init_windows(UIData *ui) 
