@@ -234,15 +234,16 @@ void add_win(UIData *ui, mt_Window winToAdd)
     if (mtopSettings->activeWindowCount == 3) return;
 
     u8 winCount = ++mtopSettings->activeWindowCount;
+
     mtopSettings->activeWindows[winToAdd] = true;
 
     for (size_t i = 0; i < STAT_WIN_COUNT; i++)
     {
-	if (ui->windowOrder[i] == WINDOW_ID_MAX)
-	{
-	    ui->windowOrder[i] = winToAdd;
-	    break;
-	}
+        if (ui->windowOrder[i] == WINDOW_ID_MAX)
+	    {
+	        ui->windowOrder[i] = winToAdd;
+	        break;
+	    }
     }
 
     if (winCount == 2) mtopSettings->layout = DUO;
@@ -274,7 +275,7 @@ mt_Window get_selected_window(UIData *ui, WinPosComparisonFn cmp)
 		WindowData *win = ui->windows[windows[i]];
 
 		if (win == cur || win == NULL) continue;
-		else if (!(cmp(win, cur) && win->active)) continue;
+		else if (!cmp(win, cur) || !win->active) continue;
 
 		s16 dx = abs(win->windowX - cur->windowX);
 		s16 dy = abs(win->windowY - cur->windowY);

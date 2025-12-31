@@ -15,23 +15,23 @@ void init_menu(
 )
 {
     WindowData *container = ui->windows[CONTAINER_WIN];
-    WindowData *menu = ui->windows[MENU_WIN];
+    WindowData *menuWin = ui->windows[MENU_WIN];
 
     ui->menu->isVisible = isVisible;
     ui->menu->menuItemCount = itemCount;
     ui->menu->on_select = onSelect; 
-    menu->windowTitle = windowTitle;
+    menuWin->windowTitle = windowTitle;
 
     size_floating_win(
 		container,
-		menu,
+		menuWin,
 		ui->menu->menuItemCount + ITEM_PADDING,
 		FLOAT_WIN_DEFAULT_W(container)
     );
 
-	delwin(menu->window);
+	delwin(menuWin->window);
 
-    menu->window = subwin(container->window, menu->wHeight, menu->wWidth, menu->windowY, menu->windowX);
+    menuWin->window = subwin(container->window, menuWin->wHeight, menuWin->wWidth, menuWin->windowY, menuWin->windowX);
 
     initMenuItems(ui->menu->items);
     _init_menu_idx(ui->menu->items, itemCount);
@@ -105,6 +105,7 @@ void menu_select_previous_item(MenuItem **items, u8 itemCount)
 
 		items[i]->isSelected = true;
 		items[selectedIdx]->isSelected = false;
+
 		break;
     }
 }
@@ -136,6 +137,7 @@ void menu_select_next_item(MenuItem **items, u8 itemCount)
 
 		items[i]->isSelected = true;
 		items[selectedIdx]->isSelected = false;
+
 		break;
     }
 }
@@ -152,6 +154,8 @@ MenuItemValue menu_get_selection(MenuItem **items, u8 itemCount)
 		}
     }
 
+    // this should never happen. 
+    // I probably added this so the compiler wouldn't complain.
     return items[0]->returnValue;
 }
 

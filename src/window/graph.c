@@ -1,4 +1,3 @@
-#include <locale.h>
 #include <ncurses.h>
 #include <pthread.h>
 #include <string.h>
