@@ -67,21 +67,22 @@ void run_io(
 		u8 cpuActive = mtopSettings->activeWindows[CPU_WIN];
     	u8 memActive = mtopSettings->activeWindows[MEMORY_WIN];
     	u8 prcActive = mtopSettings->activeWindows[PRC_WIN];
-		u8 handleCpu = cpuActive;
-		u8 handleMem = memActive;
 
-		if (handleCpu) cm_fetch_cpu_stats(curStats);
-		if (handleMem) mm_fetch_memory_stats(memStats);
+		if (cpuActive) cm_fetch_cpu_stats(curStats);
+		if (memActive) mm_fetch_memory_stats(memStats);
 
 		BROKER_BUILD_TASK(tg, true, build_input_task, &tg->a, listState);
 		BROKER_BUILD_TASK(tg, true, build_uptime_load_average_task, &tg->a);
 		BROKER_BUILD_TASK(tg, true, build_print_time_task, &tg->a);
 
-		_fetch_prcs(procArena, &start, &current, listState, prcActive);
-		_fetch_prc_info(listState); // see comment above func
+        if (prcActive)
+        {
+		    _fetch_prcs(procArena, &start, &current, listState, prcActive);
+		    _fetch_prc_info(listState); // see comment above func
+        }
 
-		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-		BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+		BROKER_BUILD_TASK(tg, cpuActive, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+		BROKER_BUILD_TASK(tg, memActive, build_mem_task, &tg->a, arenas->memPointArena, memStats);
 		BROKER_BUILD_TASK(
 			tg,
 			prcActive,
