@@ -108,6 +108,7 @@ typedef struct
 		    : 0; 																		\
     } while(0)																			\
 
+#if defined (__linux__)
 static inline u64 cpu_time_now()
 {
     FILE *f = fopen("/proc/stat", "r");
@@ -129,6 +130,14 @@ static inline u64 cpu_time_now()
     
     return user + nice + system + idle + ioWait + irq + softIrq + steal;
 }
+#endif
+
+#if defined (__APPLE__)
+static inline u64 cpu_time_now()
+{
+    return 1;
+}
+#endif
 
 //
 //		cpu_monitor.c

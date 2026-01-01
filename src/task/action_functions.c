@@ -165,6 +165,7 @@ void refresh_action_fn(UIData *ui, void *ctx)
 
 void print_uptime_loadavg_fn(UIData *ui, void *ctx)
 {
+    // move platform specific code to their own functions
 #if defined (__linux__)
 	LoadUptimeContext *context = (LoadUptimeContext *)ctx;
 	struct sysinfo info = context->info;

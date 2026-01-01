@@ -136,6 +136,10 @@ UITask * build_uptime_load_average_task(Arena *taskArena)
 	task->next = NULL;
 
 	return task;
+#elif defined (__APPLE__)
+    return NULL;
+#else
+    return NULL;
 #endif
 }
 

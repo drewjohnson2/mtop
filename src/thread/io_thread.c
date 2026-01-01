@@ -52,7 +52,7 @@ void run_io(
     memStats = a_alloc(memArena, sizeof(MemoryStats), __alignof(MemoryStats));
 
     plu_setup_list_state(listState, curPrcs, windows[PRC_WIN]);
-    cm_fetch_cpu_stats(prevStats); // this is segfaulting (obvi, it's a linux file)
+    cm_fetch_cpu_stats(prevStats);
     clock_gettime(CLOCK_REALTIME, &start);
     init_data(arenas->cpuGraphArena, arenas->memoryGraphArena); 
 
@@ -84,7 +84,7 @@ void run_io(
 		    _fetch_prc_info(listState); // see comment above func
         }
 
-		//BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
 		//BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
 		// BROKER_BUILD_TASK(
 		// 	tg,
