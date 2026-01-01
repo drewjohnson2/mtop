@@ -2,7 +2,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#if defined(__linux__)
 #include <sys/sysinfo.h>
+#endif
 
 #include "../../include/window.h"
 #include "../../include/text.h"

@@ -116,6 +116,7 @@ void run(int argc, char **argv)
     mtopSettings->activeWindows[MEMORY_WIN] = false;
     mtopSettings->activeWindows[PRC_WIN] = false;
 
+
     static struct option long_options[] = 
 	{
 		{ "transparent", no_argument, NULL, 't' },
@@ -212,7 +213,7 @@ void run(int argc, char **argv)
 		.arenas = arenas,
 		.windows = ui->windows
     };
-    
+
     pthread_t ioThread;
     pthread_t uiThread;
 

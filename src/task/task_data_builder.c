@@ -124,6 +124,7 @@ UITask * build_refresh_task(Arena *taskArena)
 
 UITask * build_uptime_load_average_task(Arena *taskArena)
 {
+#if defined (__linux__)
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
 
@@ -135,6 +136,7 @@ UITask * build_uptime_load_average_task(Arena *taskArena)
 	task->next = NULL;
 
 	return task;
+#endif
 }
 
 UITask * build_print_time_task(Arena *taskArena)

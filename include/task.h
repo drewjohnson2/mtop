@@ -2,7 +2,10 @@
 #define TASK_H
 
 #include <arena.h>
+
+#ifdef __linux__
 #include <sys/sysinfo.h>
+#endif
 
 #include "thread_safe_queue.h"
 #include "mt_type_defs.h"

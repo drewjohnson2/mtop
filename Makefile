@@ -1,6 +1,14 @@
+UNAME_S := $(shell uname -s)
 CC = gcc
 CFLAGS = -Wall -Wextra -MMD -MP -std=c23 -D_GNU_SOURCE
-LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
+
+ifeq ($(UNAME_S),Linux)
+	LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
+	DEBUG_CFLAGS = -g -DDEBUG
+else ifeq ($(UNAME_S),Darwin)
+	LIBS = -lncurses -lpthread -L/usr/local/lib -larena
+	DEBUG_CFLAGS = -g -gdwarf-2 -O0 -DDEBUG
+endif
 
 SRC_DIRS = src src/window src/monitor src/thread src/util src/colors src/task
 OBJ_DIR = obj
@@ -20,7 +28,8 @@ install:
 	cp $(RC_FILES) $(RC_DIR)
 
 
-debug: CFLAGS += -g -DDEBUG
+
+debug: CFLAGS += $(DEBUG_CFLAGS)
 debug: $(BINARY)
 
 $(BINARY): $(OBJECTS) 	

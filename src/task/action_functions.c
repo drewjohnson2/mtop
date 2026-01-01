@@ -165,6 +165,7 @@ void refresh_action_fn(UIData *ui, void *ctx)
 
 void print_uptime_loadavg_fn(UIData *ui, void *ctx)
 {
+#if defined(__linux__)
 	LoadUptimeContext *context = (LoadUptimeContext *)ctx;
 	struct sysinfo info = context->info;
 	const WindowData *container = ui->windows[CONTAINER_WIN];
@@ -201,6 +202,7 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     const u8 uptimeX = (container->wWidth / 2) - (strlen(displayStr) / 2);
 
     PRINTFC(container->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
+#endif
 }
 
 void print_time_fn(UIData *ui, void *ctx)
@@ -212,7 +214,6 @@ void print_time_fn(UIData *ui, void *ctx)
     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &context->tmNow);
 
     PRINTFC(container->window, 0, container->wWidth - 10, "%s", timeBuf, MT_PAIR_TM);
-
 }
 
 void print_header_fn(UIData *ui, void *ctx)

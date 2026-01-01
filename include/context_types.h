@@ -1,7 +1,9 @@
 #ifndef CONTEXT_TYPES_H
 #define CONTEXT_TYPES_H
 
+#if defined (__linux__)
 #include <sys/sysinfo.h>
+#endif
 
 #include "monitor.h"
 #include "window.h"
@@ -39,11 +41,13 @@ typedef struct
     ProcessesSummary *curPrcs;
 } ResizeContext;
 
+#if defined (__linux__)
 typedef struct
 {
 	double load[3];
 	struct sysinfo info;
 } LoadUptimeContext;
+#endif
 
 typedef struct
 {

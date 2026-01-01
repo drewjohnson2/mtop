@@ -1,4 +1,8 @@
+#include <stdlib.h>
+#if defined (__linux__)
 #include <bits/time.h>
+#endif
+
 #include <ncurses.h>
 #include <pthread.h>
 #include <stddef.h>

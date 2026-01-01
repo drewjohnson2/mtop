@@ -1,5 +1,9 @@
 #include <arena.h>
+
+#ifdef __linux__
 #include <bits/time.h>
+#endif
+
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdlib.h>

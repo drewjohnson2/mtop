@@ -9,6 +9,7 @@ static void _parse_stat(volatile MemoryStats *stat, char *buffer);
 
 void mm_fetch_memory_stats(volatile MemoryStats *memStats)
 {
+#if defined (__linux__)
     FILE *f = fopen("/proc/meminfo", "r");
     char buffer[256];
 
@@ -18,6 +19,7 @@ void mm_fetch_memory_stats(volatile MemoryStats *memStats)
     }
     
     fclose(f);
+#endif
 }
 
 static void _parse_stat(volatile MemoryStats *stat, char *buffer)
