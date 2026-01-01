@@ -27,7 +27,7 @@ void mm_fetch_memory_stats(volatile MemoryStats *memStats)
         sysctlbyname("hw.memsize", &memTotal, &size, NULL, 0);
 
         memStats->memTotal = memTotal;
-        memStats->memFree = vmStat.free_count;
+        memStats->memFree = vmStat.free_count * pageSize;
         memStats->cachedMem = vmStat.inactive_count * pageSize;
     }
 }
