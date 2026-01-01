@@ -1,8 +1,5 @@
 #include <arena.h>
-
-#if defined (__linux__)
 #include <proc/readproc.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +14,6 @@ ProcessesSummary * pm_get_processes(
     int (*sortFn)(const void *, const void *)
 ) 
 {
-#if defined (__linux__)
     uid_t uid = getuid();
     
     if (procArena->regionsAllocated > MAX_PROC_REGIONS_ALLOCD)
@@ -79,13 +75,11 @@ ProcessesSummary * pm_get_processes(
     qsort(procStats->processes, procStats->count, sizeof(Process *), sortFn);
     
     return procStats;
-#endif
 }
 
 
 void pm_get_info_by_pid(u32 pid, Process *prc)
 {
-#if defined (__linux__)
     PROCTAB *proc = openproc(PROC_FILLSTAT | PROC_FILLSTATUS | PROC_FILLCOM);
 
     if (!proc) return;
@@ -118,5 +112,4 @@ void pm_get_info_by_pid(u32 pid, Process *prc)
     }
 
     closeproc(proc);
-#endif
 }

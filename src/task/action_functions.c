@@ -165,7 +165,7 @@ void refresh_action_fn(UIData *ui, void *ctx)
 
 void print_uptime_loadavg_fn(UIData *ui, void *ctx)
 {
-#if defined(__linux__)
+#if defined (__linux__)
 	LoadUptimeContext *context = (LoadUptimeContext *)ctx;
 	struct sysinfo info = context->info;
 	const WindowData *container = ui->windows[CONTAINER_WIN];

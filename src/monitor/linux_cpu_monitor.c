@@ -1,9 +1,6 @@
 #include <arena.h>
 #include <stdio.h>
-
-#if defined (__linux__)
 #include <proc/readproc.h>
-#endif
 
 #include "../../include/monitor.h"
 
@@ -11,7 +8,6 @@
 
 void cm_fetch_cpu_stats(CpuStats *stat) 
 {
-#if defined (__linux__)
     FILE *f = fopen("/proc/stat", "r");
     char buffer[512];
 
@@ -24,5 +20,4 @@ void cm_fetch_cpu_stats(CpuStats *stat)
     );
     
     fclose(f);
-#endif
 }

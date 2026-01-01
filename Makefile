@@ -10,12 +10,19 @@ else ifeq ($(UNAME_S),Darwin)
 	DEBUG_CFLAGS = -g -gdwarf-2 -O0 -DDEBUG
 endif
 
-SRC_DIRS = src src/window src/monitor src/thread src/util src/colors src/task
+SRC_DIRS = src src/window src/thread src/util src/colors src/task
 OBJ_DIR = obj
 RC_DIR = /usr/local/share/mtop
 RC_FILES = colors
 
 SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+
+ifeq ($(UNAME_S),Linux)
+	SOURCES += src/monitor/linux_cpu_monitor.c src/monitor/linux_mem_monitor.c src/monitor/linux_prc_monitor.c
+else ifeq ($(UNAME_S),Darwin)
+	SOURCES += src/monitor/apple_cpu_monitor.c src/monitor/apple_mem_monitor.c src/monitor/apple_prc_monitor.c
+endif
+
 OBJECTS = $(patsubst %.c,$(OBJ_DIR)/%.o,$(SOURCES))
 DEPS = $(OBJECTS:.o=.d)
 BINARY = mtop
@@ -26,8 +33,6 @@ install:
 	make && cp mtop /usr/bin
 	mkdir -p $(RC_DIR)
 	cp $(RC_FILES) $(RC_DIR)
-
-
 
 debug: CFLAGS += $(DEBUG_CFLAGS)
 debug: $(BINARY)
