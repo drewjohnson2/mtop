@@ -85,7 +85,7 @@ void run_io(
         }
 
 		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-		//BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+		BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
 		// BROKER_BUILD_TASK(
 		// 	tg,
 		// 	prcActive,
