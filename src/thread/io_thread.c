@@ -86,18 +86,18 @@ void run_io(
 
 		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
 		BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
-		// BROKER_BUILD_TASK(
-		// 	tg,
-		// 	prcActive,
-		// 	build_prc_task,
-		// 	&tg->a,
-		// 	listState,
-		// 	prevPrcs,
-		// 	curPrcs,
-		// 	memStats->memTotal
-		// );
+		BROKER_BUILD_TASK(
+			tg,
+			prcActive,
+			build_prc_task,
+			&tg->a,
+			listState,
+			prevPrcs,
+			curPrcs,
+			memStats->memTotal
+		);
 		// BROKER_BUILD_TASK(tg, RESIZE, build_resize_task, &tg->a, listState, curPrcs);
-		// BROKER_BUILD_TASK(tg, true, build_refresh_task, &tg->a);
+		BROKER_BUILD_TASK(tg, true, build_refresh_task, &tg->a);
 
 		broker_commit(&tg);
 		_copy_stats(prevStats, curStats);

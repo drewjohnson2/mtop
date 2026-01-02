@@ -1,14 +1,18 @@
 #include <ncurses.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #include "../../include/prc_list_util.h"
 #include "../../include/monitor.h"
 
 void plu_setup_list_state(ProcessListState *listState, ProcessesSummary *curPrcs, const WindowData *prcWin)
 {
+    assert(listState != NULL);
+
     listState->cmdBuffer = '\0';
     listState->timeoutActive = false;
     listState->pageStartIdx = 0;
-    listState->count = curPrcs->count;
+    listState->count = (s16)curPrcs->count;
     listState->pageSize = prcWin->wHeight - 5;
     listState->selectedIndex = listState->selectedIndex > listState->pageSize - 1 ?
 	listState->pageSize - 1 :
@@ -63,6 +67,6 @@ void plu_adjust_state(ProcessListState *state, ProcessesSummary *stats)
     plu_set_start_end_idx(state);
 
     state->selectedIndex = state->selectedIndex > state->count - 1 ?
-	state->count - 1 :
-	state->selectedIndex;
+	    state->count - 1 :
+	    state->selectedIndex;
 }

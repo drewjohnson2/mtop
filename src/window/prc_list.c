@@ -138,16 +138,16 @@ void print_stats(
     {
     	const u16 idx = i + state->pageStartIdx;
 
-		if (idx > state->count - 1) break;
+        if (idx > state->count - 1) break;
     
     	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
     
     	if (state->selectedIndex == idx)
     	{
-	    pair = MT_PAIR_PRC_SEL_TEXT;
+    	    pair = MT_PAIR_PRC_SEL_TEXT;
 
-	    for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
-			PRINTFC(win, posY, j, "%c", ' ', pair);
+	        for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
+			    PRINTFC(win, posY, j, "%c", ' ', pair);
     	}
     
     	SET_COLOR(win, pair);
