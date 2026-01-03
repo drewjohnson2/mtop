@@ -84,8 +84,8 @@ void run_io(
 		    _fetch_prc_info(listState); // see comment above func
         }
 
-		BROKER_BUILD_TASK(tg, handleCpu, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
-		BROKER_BUILD_TASK(tg, handleMem, build_mem_task, &tg->a, arenas->memPointArena, memStats);
+		BROKER_BUILD_TASK(tg, cpuActive, build_cpu_task, &tg->a, arenas->cpuPointArena, curStats, prevStats);
+		BROKER_BUILD_TASK(tg, memActive, build_mem_task, &tg->a, arenas->memPointArena, memStats);
 		BROKER_BUILD_TASK(
 			tg,
 			prcActive,
