@@ -2,10 +2,12 @@
 #include <unistd.h>
 #include <libproc.h>
 #include <sys/proc.h>
+#include <mach/mach_time.h>
 
 #include "../../include/monitor.h"
 
 #define MAX_PROC_REGIONS_ALLOCD 3
+#define TO_NS_DENOM 10000000
 
 static char _get_state(struct proc_bsdinfo taskInfo);
 
@@ -74,7 +76,7 @@ ProcessesSummary * pm_get_processes(
 
     qsort(procStats->processes, procStats->count, sizeof(Process *), sortFn);
 
-    procStats->cpuTimeAtSample = 10; // Update this.
+    procStats->cpuTimeAtSample = mach_absolute_time();
 
     return procStats;
 }

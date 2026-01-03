@@ -96,7 +96,7 @@ void run_io(
 			curPrcs,
 			memStats->memTotal
 		);
-		// BROKER_BUILD_TASK(tg, RESIZE, build_resize_task, &tg->a, listState, curPrcs);
+		BROKER_BUILD_TASK(tg, RESIZE, build_resize_task, &tg->a, listState, curPrcs);
 		BROKER_BUILD_TASK(tg, true, build_refresh_task, &tg->a);
 
 		broker_commit(&tg);

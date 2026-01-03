@@ -7,7 +7,7 @@
 
 #include "mt_type_defs.h"
 
-#define MAX_PROCS 150 
+#define MAX_PROCS 250 
 
 typedef struct
 {
@@ -106,7 +106,7 @@ typedef struct
 		pct = elapsedCpuTime > 0 ? 														\
 		    (procCpuTime / elapsedCpuTime) * 100 										\
 		    : 0; 																		\
-    } while(0)																			\
+    } while(0)																			
 
 #if defined (__linux__)
 static inline u64 cpu_time_now()
@@ -129,13 +129,6 @@ static inline u64 cpu_time_now()
     fclose(f);
     
     return user + nice + system + idle + ioWait + irq + softIrq + steal;
-}
-#endif
-
-#if defined (__APPLE__)
-static inline u64 cpu_time_now()
-{
-    return 1;
 }
 #endif
 

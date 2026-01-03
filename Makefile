@@ -5,9 +5,11 @@ CFLAGS = -Wall -Wextra -MMD -MP -std=c23 -D_GNU_SOURCE
 ifeq ($(UNAME_S),Linux)
 	LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
 	DEBUG_CFLAGS = -g -DDEBUG
+	BIN_DIR = /usr/bin
 else ifeq ($(UNAME_S),Darwin)
 	LIBS = -lncurses -lpthread -L/usr/local/lib -larena
 	DEBUG_CFLAGS = -g -gdwarf-2 -O0 -DDEBUG
+	BIN_DIR = /usr/local/bin
 endif
 
 SRC_DIRS = src src/window src/thread src/util src/colors src/task
@@ -30,7 +32,11 @@ BINARY = mtop
 all: $(BINARY)
 
 install:
-	make && cp mtop /usr/bin
+	make 
+ifeq ($(UNAME_S),Darwin)
+	mkdir -p $(BIN_DIR)
+endif
+	cp mtop $(BIN_DIR)
 	mkdir -p $(RC_DIR)
 	cp $(RC_FILES) $(RC_DIR)
 
