@@ -82,7 +82,25 @@ ProcessesSummary * pm_get_processes(
 }
 
 void pm_get_info_by_pid(u32 pid, Process *prc)
-{}
+{
+    struct proc_taskinfo taskInfo;
+    struct proc_bsdinfo bsdInfo;
+    
+    proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
+    proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsdInfo, sizeof(bsdInfo));
+
+    prc->threads = taskInfo.pti_threadnum;
+    prc->ppid = bsdInfo.pbi_ppid;
+    prc->vmRss = taskInfo.pti_resident_size;
+    prc->vmSize = taskInfo.pti_virtual_size;
+    prc->state = _get_state(bsdInfo);
+    prc->vmLock = 0;
+    prc->vmData = 0;
+    prc->vmStack = 0;
+    prc->vmSwap = 0;
+    prc->vmExe = 0;
+    prc->vmLib = 0;
+}
 
 static char _get_state(struct proc_bsdinfo taskInfo)
 {

@@ -109,7 +109,8 @@ void process_action_fn(UIData *ui, void *ctx)
 		    vd_find_by_pid_compare_fn
 		);
 
-		show_prc_info(*data, prcWin, winSelected);
+        if (data) show_prc_info(*data, prcWin, winSelected);
+        else listState->infoVisible = false;
     }
 
     wnoutrefresh(prcWin->window);
