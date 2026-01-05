@@ -1,6 +1,9 @@
 #include <arena.h>
 #include <stdlib.h>
 #include <unistd.h>
+#if defined (__APPLE__)
+#include <sys/sysctl.h>
+#endif
 
 #include "../../include/monitor.h"
 #include "../../include/task.h"
@@ -124,11 +127,25 @@ UITask * build_refresh_task(Arena *taskArena)
 
 UITask * build_uptime_load_average_task(Arena *taskArena)
 {
-#if defined (__linux__)
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
 
+#if defined (__linux__)
 	sysinfo(&ctx->info);
+#elif defined (__APPLE__)
+    struct timeval bootTime;
+    u64 uptimeSec = 1;
+    int mib[2] = { CTL_KERN, KERN_BOOTTIME };
+    size_t size = sizeof(bootTime);
+
+    if (sysctl(mib, 2, &bootTime, &size, NULL, 0) == 0)
+    {
+        uptimeSec = bootTime.tv_sec;
+    }
+
+    ctx->info = time(NULL) - uptimeSec;
+#endif
+
 	getloadavg(ctx->load, 3);
 
 	task->action = print_uptime_loadavg_fn;
@@ -136,11 +153,6 @@ UITask * build_uptime_load_average_task(Arena *taskArena)
 	task->next = NULL;
 
 	return task;
-#elif defined (__APPLE__)
-    return NULL;
-#else
-    return NULL;
-#endif
 }
 
 UITask * build_print_time_task(Arena *taskArena)

@@ -41,13 +41,15 @@ typedef struct
     ProcessesSummary *curPrcs;
 } ResizeContext;
 
-#if defined (__linux__)
 typedef struct
 {
 	double load[3];
+#if defined (__linux__)
 	struct sysinfo info;
-} LoadUptimeContext;
+#elif defined(__APPLE__)
+    time_t info;
 #endif
+} LoadUptimeContext;
 
 typedef struct
 {

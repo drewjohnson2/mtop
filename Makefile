@@ -8,7 +8,7 @@ ifeq ($(UNAME_S),Linux)
 	BIN_DIR = /usr/bin
 else ifeq ($(UNAME_S),Darwin)
 	LIBS = -lncurses -lpthread -L/usr/local/lib -larena
-	DEBUG_CFLAGS = -g -gdwarf-2 -O0 -DDEBUG
+	DEBUG_CFLAGS = -g -DDEBUG
 	BIN_DIR = /usr/local/bin
 endif
 

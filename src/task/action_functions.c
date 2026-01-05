@@ -166,11 +166,8 @@ void refresh_action_fn(UIData *ui, void *ctx)
 
 void print_uptime_loadavg_fn(UIData *ui, void *ctx)
 {
-    // move platform specific code to their own functions
-#if defined (__linux__)
 	LoadUptimeContext *context = (LoadUptimeContext *)ctx;
-	struct sysinfo info = context->info;
-	const WindowData *container = ui->windows[CONTAINER_WIN];
+    const WindowData *container = ui->windows[CONTAINER_WIN];
     u16 days;
     u64 uptime;
     u16 hours;
@@ -178,7 +175,14 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     u16 seconds;
     char displayStr[66];
 
-    uptime = info.uptime;
+#if defined (__linux__)
+	struct sysinfo info = context->info;
+
+    uptime = context->info.uptime;
+#elif defined (__APPLE__) 
+    uptime = context->info;
+#endif
+	
     days = uptime / 86400;
     uptime %= 86400;
     hours = uptime / 3600;
@@ -204,7 +208,6 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     const u8 uptimeX = (container->wWidth / 2) - (strlen(displayStr) / 2);
 
     PRINTFC(container->window, 0, uptimeX, "%s", displayStr, MT_PAIR_TM);
-#endif
 }
 
 void print_time_fn(UIData *ui, void *ctx)

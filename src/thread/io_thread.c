@@ -75,7 +75,7 @@ void run_io(
 		if (memActive) mm_fetch_memory_stats(memStats);
 
 		BROKER_BUILD_TASK(tg, true, build_input_task, &tg->a, listState);
-		// BROKER_BUILD_TASK(tg, true, build_uptime_load_average_task, &tg->a);
+		BROKER_BUILD_TASK(tg, true, build_uptime_load_average_task, &tg->a);
 		BROKER_BUILD_TASK(tg, true, build_print_time_task, &tg->a);
 
         if (prcActive)
