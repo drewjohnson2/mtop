@@ -176,8 +176,6 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     char displayStr[66];
 
 #if defined (__linux__)
-	struct sysinfo info = context->info;
-
     uptime = context->info.uptime;
 #elif defined (__APPLE__) 
     uptime = context->info;

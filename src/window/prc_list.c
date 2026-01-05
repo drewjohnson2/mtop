@@ -18,15 +18,15 @@
 #include "../../include/startup.h"
 #include "../../include/text.h"
 
-#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	\
-    do {											\
-		if (*y >= wd->wHeight - 4) 					\
-    	{											\
-    	    *y = 4;									\
-    	    *x = wd->wWidth / 2;					\
-    	}											\
-													\
-	PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
+#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	    \
+    do {											    \
+		if (*y >= wd->wHeight - 4) 					    \
+    	{											    \
+    	    *y = 4;									    \
+    	    *x = wd->wWidth / 2;					    \
+    	}											    \
+													    \
+	    PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
     } while (0)
 
 #define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 		\
@@ -41,6 +41,16 @@
 																\
 		PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
     } while (0)
+
+
+static void __print_linux_stats(
+    ProcessStatsViewData *vd,
+    const WindowData *wd,
+    const MT_Color_Pairs boxPair,
+    u8 posX,
+    u8 posY,
+    u8 valuePaddingLeft
+);
 
 void print_stats(
     ProcessListState *state,
@@ -256,6 +266,31 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
 		PRINTFC(wd->window, posY, x, "%c", '-', MT_PAIR_PRC_STAT_TBL_HEADER);
     }
 
+    __print_linux_stats(vd, wd, boxPair, posX, posY, valuePaddingLeft);
+
+    box(wd->window, 0, 0);
+
+    PRINTFC(
+		wd->window,
+		windowTitleY,
+		windowTitleX,
+		" %s ",
+		"Process Status",
+		MT_PAIR_PRC_HEADER
+    );
+
+    a_free(&scratch);
+}
+
+static void __print_linux_stats(
+    ProcessStatsViewData *vd,
+    const WindowData *wd,
+    const MT_Color_Pairs boxPair,
+    u8 posX,
+    u8 posY,
+    u8 valuePaddingLeft
+)
+{
     posY++;
 
     wattron(wd->window, A_BOLD);
@@ -303,16 +338,4 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", text(TXT_RET_LIST), MT_PAIR_CTRL_TXT);
     SET_COLOR(wd->window, boxPair);
 
-    box(wd->window, 0, 0);
-
-    PRINTFC(
-		wd->window,
-		windowTitleY,
-		windowTitleX,
-		" %s ",
-		"Process Status",
-		MT_PAIR_PRC_HEADER
-    );
-
-    a_free(&scratch);
 }
