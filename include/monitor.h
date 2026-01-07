@@ -20,12 +20,21 @@ typedef struct
     u64 stime;
     u64 vmRss;
     u64 vmSize;
+#if defined (__linux__)
     u64 vmLock;
     u64 vmData;
     u64 vmStack;
     u64 vmSwap;
     u64 vmExe;
     u64 vmLib;
+#elif defined (__APPLE__)
+    s32 sysCallsMach;
+    s32 sysCallsUnix;
+    s32 priority;
+    s32 faults;
+    s32 messagesSent;
+    s32 messagesReceived;
+#endif
 } Process;
 
 typedef struct

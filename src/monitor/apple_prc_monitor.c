@@ -45,31 +45,35 @@ ProcessesSummary * pm_get_processes(
         if (procStats->count > MAX_PROCS - 1) break;
 
         Process **item = &procStats->processes[procStats->count];
-        struct proc_taskinfo taskInfo;
-        struct proc_bsdinfo bsdInfo;
+        struct proc_taskallinfo taskInfo;
 
-        proc_pidinfo(pids[i], PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
-        proc_pidinfo(pids[i], PROC_PIDTBSDINFO, 0, &bsdInfo, sizeof(bsdInfo));
+        proc_pidinfo(pids[i], PROC_PIDTASKALLINFO, 0, &taskInfo, sizeof(taskInfo));
 
-        if (bsdInfo.pbi_uid != uid) continue;
+        if (taskInfo.pbsd.pbi_uid != uid) continue;
 
         (*item) = a_alloc(procArena, sizeof(Process), __alignof(Process));
 
-        strncpy((*item)->procName, bsdInfo.pbi_name, sizeof((*item)->procName) - 1);
-        (*item)->ppid = bsdInfo.pbi_ppid;
+        strncpy((*item)->procName, taskInfo.pbsd.pbi_name, sizeof((*item)->procName) - 1);
+        (*item)->ppid = taskInfo.pbsd.pbi_ppid;
         (*item)->pid = pids[i];
-        (*item)->utime = taskInfo.pti_total_user;
-        (*item)->stime = taskInfo.pti_total_system;
-        (*item)->vmRss = taskInfo.pti_resident_size;
-        (*item)->vmSize = taskInfo.pti_virtual_size;
-        (*item)->threads = taskInfo.pti_threadnum;
-        (*item)->state = _get_state(bsdInfo);
-        (*item)->vmLock = 0;
-        (*item)->vmSwap = 0;
-        (*item)->vmData = 0;
-        (*item)->vmStack = 0;
-        (*item)->vmExe = 0;
-        (*item)->vmLib = 0;
+        (*item)->utime = taskInfo.ptinfo.pti_total_user;
+        (*item)->stime = taskInfo.ptinfo.pti_total_system;
+        (*item)->vmRss = taskInfo.ptinfo.pti_resident_size;
+        (*item)->vmSize = taskInfo.ptinfo.pti_virtual_size;
+        (*item)->threads = taskInfo.ptinfo.pti_threadnum;
+        (*item)->state = _get_state(taskInfo.pbsd);
+        (*item)->sysCallsMach = taskInfo.ptinfo.pti_syscalls_mach;
+        (*item)->sysCallsUnix = taskInfo.ptinfo.pti_syscalls_unix;
+        (*item)->priority = taskInfo.ptinfo.pti_priority;
+        (*item)->faults = taskInfo.ptinfo.pti_faults;
+        (*item)->messagesSent = taskInfo.ptinfo.pti_messages_sent;
+        (*item)->messagesReceived = taskInfo.ptinfo.pti_messages_received;
+        // (*item)->vmLock = 0;
+        // (*item)->vmSwap = 0;
+        // (*item)->vmData = 0;
+        // (*item)->vmStack = 0;
+        // (*item)->vmExe = 0;
+        // (*item)->vmLib = 0;
 
         procStats->count++;
     }
@@ -83,23 +87,21 @@ ProcessesSummary * pm_get_processes(
 
 void pm_get_info_by_pid(u32 pid, Process *prc)
 {
-    struct proc_taskinfo taskInfo;
-    struct proc_bsdinfo bsdInfo;
-    
-    proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
-    proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsdInfo, sizeof(bsdInfo));
+    struct proc_taskallinfo taskInfo;
 
-    prc->threads = taskInfo.pti_threadnum;
-    prc->ppid = bsdInfo.pbi_ppid;
-    prc->vmRss = taskInfo.pti_resident_size;
-    prc->vmSize = taskInfo.pti_virtual_size;
-    prc->state = _get_state(bsdInfo);
-    prc->vmLock = 0;
-    prc->vmData = 0;
-    prc->vmStack = 0;
-    prc->vmSwap = 0;
-    prc->vmExe = 0;
-    prc->vmLib = 0;
+    proc_pidinfo(pid, PROC_PIDTASKALLINFO, 0, &taskInfo, sizeof(taskInfo));
+
+    prc->threads = taskInfo.ptinfo.pti_threadnum;
+    prc->ppid = taskInfo.pbsd.pbi_ppid;
+    prc->vmRss = taskInfo.ptinfo.pti_resident_size;
+    prc->vmSize = taskInfo.ptinfo.pti_virtual_size;
+    prc->state = _get_state(taskInfo.pbsd);
+    prc->sysCallsMach = taskInfo.ptinfo.pti_syscalls_mach;
+    prc->sysCallsUnix = taskInfo.ptinfo.pti_syscalls_unix;
+    prc->priority = taskInfo.ptinfo.pti_priority;
+    prc->faults = taskInfo.ptinfo.pti_faults;
+    prc->messagesSent = taskInfo.ptinfo.pti_messages_sent;
+    prc->messagesReceived = taskInfo.ptinfo.pti_messages_received;
 }
 
 static char _get_state(struct proc_bsdinfo taskInfo)
