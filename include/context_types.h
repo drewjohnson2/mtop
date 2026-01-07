@@ -44,11 +44,7 @@ typedef struct
 typedef struct
 {
 	double load[3];
-#if defined (__linux__)
-	struct sysinfo info;
-#elif defined(__APPLE__)
-    time_t info;
-#endif
+    time_t uptime;
 } LoadUptimeContext;
 
 typedef struct

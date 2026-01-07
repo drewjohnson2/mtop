@@ -20,9 +20,9 @@ RC_FILES = colors
 SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 ifeq ($(UNAME_S),Linux)
-	SOURCES += src/monitor/linux_cpu_monitor.c src/monitor/linux_mem_monitor.c src/monitor/linux_prc_monitor.c
+	SOURCES += src/monitor/linux_cpu_monitor.c src/monitor/linux_mem_monitor.c src/monitor/linux_prc_monitor.c src/platform/linux_helper_functions.c
 else ifeq ($(UNAME_S),Darwin)
-	SOURCES += src/monitor/apple_cpu_monitor.c src/monitor/apple_mem_monitor.c src/monitor/apple_prc_monitor.c
+	SOURCES += src/monitor/apple_cpu_monitor.c src/monitor/apple_mem_monitor.c src/monitor/apple_prc_monitor.c src/platform/apple_helper_functions.c
 endif
 
 OBJECTS = $(patsubst %.c,$(OBJ_DIR)/%.o,$(SOURCES))

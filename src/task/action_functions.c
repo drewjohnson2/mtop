@@ -175,11 +175,7 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     u16 seconds;
     char displayStr[66];
 
-#if defined (__linux__)
-    uptime = context->info.uptime;
-#elif defined (__APPLE__) 
-    uptime = context->info;
-#endif
+    uptime = context->uptime;
 	
     days = uptime / 86400;
     uptime %= 86400;

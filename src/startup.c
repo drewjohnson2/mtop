@@ -8,6 +8,10 @@
 #include <unistd.h>
 #include <signal.h>
 
+#if defined (__APPLE__)
+#include <sys/sysctl.h>
+#endif
+
 #include "../include/startup.h"
 #include "../include/monitor.h"
 #include "../include/thread_safe_queue.h"
@@ -116,6 +120,23 @@ void run(int argc, char **argv)
     mtopSettings->activeWindows[MEMORY_WIN] = false;
     mtopSettings->activeWindows[PRC_WIN] = false;
 
+#if defined (__linux__)
+    struct sysinfo info;
+
+    if (sysinfo(&info) == 0)
+    {
+        mtopSettings->bootTimeSec = time(NULL) - info.uptime;
+    }
+#elif defined (__APPLE__)
+    struct timeval bootTime;
+    int mib[2] = { CTL_KERN, KERN_BOOTTIME };
+    size_t size = sizeof(bootTime);
+
+    if (sysctl(mib, 2, &bootTime, &size, NULL, 0) == 0)
+    {
+        mtopSettings->bootTimeSec = bootTime.tv_sec;
+    }
+#endif
 
     static struct option long_options[] = 
 	{

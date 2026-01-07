@@ -130,21 +130,7 @@ UITask * build_uptime_load_average_task(Arena *taskArena)
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
 
-#if defined (__linux__)
-	sysinfo(&ctx->info);
-#elif defined (__APPLE__)
-    struct timeval bootTime;
-    u64 uptimeSec = 1;
-    int mib[2] = { CTL_KERN, KERN_BOOTTIME };
-    size_t size = sizeof(bootTime);
-
-    if (sysctl(mib, 2, &bootTime, &size, NULL, 0) == 0)
-    {
-        uptimeSec = bootTime.tv_sec;
-    }
-
-    ctx->info = time(NULL) - uptimeSec;
-#endif
+    ctx->uptime = time(NULL) - mtopSettings->bootTimeSec;
 
 	getloadavg(ctx->load, 3);
 

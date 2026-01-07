@@ -1,0 +1,68 @@
+#include "../../include/text.h"
+#include "../../include/helpers.h"
+
+void platform_print_fields(
+    ProcessStatsViewData *vd,
+    const WindowData *wd,
+    const MT_Color_Pairs boxPair,
+    u8 posX,
+    u8 posY
+)
+{
+    const u8 valuePaddingLeft = 20;
+
+    wattron(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY, posX, "%s", text(TXT_CPU_PCT_COL), MT_PAIR_PRC_STAT_NM);
+    wattroff(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->cpuPercentage,
+	    MT_PAIR_PRC_STAT_VAL);
+
+    wattron(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY, posX, "%s", text(TXT_MEM_PCT_COL), MT_PAIR_PRC_STAT_NM);
+    wattroff(wd->window, A_BOLD);
+    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->memPercentage,
+	    MT_PAIR_PRC_STAT_VAL);
+
+    wattron(wd->window, A_BOLD);
+
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_STATE), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_THREADS), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_PPID), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMRSS), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSIZE), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_SYS_CALLS_MACH), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_SYS_CALLS_UNIX), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_PRIORITY), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_FAULTS), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_MSG_SENT), MT_PAIR_PRC_STAT_NM);
+    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_MSG_RECV), MT_PAIR_PRC_STAT_NM);
+
+    wattroff(wd->window, A_BOLD);
+
+    posY = 6;
+
+    PRINT_VALUEFC(wd, &posY, &posX, "%c", vd->state, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%d", vd->threads, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%hu", vd->ppid, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmRss, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSize, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->sysCallsMach, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->sysCallsUnix, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->priority, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->faults, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->messagesSent, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINT_VALUEFC(wd, &posY, &posX, "%lu", vd->messagesReceived, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
+    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", text(TXT_RET_LIST_CTRL), MT_PAIR_CTRL);
+    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", text(TXT_RET_LIST), MT_PAIR_CTRL_TXT);
+    SET_COLOR(wd->window, boxPair);
+}
+
+void platform_set_vd(ProcessStatsViewData *vd, Process *cur)
+{
+    vd->sysCallsMach = cur->sysCallsMach;
+    vd->sysCallsUnix = cur->sysCallsUnix;
+    vd->priority = cur->priority;
+    vd->faults = cur->faults;
+    vd->messagesSent = cur->messagesSent;
+    vd->messagesReceived = cur->messagesReceived;
+}
