@@ -1,5 +1,5 @@
-#include "../../../include/text.h"
-#include "../../../include/helpers.h"
+#include "../../include/text.h"
+#include "../../include/helpers.h"
 
 void platform_print_fields(
     ProcessStatsViewData *vd,
@@ -59,10 +59,10 @@ void platform_print_fields(
 
 void platform_set_vd(ProcessStatsViewData *vd, Process *cur)
 {
-    vd[i]->vmLock = cur->vmLock;
-    vd[i]->vmData = cur->vmData;
-    vd[i]->vmStack = cur->vmStack;
-    vd[i]->vmSwap = cur->vmSwap;
-    vd[i]->vmExe = cur->vmExe;
-    vd[i]->vmLib = cur->vmLib;
+    vd->vmLock = cur->vmLock;
+    vd->vmData = cur->vmData;
+    vd->vmStack = cur->vmStack;
+    vd->vmSwap = cur->vmSwap;
+    vd->vmExe = cur->vmExe;
+    vd->vmLib = cur->vmLib;
 }
