@@ -1,17 +1,6 @@
 UNAME_S := $(shell uname -s)
 CC = gcc
 CFLAGS = -Wall -Wextra -MMD -MP -std=c23 -D_GNU_SOURCE
-
-ifeq ($(UNAME_S),Linux)
-	LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
-	DEBUG_CFLAGS = -g -DDEBUG
-	BIN_DIR = /usr/bin
-else ifeq ($(UNAME_S),Darwin)
-	LIBS = -lncurses -lpthread -L/usr/local/lib -larena
-	DEBUG_CFLAGS = -g -DDEBUG
-	BIN_DIR = /usr/local/bin
-endif
-
 SRC_DIRS = src src/window src/thread src/util src/colors src/task
 OBJ_DIR = obj
 RC_DIR = /usr/local/share/mtop
@@ -20,9 +9,15 @@ RC_FILES = colors
 SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 ifeq ($(UNAME_S),Linux)
-	SOURCES += src/monitor/linux_cpu_monitor.c src/monitor/linux_mem_monitor.c src/monitor/linux_prc_monitor.c src/platform/linux_helper_functions.c
+	LIBS = -lncurses -lpthread -L/usr/lib -larena -lprocps
+	DEBUG_CFLAGS = -g -DDEBUG
+	BIN_DIR = /usr/bin
+	SOURCES += $(wildcard src/monitor/linux_*.c src/platform/linux_*.c)
 else ifeq ($(UNAME_S),Darwin)
-	SOURCES += src/monitor/apple_cpu_monitor.c src/monitor/apple_mem_monitor.c src/monitor/apple_prc_monitor.c src/platform/apple_helper_functions.c
+	LIBS = -lncurses -lpthread -L/usr/local/lib -larena
+	DEBUG_CFLAGS = -g -DDEBUG
+	BIN_DIR = /usr/local/bin
+	SOURCES += $(wildcard src/monitor/apple_*.c src/platform/apple_*.c)
 endif
 
 OBJECTS = $(patsubst %.c,$(OBJ_DIR)/%.o,$(SOURCES))
