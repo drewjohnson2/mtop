@@ -30,30 +30,6 @@
 		UNSET_COLOR(win, pair); 			\
     } while (0)
 
-#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	    \
-    do {											    \
-		if (*y >= wd->wHeight - 4) 					    \
-    	{											    \
-    	    *y = 4;									    \
-    	    *x = wd->wWidth / 2;					    \
-    	}											    \
-													    \
-	    PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
-    } while (0)
-
-#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 		\
-    do {														\
-		if (*y >= wd->wHeight - 4) 								\
-    	{														\
-    		*y = 4;												\
-    		*x = wd->wWidth / 2;								\
-    	}														\
-																\
-		u8 valuePos = padding + *x + 2;							\
-																\
-		PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
-    } while (0)
-
 #define FLOAT_WIN_DEFAULT_W(container) container->wWidth / 4
 #define FLOAT_WIN_DEFAULT_H(container) container->wHeight / 3
 #define MIN_UTIL_WIN_WIDTH 55

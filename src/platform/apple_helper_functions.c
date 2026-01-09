@@ -1,6 +1,31 @@
 #include "../../include/text.h"
 #include "../../include/helpers.h"
 
+#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	    \
+    do {											    \
+		if (*y >= wd->wHeight - 4) 					    \
+    	{											    \
+    	    *y = 4;									    \
+    	    *x = wd->wWidth / 2;					    \
+    	}											    \
+													    \
+	    PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
+    } while (0)
+
+#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 		\
+    do {														\
+		if (*y >= wd->wHeight - 4) 								\
+    	{														\
+    		*y = 4;												\
+    		*x = wd->wWidth / 2;								\
+    	}														\
+																\
+		u8 valuePos = padding + *x + 2;							\
+																\
+		PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
+    } while (0)
+
+
 void platform_print_fields(
     ProcessStatsViewData *vd,
     const WindowData *wd,
