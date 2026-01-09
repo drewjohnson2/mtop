@@ -1,6 +1,9 @@
 #include <arena.h>
 #include <stdlib.h>
 #include <unistd.h>
+#if defined (__APPLE__)
+#include <sys/sysctl.h>
+#endif
 
 #include "../../include/monitor.h"
 #include "../../include/task.h"
@@ -127,7 +130,8 @@ UITask * build_uptime_load_average_task(Arena *taskArena)
     UITask *task = a_alloc(taskArena, sizeof(UITask), __alignof(UITask));
 	LoadUptimeContext *ctx = a_alloc(taskArena, sizeof(LoadUptimeContext), __alignof(LoadUptimeContext));
 
-	sysinfo(&ctx->info);
+    ctx->uptime = time(NULL) - mtopSettings->bootTimeSec;
+
 	getloadavg(ctx->load, 3);
 
 	task->action = print_uptime_loadavg_fn;

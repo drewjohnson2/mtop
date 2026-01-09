@@ -29,6 +29,7 @@ typedef struct
     u8 activeWindows[4];
     u8 transparencyEnabled;
     u8 activeWindowCount;
+    u64 bootTimeSec;    // I honestly don't know if this is the best place for this, maybe a global?
     Layout layout;
     LayoutOrientation orientation;
 } Settings;

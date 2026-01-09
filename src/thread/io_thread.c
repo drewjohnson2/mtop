@@ -1,4 +1,7 @@
+#if defined (__linux__)
 #include <bits/time.h>
+#endif
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>

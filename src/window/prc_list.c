@@ -1,5 +1,11 @@
 #include <arena.h>
+
+#ifdef __linux__
 #include <bits/time.h>
+#endif
+
+#include "../../include/helpers.h"
+
 #include <ncurses.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -13,30 +19,6 @@
 #include "../../include/sorting.h"
 #include "../../include/startup.h"
 #include "../../include/text.h"
-
-#define PRINT_TITLEFC(wd, y, x, fmt, val, pair) 	\
-    do {											\
-		if (*y >= wd->wHeight - 4) 					\
-    	{											\
-    	    *y = 4;									\
-    	    *x = wd->wWidth / 2;					\
-    	}											\
-													\
-	PRINTFC(wd->window, (*y)++, *x, fmt, val, pair);\
-    } while (0)
-
-#define PRINT_VALUEFC(wd, y, x, fmt, val, padding, pair) 		\
-    do {														\
-		if (*y >= wd->wHeight - 4) 								\
-    	{														\
-    		*y = 4;												\
-    		*x = wd->wWidth / 2;								\
-    	}														\
-																\
-		u8 valuePos = padding + *x + 2;							\
-																\
-		PRINTFC(wd->window, (*y)++, valuePos, fmt, val, pair);	\
-    } while (0)
 
 void print_stats(
     ProcessListState *state,
@@ -134,16 +116,16 @@ void print_stats(
     {
     	const u16 idx = i + state->pageStartIdx;
 
-		if (idx > state->count - 1) break;
+        if (idx > state->count - 1) break;
     
     	MT_Color_Pairs pair = MT_PAIR_PRC_UNSEL_TEXT;
     
     	if (state->selectedIndex == idx)
     	{
-	    pair = MT_PAIR_PRC_SEL_TEXT;
+    	    pair = MT_PAIR_PRC_SEL_TEXT;
 
-	    for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
-			PRINTFC(win, posY, j, "%c", ' ', pair);
+	        for (size_t j = dataOffsetX; j < (size_t)(wd->wWidth - dataOffsetX); j++)
+			    PRINTFC(win, posY, j, "%c", ' ', pair);
     	}
     
     	SET_COLOR(win, pair);
@@ -212,12 +194,8 @@ void set_prc_view_data(
 		vd[i]->threads = cur->threads;
 		vd[i]->vmRss = cur->vmRss;
 		vd[i]->vmSize = cur->vmSize;
-		vd[i]->vmLock = cur->vmLock;
-		vd[i]->vmData = cur->vmData;
-		vd[i]->vmStack = cur->vmStack;
-		vd[i]->vmSwap = cur->vmSwap;
-		vd[i]->vmExe = cur->vmExe;
-		vd[i]->vmLib = cur->vmLib;
+
+        platform_set_vd(vd[i], cur);
     }
 }
 
@@ -227,7 +205,6 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
     const u8 windowTitleY = 0;
     const u8 windowTitleX = 3;
     const u8 dataOffsetX = 2;
-    const u8 valuePaddingLeft = 10;
     const MT_Color_Pairs boxPair = winSelected ? MT_PAIR_SEL_WIN : MT_PAIR_BOX;
     char prcInfoHeader[50];
     u8 posY = 2;
@@ -254,50 +231,7 @@ void show_prc_info(ProcessStatsViewData *vd, const WindowData *wd, u8 winSelecte
 
     posY++;
 
-    wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", text(TXT_CPU_PCT_COL), MT_PAIR_PRC_STAT_NM);
-    wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->cpuPercentage,
-	    MT_PAIR_PRC_STAT_VAL);
-
-    wattron(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY, posX, "%s", text(TXT_MEM_PCT_COL), MT_PAIR_PRC_STAT_NM);
-    wattroff(wd->window, A_BOLD);
-    PRINTFC(wd->window, posY++, valuePaddingLeft + posX + 2, "%.2f", vd->memPercentage,
-	    MT_PAIR_PRC_STAT_VAL);
-
-    wattron(wd->window, A_BOLD);
-
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_STATE), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_THREADS), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_PPID), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMRSS), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSIZE), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMLOCK), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMDATA), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSTACK), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMSWAP), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMEXE), MT_PAIR_PRC_STAT_NM);
-    PRINT_TITLEFC(wd, &posY, &posX, "%s\t", text(TXT_VMLIB), MT_PAIR_PRC_STAT_NM);
-
-    wattroff(wd->window, A_BOLD);
-
-    posY = 6;
-
-    PRINT_VALUEFC(wd, &posY, &posX, "%c", vd->state, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%d", vd->threads, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%hu", vd->ppid, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmRss, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSize, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLock, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmData, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmStack, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmSwap, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmExe, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINT_VALUEFC(wd, &posY, &posX, "%lu kB", vd->vmLib, valuePaddingLeft, MT_PAIR_PRC_STAT_VAL);
-    PRINTFC(wd->window, wd->wHeight - 2, 3, "%s", text(TXT_RET_LIST_CTRL), MT_PAIR_CTRL);
-    PRINTFC(wd->window, wd->wHeight - 2, 5, "%s", text(TXT_RET_LIST), MT_PAIR_CTRL_TXT);
-    SET_COLOR(wd->window, boxPair);
+    platform_print_fields(vd, wd, boxPair, posX, posY);
 
     box(wd->window, 0, 0);
 

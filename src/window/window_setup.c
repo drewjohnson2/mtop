@@ -4,8 +4,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __linux__
 #include <linux/kernel.h>
 #include <sys/sysinfo.h>
+#endif
 
 #include "../../include/window.h"
 #include "../../include/startup.h"

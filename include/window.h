@@ -122,25 +122,34 @@ typedef struct
     u64 stime;
     u64 vmRss;
     u64 vmSize;
+#if defined (__linux__)
     u64 vmLock;
     u64 vmData;
     u64 vmStack;
     u64 vmSwap;
     u64 vmExe;
     u64 vmLib;
+#elif defined (__APPLE__)
+    s32 sysCallsMach;
+    s32 sysCallsUnix;
+    s32 priority;
+    s32 faults;
+    s32 messagesSent;
+    s32 messagesReceived;
+#endif
 } ProcessStatsViewData;
 
 typedef struct
 {
-    s8 selectedIndex;
-    s8 pageStartIdx;
-    s8 pageEndIdx;
-    s8 count;
-    u8 totalPages;
-    u8 activePage;
-    u8 pageSize;
-    s8 timeoutActive;
-    u8 infoVisible;
+    s16 selectedIndex;
+    s16 pageStartIdx;
+    s16 pageEndIdx;
+    u16 totalPages;
+    u16 activePage;
+    u16 pageSize;
+    s16 timeoutActive;
+    u16 infoVisible;
+    s16 count;
     u32 selectedPid;
     char cmdBuffer;
     SortOrder sortOrder;

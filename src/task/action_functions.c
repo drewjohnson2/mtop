@@ -109,7 +109,8 @@ void process_action_fn(UIData *ui, void *ctx)
 		    vd_find_by_pid_compare_fn
 		);
 
-		show_prc_info(*data, prcWin, winSelected);
+        if (data) show_prc_info(*data, prcWin, winSelected);
+        else listState->infoVisible = false;
     }
 
     wnoutrefresh(prcWin->window);
@@ -166,8 +167,7 @@ void refresh_action_fn(UIData *ui, void *ctx)
 void print_uptime_loadavg_fn(UIData *ui, void *ctx)
 {
 	LoadUptimeContext *context = (LoadUptimeContext *)ctx;
-	struct sysinfo info = context->info;
-	const WindowData *container = ui->windows[CONTAINER_WIN];
+    const WindowData *container = ui->windows[CONTAINER_WIN];
     u16 days;
     u64 uptime;
     u16 hours;
@@ -175,7 +175,8 @@ void print_uptime_loadavg_fn(UIData *ui, void *ctx)
     u16 seconds;
     char displayStr[66];
 
-    uptime = info.uptime;
+    uptime = context->uptime;
+	
     days = uptime / 86400;
     uptime %= 86400;
     hours = uptime / 3600;
@@ -212,7 +213,6 @@ void print_time_fn(UIData *ui, void *ctx)
     strftime(timeBuf, sizeof(timeBuf), "%H:%M:%S", &context->tmNow);
 
     PRINTFC(container->window, 0, container->wWidth - 10, "%s", timeBuf, MT_PAIR_TM);
-
 }
 
 void print_header_fn(UIData *ui, void *ctx)
