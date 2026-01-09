@@ -68,12 +68,6 @@ ProcessesSummary * pm_get_processes(
         (*item)->faults = taskInfo.ptinfo.pti_faults;
         (*item)->messagesSent = taskInfo.ptinfo.pti_messages_sent;
         (*item)->messagesReceived = taskInfo.ptinfo.pti_messages_received;
-        // (*item)->vmLock = 0;
-        // (*item)->vmSwap = 0;
-        // (*item)->vmData = 0;
-        // (*item)->vmStack = 0;
-        // (*item)->vmExe = 0;
-        // (*item)->vmLib = 0;
 
         procStats->count++;
     }
